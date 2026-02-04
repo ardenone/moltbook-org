@@ -183,9 +183,55 @@ kubectl auth whoami
 
 ---
 
-**Last Updated:** 2026-02-04 22:31 UTC
+**Last Updated:** 2026-02-04 22:45 UTC
 **Verified by:** mo-y5o (zai-bravo worker, GLM-4.7)
 **Status:** BLOCKED - Awaiting cluster-admin action to apply ARGOCD_SETUP_REQUEST.yml
+
+---
+
+## Latest Update (2026-02-04 22:45 UTC)
+
+### Re-verification of Blocker
+
+The RBAC blocker was re-verified. Attempted to apply `ARGOCD_SETUP_REQUEST.yml` from devpod:
+
+```bash
+$ kubectl apply -f cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml
+Error from server (Forbidden): clusterroles.rbac.authorization.k8s.io is forbidden:
+User "system:serviceaccount:devpod:default" cannot create resource "clusterroles"
+
+Error from server (Forbidden): clusterrolebindings.rbac.authorization.k8s.io is forbidden:
+User "system:serviceaccount:devpod:default" cannot create resource "clusterrolebindings"
+
+Error from server (Forbidden): namespaces is forbidden:
+User "system:serviceaccount:devpod:default" cannot create resource "namespaces"
+```
+
+### Existing Infrastructure Found
+
+- `argocd-manager-role` ClusterRole exists with cluster-admin permissions
+- `argocd-manager-role-binding` ClusterRoleBinding exists
+- BUT: Bound to `argocd-manager` SA in `kube-system` namespace (NOT devpod's `default` SA)
+
+This confirms that a **cluster-admin** must apply the RBAC setup. The devpod ServiceAccount cannot self-elevate or create cluster-scoped resources.
+
+### Action Required
+
+**Cluster-admin must run:**
+```bash
+kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml
+```
+
+This will:
+1. Create `argocd-installer` ClusterRole
+2. Create `devpod-argocd-installer` ClusterRoleBinding (binds to devpod:default SA)
+3. Create `argocd` namespace
+
+After this is applied, from devpod run:
+```bash
+kubectl apply -n argocd -f cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
+kubectl apply -f k8s/argocd-application.yml
+```
 
 ---
 
@@ -206,3 +252,34 @@ kubectl auth whoami
 
 ### Installation Readiness
 All preparation work is COMPLETE. The only remaining blocker is cluster-admin RBAC application.
+
+---
+
+## Latest Update (2026-02-04 22:36 UTC)
+
+### Additional Findings: External ArgoCD Available
+
+**Discovery:** An external ArgoCD server is operational at `argocd-manager.ardenone.com`.
+
+```bash
+$ curl -sk https://argocd-manager.ardenone.com/healthz
+ok
+```
+
+**Implications:**
+- Local ArgoCD installation requires cluster-admin (BLOCKED)
+- External ArgoCD is healthy and available
+- The `argocd-proxy` deployment is running in devpod namespace (confirmed via kubectl)
+- Path forward option: Use external ArgoCD instead of local installation
+
+**Action Bead Status:**
+| Bead ID | Priority | Status | Description |
+|---------|----------|--------|-------------|
+| mo-21sg | P0 | OPEN | CRITICAL: Grant cluster-admin to devpod ServiceAccount for ArgoCD installation |
+| mo-3viq | P0 | OPEN | Fix: Apply argocd-installer RBAC and install ArgoCD |
+
+**Decision Point:**
+- **Option A:** Wait for cluster-admin action (mo-21sg) to install ArgoCD locally
+- **Option B:** Use external ArgoCD at `argocd-manager.ardenone.com` (requires different setup)
+
+The current task (mo-y5o) is specifically about installing ArgoCD locally, which remains BLOCKED until mo-21sg is completed.
