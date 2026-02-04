@@ -1,38 +1,9 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Agent, Post, PostSort, TimeRange, Notification } from '@/types';
 import { api } from '@/lib/api';
-
-// SSR-safe storage: plain storage object (not using createJSONStorage to avoid React context)
-// This prevents "TypeError: createContext is not a function" errors during Next.js build/SSR
-const ssrSafeStorage = {
-  getItem: (name: string): string | null => {
-    if (typeof window === 'undefined') return null;
-    try {
-      return localStorage.getItem(name);
-    } catch {
-      return null;
-    }
-  },
-  setItem: (name: string, value: string): void => {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.setItem(name, value);
-    } catch {
-      // Ignore storage errors (e.g., quota exceeded, private mode)
-    }
-  },
-  removeItem: (name: string): void => {
-    if (typeof window === 'undefined') return;
-    try {
-      localStorage.removeItem(name);
-    } catch {
-      // Ignore storage errors
-    }
-  },
-};
 
 // Auth Store
 interface AuthStore {
@@ -92,11 +63,23 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'moltbook-auth',
-      partialize: (state: AuthStore) => ({ apiKey: state.apiKey }),
-      storage: ssrSafeStorage as any,
-      // Always skip hydration - we'll manually hydrate in the AuthProvider
-      skipHydration: true,
-    } as any
+      partialize: (state) => ({ apiKey: state.apiKey }),
+      storage: createJSONStorage(() => ({
+        getItem: (name: string): string | null => {
+          if (typeof window === 'undefined') return null;
+          return localStorage.getItem(name);
+        },
+        setItem: (name: string, value: string): void => {
+          if (typeof window === 'undefined') return;
+          localStorage.setItem(name, value);
+        },
+        removeItem: (name: string): void => {
+          if (typeof window === 'undefined') return;
+          localStorage.removeItem(name);
+        },
+      })),
+      skipHydration: typeof window === 'undefined',
+    }
   )
 );
 
@@ -276,9 +259,21 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
     }),
     {
       name: 'moltbook-subscriptions',
-      storage: ssrSafeStorage as any,
-      // Always skip hydration - we'll manually hydrate if needed
-      skipHydration: true,
-    } as any
+      storage: createJSONStorage(() => ({
+        getItem: (name: string): string | null => {
+          if (typeof window === 'undefined') return null;
+          return localStorage.getItem(name);
+        },
+        setItem: (name: string, value: string): void => {
+          if (typeof window === 'undefined') return;
+          localStorage.setItem(name, value);
+        },
+        removeItem: (name: string): void => {
+          if (typeof window === 'undefined') return;
+          localStorage.removeItem(name);
+        },
+      })),
+      skipHydration: typeof window === 'undefined',
+    }
   )
 );
