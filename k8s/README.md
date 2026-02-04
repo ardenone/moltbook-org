@@ -43,6 +43,19 @@ redis Deployment (1 replica)
 1. **CloudNativePG Operator** must be installed on the cluster
 2. **Traefik** with Let's Encrypt certResolver configured
 3. **ArgoCD** for GitOps deployment
+4. **Manifests deployed** to `ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/`
+
+## GitOps Workflow
+
+All Kubernetes manifests for Moltbook are stored in the `ardenone-cluster` repository under:
+```
+cluster-configuration/ardenone-cluster/moltbook/
+```
+
+To make changes to the deployment:
+1. Modify manifests in the ardenone-cluster repository
+2. Commit and push changes to GitHub
+3. ArgoCD will automatically sync and apply the changes to the cluster
 
 ## Secrets
 
