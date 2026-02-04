@@ -32,7 +32,7 @@ spec:
         - -c
         - |
           echo "Waiting for PostgreSQL to be ready..."
-          until pg_isready -h moltbook-postgres-rw -U postgres; do
+          until pg_isready -h moltbook-db-rw -U postgres; do
             echo "PostgreSQL not ready, waiting..."
             sleep 2
           done
@@ -40,7 +40,7 @@ spec:
           echo "PostgreSQL is ready, initializing database..."
 
           # Check if schema is already initialized
-          PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "SELECT 1 FROM pg_tables WHERE schemaname='public' LIMIT 1;" | grep -q 1
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-db-rw -U postgres -d moltbook -c "SELECT 1 FROM pg_tables WHERE schemaname='public' LIMIT 1;" | grep -q 1
 
           if [ $? -eq 0 ]; then
             echo "Schema already initialized, skipping..."
@@ -48,19 +48,19 @@ spec:
             echo "Running schema initialization..."
 
             # Create database and user if not exists
-            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -c "CREATE DATABASE moltbook;" || true
-            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -c "CREATE USER moltbook WITH PASSWORD '$DATABASE_PASSWORD';" || true
-            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -c "ALTER USER moltbook WITH PASSWORD '$DATABASE_PASSWORD';" || true
-            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE moltbook TO moltbook;" || true
-            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "GRANT ALL ON SCHEMA public TO moltbook;" || true
-            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "ALTER SCHEMA public OWNER TO moltbook;" || true
-            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO moltbook;" || true
-            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO moltbook;" || true
-            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO moltbook;" || true
-            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-db-rw -U postgres -c "CREATE DATABASE moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-db-rw -U postgres -c "CREATE USER moltbook WITH PASSWORD '$DATABASE_PASSWORD';" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-db-rw -U postgres -c "ALTER USER moltbook WITH PASSWORD '$DATABASE_PASSWORD';" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-db-rw -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE moltbook TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-db-rw -U postgres -d moltbook -c "GRANT ALL ON SCHEMA public TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-db-rw -U postgres -d moltbook -c "ALTER SCHEMA public OWNER TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-db-rw -U postgres -d moltbook -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-db-rw -U postgres -d moltbook -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-db-rw -U postgres -d moltbook -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-db-rw -U postgres -d moltbook -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO moltbook;" || true
 
             echo "Running schema SQL..."
-            PGPASSWORD=$DATABASE_PASSWORD psql -h moltbook-postgres-rw -U moltbook -d moltbook -f /schema/schema.sql
+            PGPASSWORD=$DATABASE_PASSWORD psql -h moltbook-db-rw -U moltbook -d moltbook -f /schema/schema.sql
 
             echo "Database initialization complete!"
           fi
@@ -76,8 +76,8 @@ spec:
         - name: DATABASE_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: moltbook-api-secrets
-              key: DATABASE_PASSWORD
+              name: moltbook-db-credentials
+              key: password
         volumeMounts:
         - name: schema
           mountPath: /schema
@@ -94,7 +94,7 @@ spec:
             command:
             - /bin/bash
             - -c
-            - pg_isready -h moltbook-postgres-rw -U postgres && PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "SELECT 1" > /dev/null 2>&1
+            - pg_isready -h moltbook-db-rw -U postgres && PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-db-rw -U postgres -d moltbook -c "SELECT 1" > /dev/null 2>&1
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 5
@@ -104,7 +104,7 @@ spec:
             command:
             - /bin/bash
             - -c
-            - pg_isready -h moltbook-postgres-rw -U postgres
+            - pg_isready -h moltbook-db-rw -U postgres
           initialDelaySeconds: 5
           periodSeconds: 10
           timeoutSeconds: 3
