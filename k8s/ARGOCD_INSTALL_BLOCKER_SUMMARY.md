@@ -93,10 +93,11 @@ kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
 
 ## Blocker Bead
 
-**mo-1xks**: Fix: Grant RBAC permissions to install ArgoCD in ardenone-cluster
+**mo-21sg**: CRITICAL: Grant cluster-admin to devpod ServiceAccount for ArgoCD installation
 - Created: 2026-02-04 22:25 UTC
 - Priority: 0 (Critical)
 - Status: Awaiting cluster-admin action
+- Command: `kubectl create clusterrolebinding devpod-cluster-admin --clusterrole=cluster-admin --serviceaccount=devpod:default`
 
 ## Related Documentation
 
@@ -108,14 +109,18 @@ kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
 
 ## Next Steps
 
-1. **Cluster Admin**: Execute commands from `ARGOCD_INSTALL_REQUEST.yml`
-2. **Verify**: `kubectl get pods -n argocd` shows ArgoCD running
-3. **Deploy Moltbook**: `kubectl apply -f k8s/argocd-application.yml`
-4. **Close bead**: mo-y5o can be closed after successful installation
+1. **Cluster Admin**: Execute action bead **mo-21sg** to grant cluster-admin:
+   ```bash
+   kubectl create clusterrolebinding devpod-cluster-admin --clusterrole=cluster-admin --serviceaccount=devpod:default
+   ```
+2. **Run Installation Script**: `./k8s/install-argocd.sh`
+3. **Verify**: `kubectl get pods -n argocd` shows ArgoCD running
+4. **Deploy Moltbook**: `kubectl apply -f k8s/argocd-application.yml`
+5. **Close bead**: mo-y5o can be closed after successful installation
 
 ---
 
 **Last Updated**: 2026-02-04 22:26 UTC
-**Verified by**: mo-y5o (claude-glm-foxtrot worker)
+**Verified by**: mo-y5o (zai-bravo worker)
 **Status**: BLOCKED - Awaiting cluster-admin action
 **Verification Attempted**: Yes - RBAC request manifest application failed due to insufficient permissions
