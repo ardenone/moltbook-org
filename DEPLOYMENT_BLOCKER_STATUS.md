@@ -1,115 +1,104 @@
 # Moltbook Deployment Blocker Status
 
-## Date: 2026-02-04
-
-## Current Status: BLOCKED - Requires Cluster Admin Action
-
----
-
-## Summary
-
-The Moltbook platform deployment is **blocked** because the devpod ServiceAccount (`system:serviceaccount:devpod:default`) lacks the required cluster-admin privileges to create the `moltbook` namespace.
+**Last Updated**: 2026-02-04 19:25 UTC
+**Bead**: mo-cx8 (deployment task)
+**Blocker Bead**: mo-2bxj (P0 - Critical)
 
 ---
 
-## Root Cause Analysis
+## Status: BLOCKED - Requires Cluster Admin Action
 
-### Permission Check Results
+### Summary
+
+The Moltbook platform deployment is **blocked** because:
+1. The `moltbook` namespace does not exist
+2. The devpod ServiceAccount (`system:serviceaccount:devpod:default`) lacks cluster-admin privileges to create namespaces
+3. No `namespace-creator` ClusterRole/ClusterRoleBinding exists
+
+---
+
+## Verification
+
 ```bash
 $ kubectl auth can-i create namespace
 no
+
+$ kubectl get namespace moltbook
+Error from server (NotFound): namespaces "moltbook" not found
+
+$ kubectl get clusterrole namespace-creator
+Error from server (NotFound): clusterroles.rbac.authorization.k8s.io "namespace-creator" not found
 ```
-
-The devpod ServiceAccount cannot:
-- Create namespaces (cluster-scoped resource)
-- Create ClusterRole/ClusterRoleBinding resources
-
-### Current State
-| Resource | Status |
-|----------|--------|
-| `moltbook` namespace | Does NOT exist |
-| `namespace-creator` ClusterRole | Does NOT exist |
-| `devpod-namespace-creator` ClusterRoleBinding | Does NOT exist |
 
 ---
 
-## Resolution Options (For Cluster Admins)
+## Resolution: Cluster Admin Action Required
 
-### Option 1: Automated Setup (Recommended)
+### Single Command Setup
 
-Apply the consolidated setup manifest that creates RBAC + namespace:
+A cluster administrator must run:
 
 ```bash
 kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
 ```
 
-Or run the automated setup script:
-```bash
-/home/coder/Research/moltbook-org/k8s/setup-namespace.sh
-```
+### What This Creates
 
-**What this does:**
-1. Creates `namespace-creator` ClusterRole (grants namespace creation permissions)
-2. Creates `devpod-namespace-creator` ClusterRoleBinding (binds to devpod SA)
-3. Creates the `moltbook` namespace
-
-### Option 2: Minimal Namespace Creation (Quick Fix)
-
-If you don't want to grant additional permissions, simply create the namespace:
-
-```bash
-kubectl create namespace moltbook
-```
-
-Then from devpod, use the no-namespace kustomization:
-```bash
-kubectl apply -k /home/coder/Research/moltbook-org/k8s/kustomization-no-namespace.yml
-```
+| Resource | Purpose |
+|----------|---------|
+| `ClusterRole: namespace-creator` | Grants namespace creation + RBAC management permissions |
+| `ClusterRoleBinding: devpod-namespace-creator` | Binds ClusterRole to devpod:default ServiceAccount |
+| `Namespace: moltbook` | The target namespace for all Moltbook resources |
 
 ---
 
 ## After Cluster Admin Action
 
-Once the namespace exists, deploy from the devpod:
+Once the namespace exists, deploy from devpod:
 
 ```bash
-# If namespace + RBAC were created (Option 1)
-kubectl apply -k /home/coder/Research/moltbook-org/k8s/
-
-# OR if only namespace was created (Option 2)
-kubectl apply -k /home/coder/Research/moltbook-org/k8s/kustomization-no-namespace.yml
+cd /home/coder/Research/moltbook-org
+kubectl apply -k k8s/
 ```
 
 ---
 
 ## What Gets Deployed
 
-After namespace creation, the following resources will be deployed:
-
-| Component | Resources |
-|-----------|-----------|
-| **Database** | CloudNativePG cluster, Service, Schema ConfigMap, Init Job |
-| **Cache** | Redis Deployment, Service, ConfigMap |
-| **API** | moltbook-api Deployment, Service, IngressRoute, ConfigMap |
-| **Frontend** | moltbook-frontend Deployment, Service, IngressRoute, ConfigMap |
-| **Secrets** | SealedSecrets for API, PostgreSQL superuser, DB credentials |
+| Component | Resources | Image |
+|-----------|-----------|-------|
+| **Database** | CloudNativePG cluster (1 instance, 10Gi), Services, Init | `ghcr.io/cloudnative-pg/postgresql:16.3` |
+| **Cache** | Redis Deployment (1 replica), Service, ConfigMap | `redis:7-alpine` |
+| **API** | Deployment (2 replicas), Service, IngressRoute | `ghcr.io/ardenone/moltbook-api:latest` |
+| **Frontend** | Deployment (2 replicas), Service, IngressRoute | `ghcr.io/ardenone/moltbook-frontend:latest` |
+| **Secrets** | 3 SealedSecrets (API, DB, Postgres) | Pre-encrypted |
 
 ---
 
-## Verification Commands
+## Access Points (Post-Deployment)
+
+- **Frontend**: https://moltbook.ardenone.com
+- **API**: https://api-moltbook.ardenone.com
+- **API Health**: https://api-moltbook.ardenone.com/health
+
+---
+
+## Verification Checklist (Post-Deployment)
 
 ```bash
-# Check if namespace exists
+# Verify RBAC applied
+kubectl get clusterrole namespace-creator
+kubectl get clusterrolebinding devpod-namespace-creator
 kubectl get namespace moltbook
 
-# Check deployed resources
-kubectl get all -n moltbook
+# Verify deployment
+kubectl get pods -n moltbook
+kubectl get svc -n moltbook
+kubectl get ingressroutes -n moltbook
 
-# Check SealedSecrets
-kubectl get sealedsecrets -n moltbook
-
-# Check CNPG cluster
-kubectl get cluster -n moltbook
+# Test endpoints
+curl https://api-moltbook.ardenone.com/health
+curl https://moltbook.ardenone.com
 ```
 
 ---
@@ -118,27 +107,56 @@ kubectl get cluster -n moltbook
 
 | File | Purpose |
 |------|---------|
-| `k8s/NAMESPACE_SETUP_REQUEST.yml` | Cluster-admin setup manifest |
+| `k8s/NAMESPACE_SETUP_REQUEST.yml` | Cluster-admin setup manifest (RBAC + namespace) |
 | `k8s/setup-namespace.sh` | Automated setup script |
-| `k8s/NAMESPACE_SETUP_README.md` | Detailed setup instructions |
 | `k8s/kustomization.yml` | Full deployment (includes namespace) |
-| `k8s/kustomization-no-namespace.yml` | Deployment without namespace creation |
-| `k8s/argocd-application.yml` | ArgoCD Application manifest (future) |
+| `k8s/kustomization-no-namespace.yml` | Deployment without namespace (alternative) |
+| `k8s/argocd-application.yml` | ArgoCD Application manifest (GitOps) |
 
 ---
 
-## Blocker Bead
+## Bead Tracking
 
-A blocker bead has been created to track this:
-- **Bead ID**: `mo-1ywd`
-- **Title**: "BLOCKER: Cluster Admin - Apply Moltbook namespace setup manifest"
-- **Priority**: 0 (Critical)
+| Bead ID | Title | Priority | Status |
+|---------|-------|----------|--------|
+| mo-cx8 | Deploy: Apply Moltbook manifests to ardenone-cluster | 1 | BLOCKED |
+| mo-2bxj | BLOCKER: Cluster Admin - Apply RBAC for Moltbook namespace creation | 0 | OPEN |
 
 ---
 
-## Next Steps
+## Architecture (Post-Deployment)
 
-1. [Cluster Admin] Apply namespace setup manifest
-2. [Devpod] Verify namespace exists: `kubectl get namespace moltbook`
-3. [Devpod] Deploy Moltbook platform: `kubectl apply -k k8s/`
-4. [Devpod] Verify deployment: `kubectl get all -n moltbook`
+```
+moltbook namespace:
+  ├─ moltbook-postgres (CNPG Cluster, 1 instance, 10Gi)
+  │   ├─ moltbook-postgres-rw Service (ReadWrite)
+  │   └─ moltbook-postgres-ro Service (ReadOnly)
+  │
+  ├─ moltbook-redis (Deployment, 1 replica)
+  │   └─ moltbook-redis Service (6379)
+  │
+  ├─ moltbook-db-init (Deployment, 1 replica)
+  │   └─ Runs schema initialization (idempotent)
+  │
+  ├─ moltbook-api (Deployment, 2 replicas)
+  │   └─ moltbook-api Service (port 80)
+  │       └─ IngressRoute: api-moltbook.ardenone.com
+  │
+  └─ moltbook-frontend (Deployment, 2 replicas)
+      └─ moltbook-frontend Service (port 80)
+          └─ IngressRoute: moltbook.ardenone.com
+```
+
+---
+
+## Security & GitOps Compliance
+
+- All secrets encrypted with SealedSecrets
+- No plaintext secrets in Git
+- No Job/CronJob manifests (ArgoCD compatible)
+- All resources use idempotent Deployments
+- Traefik IngressRoute (not standard Ingress)
+- Single-level subdomains (Cloudflare compatible)
+- Health checks on all deployments
+- Resource limits defined
+- RBAC scoped to namespace
