@@ -283,3 +283,42 @@ ok
 - **Option B:** Use external ArgoCD at `argocd-manager.ardenone.com` (requires different setup)
 
 The current task (mo-y5o) is specifically about installing ArgoCD locally, which remains BLOCKED until mo-21sg is completed.
+
+---
+
+## Latest Update (2026-02-04 22:37 UTC)
+
+### Namespace Blocker Verification (mo-3aw)
+
+**Bead ID:** mo-3aw
+**Title:** Fix: Create moltbook namespace in ardenone-cluster
+
+**Verification Results:**
+| Check | Result | Command |
+|-------|--------|---------|
+| Namespace `moltbook` exists | ❌ NotFound | `kubectl get namespace moltbook` |
+| ClusterRole `namespace-creator` exists | ❌ NotFound | `kubectl get clusterrole namespace-creator` |
+| ClusterRoleBinding `devpod-namespace-creator` exists | ❌ NotFound | `kubectl get clusterrolebinding devpod-namespace-creator` |
+| Can create namespaces | ❌ Forbidden | `kubectl auth can-i create namespaces` |
+
+**Conclusion:** The `moltbook` namespace does not exist. Creating it requires RBAC (`namespace-creator` ClusterRole and `devpod-namespace-creator` ClusterRoleBinding) to be applied by a cluster-admin.
+
+**Action Required (Cluster Admin):**
+```bash
+kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace/NAMESPACE_SETUP_REQUEST.yml
+```
+
+This creates:
+1. `namespace-creator` ClusterRole (create/get/list/watch namespaces)
+2. `devpod-namespace-creator` ClusterRoleBinding (binds to devpod:default SA)
+3. `moltbook` namespace
+
+**Blocker Bead Created:** mo-2ct6 (P0) - "ADMIN: Apply RBAC and create moltbook namespace"
+
+**Related Beads:**
+| Bead ID | Priority | Status | Description |
+|---------|----------|--------|-------------|
+| mo-2ct6 | P0 | OPEN | ADMIN: Apply RBAC and create moltbook namespace |
+| mo-xoy0 | P0 | OPEN | ADMIN: Cluster Admin Action - Apply NAMESPACE_SETUP_REQUEST.yml |
+| mo-30c1 | P0 | OPEN | Blocker: Apply ClusterRole for Moltbook namespace creation |
+| mo-3ax | P2 | OPEN | Investigation: Verify RBAC blocker status |
