@@ -2,6 +2,36 @@
 
 ## Status: 🔴 BLOCKER - Requires Moltbook Organization Owner/Admin
 
+---
+
+## 🚨 ADDITIONAL BLOCKER: Cluster Admin Action Required for ArgoCD Installation
+
+**Status**: 🔴 BLOCKER - Requires Kubernetes Cluster Admin
+
+The Moltbook deployment to ardenone-cluster is also blocked by missing Kubernetes RBAC permissions. The devpod ServiceAccount needs cluster-admin access to install ArgoCD.
+
+### Required Cluster Admin Action
+
+```bash
+# Grant cluster-admin to devpod ServiceAccount
+kubectl create clusterrolebinding devpod-cluster-admin \
+  --clusterrole=cluster-admin \
+  --serviceaccount=devpod:default
+```
+
+**Alternative**: Apply the full RBAC manifest:
+```bash
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/ARGOCD_INSTALL_REQUEST.yml
+```
+
+### Related Beads
+
+- **mo-y5o** (P0) - CRITICAL: Install ArgoCD in ardenone-cluster for Moltbook deployment
+- **mo-21sg** (P0) - CRITICAL: Grant cluster-admin to devpod ServiceAccount for ArgoCD installation
+- See `k8s/ARGOCD_INSTALL_BLOCKER_SUMMARY.md` for full details
+
+---
+
 ### Overview
 
 User `jedarden` lacks push permissions to the moltbook organization repositories. This is blocking Docker image builds via GitHub Actions, which are essential for deploying the Moltbook platform.

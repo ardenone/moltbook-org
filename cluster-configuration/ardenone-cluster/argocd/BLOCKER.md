@@ -1,5 +1,14 @@
 # ArgoCD Installation Blocker - ardenone-cluster
 
+## Quick Summary
+**BLOCKER**: ArgoCD is NOT installed in ardenone-cluster. The devpod ServiceAccount lacks cluster-admin permissions needed to install ArgoCD. A cluster-admin must apply the RBAC grant before installation can proceed.
+
+**Resolution Path**: Cluster-admin applies `ARGOCD_SETUP_REQUEST.yml` → devpod installs ArgoCD → Moltbook Application syncs
+
+**Verified**: 2026-02-04 22:35 UTC
+
+---
+
 ## Status: BLOCKED - Requires Cluster-Admin Intervention
 
 ## Problem
@@ -89,9 +98,53 @@ kubectl apply -n argocd -f cluster-configuration/ardenone-cluster/argocd/argocd-
 kubectl apply -f k8s/argocd-application.yml
 ```
 
-## Verification Commands
+## Verification Commands (Current Status)
 
-After installation, verify with:
+### Check ArgoCD Namespace Status
+```bash
+# ❌ Result: Error from server (NotFound): namespaces "argocd" not found
+kubectl get namespace argocd
+```
+
+### Check devpod SA Permissions
+```bash
+# ❌ Result: no (cannot create namespaces)
+kubectl auth can-i create namespaces --all-namespaces
+
+# ❌ Result: no (cannot create CRDs)
+kubectl auth can-i create customresourcedefinitions --all-namespaces
+```
+
+### Check Existing Argo Infrastructure
+```bash
+# ✅ Argo Rollouts CRDs exist (different product from ArgoCD)
+kubectl get crd | grep argoproj.io
+# Output: analysisruns.argoproj.io, analysistemplates.argoproj.io,
+#         experiments.argoproj.io, rollouts.argoproj.io
+
+# ❌ ArgoCD CRDs do NOT exist
+kubectl get crd | grep -E "applications\.argoproj\.io|appprojects\.argoproj\.io"
+# Output: (empty)
+
+# ❌ ArgoCD namespace does NOT exist
+kubectl get pods -n argocd
+# Output: No resources found in argocd namespace.
+```
+
+### Check Existing ClusterRole (Not Bound to devpod)
+```bash
+# ✅ ArgoCD manager role exists (full cluster-admin)
+kubectl get clusterrole argocd-manager-role -o yaml
+# BUT: Bound to argocd-manager SA in kube-system, NOT devpod's default SA
+
+kubectl get clusterrolebinding argocd-manager-role-binding -o yaml
+# subjects:
+# - kind: ServiceAccount
+#   name: argocd-manager
+#   namespace: kube-system
+```
+
+## After Installation, Verify With:
 
 ```bash
 # Check argocd namespace exists
