@@ -49,20 +49,48 @@ gh run list --workflow=build-push.yml
 gh run watch
 ```
 
-## Method 2: Local Build with Build Script
+## Method 2: Local Build in Devpod (NEW!)
 
-⚠️ **CRITICAL LIMITATION**: Local Docker/Podman builds **DO NOT WORK** in devpod environments due to nested overlayfs filesystem issues.
+✅ **NOW WORKS** - Using Docker Buildx with custom configuration!
 
-**Error you'll see**:
+The overlay filesystem limitation has been solved with a new Docker Buildx configuration specifically for devpod environments.
+
+### One-Time Setup
+
+```bash
+# Run this once to configure Docker Buildx for devpod
+./scripts/setup-docker-buildx.sh
 ```
-ERROR: mount source: "overlay" ... err: invalid argument
+
+This creates a custom builder named `devpod-builder` that uses the `docker-container` driver to bypass overlay filesystem limitations.
+
+### Building Images
+
+```bash
+# Build images (dry run - no push)
+./scripts/build-images-devpod.sh --dry-run
+
+# Build and push to GHCR
+GITHUB_TOKEN=your_token_here ./scripts/build-images-devpod.sh --push
+
+# Build only API image
+./scripts/build-images-devpod.sh --dry-run --api-only
+
+# Build only Frontend image
+./scripts/build-images-devpod.sh --dry-run --frontend-only
+
+# Build with custom tag
+GITHUB_TOKEN=your_token_here ./scripts/build-images-devpod.sh --push --tag v1.0.0
 ```
 
-**Solution**: Use Method 1 (GitHub Actions) or build on your host machine (not in devpod). See `DOCKER_BUILD_WORKAROUND.md` for full details.
+### How It Works
 
----
+- Uses Docker Buildx with `docker-container` driver
+- Bypasses nested overlay filesystem issues
+- Loads images into Docker for local testing
+- Can push to GHCR when `--push` is specified
 
-A build script is provided at `scripts/build-images.sh` for local builds **on host machines only** (not in devpod).
+## Method 3: Local Build on Host Machine
 
 ### Prerequisites
 

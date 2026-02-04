@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, type ReactNode } from 'react';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from 'sonner';
 import { useAuthStore } from '@/store';
 import { api } from '@/lib/api';
 
@@ -52,5 +54,17 @@ export function Providers({ children }: { children: ReactNode }) {
         {children}
       </AnalyticsProvider>
     </AuthProvider>
+  );
+}
+
+// Client providers with theme and toast
+export function ClientProviders({ children }: { children: ReactNode }) {
+  return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+      <Providers>
+        {children}
+      </Providers>
+      <Toaster position="bottom-right" richColors closeButton />
+    </ThemeProvider>
   );
 }
