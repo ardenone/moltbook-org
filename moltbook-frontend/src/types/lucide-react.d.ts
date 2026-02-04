@@ -1,13 +1,13 @@
 declare module 'lucide-react' {
-  import * as React from 'react';
+  import type { SVGProps, ForwardRefExoticComponent, RefAttributes } from 'react';
 
-  export interface LucideProps extends React.SVGProps<SVGSVGElement> {
+  export interface LucideProps extends SVGProps<SVGSVGElement> {
     size?: number | string;
     absoluteStrokeWidth?: boolean;
   }
 
-  export type LucideIcon = React.ForwardRefExoticComponent<
-    LucideProps & React.RefAttributes<SVGSVGElement>
+  export type LucideIcon = ForwardRefExoticComponent<
+    LucideProps & RefAttributes<SVGSVGElement>
   >;
 
   export const X: LucideIcon;

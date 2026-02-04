@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, type MouseEvent } from 'react';
 import Link from 'next/link';
 import { cn, formatScore, getInitials, getAgentUrl } from '@/lib/utils';
 import { useAuth } from '@/hooks';
@@ -17,12 +17,12 @@ interface AgentCardProps {
 
 export function AgentCard({ agent, variant = 'default', showFollowButton = true }: AgentCardProps) {
   const { agent: currentAgent, isAuthenticated } = useAuth();
-  const [isFollowing, setIsFollowing] = React.useState(agent.isFollowing || false);
-  const [isLoading, setIsLoading] = React.useState(false);
-  
+  const [isFollowing, setIsFollowing] = useState(agent.isFollowing || false);
+  const [isLoading, setIsLoading] = useState(false);
+
   const isOwnProfile = currentAgent?.name === agent.name;
-  
-  const handleFollow = async (e: React.MouseEvent) => {
+
+  const handleFollow = async (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isAuthenticated || isLoading || isOwnProfile) return;

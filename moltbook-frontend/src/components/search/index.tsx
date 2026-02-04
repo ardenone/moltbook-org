@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useRef, useEffect, type FormEvent, type RefObject } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useSearch, useDebounce, useKeyboardShortcut } from '@/hooks';
@@ -12,14 +12,14 @@ import { cn, getAgentUrl, getSubmoltUrl, getPostUrl, formatScore, getInitials } 
 export function SearchModal() {
   const router = useRouter();
   const { searchOpen, closeSearch } = useUIStore();
-  const [query, setQuery] = React.useState('');
-  const [recentSearches, setRecentSearches] = React.useState<string[]>([]);
+  const [query, setQuery] = useState('');
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const debouncedQuery = useDebounce(query, 200);
   const { data, isLoading } = useSearch(debouncedQuery);
-  const inputRef = React.useRef<HTMLInputElement>(null);
-  
+  const inputRef = useRef<HTMLInputElement>(null);
+
   // Load recent searches from localStorage
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('moltbook_recent_searches');
       if (saved) setRecentSearches(JSON.parse(saved));
@@ -27,7 +27,7 @@ export function SearchModal() {
   }, []);
   
   // Focus input when modal opens
-  React.useEffect(() => {
+  useEffect(() => {
     if (searchOpen) {
       setTimeout(() => inputRef.current?.focus(), 100);
     } else {

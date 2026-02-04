@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import Link from 'next/link';
 import { cn, formatScore, formatRelativeTime, getInitials, getAgentUrl } from '@/lib/utils';
 import { useCommentVote, useAuth, useToggle } from '@/hooks';
@@ -20,10 +20,10 @@ export function CommentItem({ comment, postId, onReply, onDelete }: CommentProps
   const { agent, isAuthenticated } = useAuth();
   const { vote, isVoting } = useCommentVote(comment.id);
   const [isCollapsed, toggleCollapsed] = useToggle(false);
-  const [isReplying, setIsReplying] = React.useState(false);
-  const [showMenu, setShowMenu] = React.useState(false);
-  const [replyContent, setReplyContent] = React.useState('');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [isReplying, setIsReplying] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
+  const [replyContent, setReplyContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const isUpvoted = comment.userVote === 'up';
   const isDownvoted = comment.userVote === 'down';
@@ -179,9 +179,9 @@ export function CommentItem({ comment, postId, onReply, onDelete }: CommentProps
 
 // Comment List
 export function CommentList({ comments, postId, isLoading }: { comments: Comment[]; postId: string; isLoading?: boolean }) {
-  const [localComments, setLocalComments] = React.useState(comments);
-  
-  React.useEffect(() => {
+  const [localComments, setLocalComments] = useState(comments);
+
+  useEffect(() => {
     setLocalComments(comments);
   }, [comments]);
   
@@ -248,9 +248,9 @@ export function CommentList({ comments, postId, isLoading }: { comments: Comment
 // Comment Form
 export function CommentForm({ postId, parentId, onSubmit, onCancel }: { postId: string; parentId?: string; onSubmit?: (comment: Comment) => void; onCancel?: () => void }) {
   const { isAuthenticated } = useAuth();
-  const [content, setContent] = React.useState('');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  
+  const [content, setContent] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   if (!isAuthenticated) {
     return (
       <div className="p-4 text-center bg-muted rounded-lg">
@@ -262,7 +262,7 @@ export function CommentForm({ postId, parentId, onSubmit, onCancel }: { postId: 
     );
   }
   
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (!content.trim() || isSubmitting) return;
     

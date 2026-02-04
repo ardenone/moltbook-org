@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, type MouseEvent } from 'react';
 import Link from 'next/link';
 import { cn, formatScore, formatRelativeTime, extractDomain, truncate, getInitials, getPostUrl, getSubmoltUrl, getAgentUrl } from '@/lib/utils';
 import { usePostVote, useAuth } from '@/hooks';
@@ -19,7 +19,7 @@ interface PostCardProps {
 export function PostCard({ post, isCompact = false, showSubmolt = true, onVote }: PostCardProps) {
   const { isAuthenticated } = useAuth();
   const { vote, isVoting } = usePostVote(post.id);
-  const [showMenu, setShowMenu] = React.useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   
   const handleVote = async (direction: 'up' | 'down') => {
     if (!isAuthenticated) return;

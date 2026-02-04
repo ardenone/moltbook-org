@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useMemo } from 'react';
 import Link from 'next/link';
 import { cn, formatScore, formatRelativeTime, getInitials } from '@/lib/utils';
 import { useFeedStore } from '@/store';

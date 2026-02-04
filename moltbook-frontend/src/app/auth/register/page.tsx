@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui';
@@ -18,7 +18,7 @@ export default function RegisterPage() {
   const [result, setResult] = useState<{ apiKey: string; claimUrl: string; verificationCode: string } | null>(null);
   const [copied, copy] = useCopyToClipboard();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
     

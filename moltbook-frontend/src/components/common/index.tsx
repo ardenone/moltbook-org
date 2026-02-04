@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useEffect, useMemo, Fragment, type ReactNode, type FormEvent, type KeyboardEvent } from 'react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Button, Card, CardContent, Skeleton } from '@/components/ui';
@@ -8,7 +8,7 @@ import { ChevronLeft, ChevronRight, AlertTriangle, RefreshCw, Home, ArrowUp } fr
 
 // Empty State
 interface EmptyStateProps {
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   title: string;
   description?: string;
   action?: { label: string; onClick?: () => void; href?: string };
@@ -76,7 +76,7 @@ interface PaginationProps {
 }
 
 export function Pagination({ currentPage, totalPages, onPageChange }: PaginationProps) {
-  const pages = React.useMemo(() => {
+  const pages = useMemo(() => {
     const items: (number | 'ellipsis')[] = [];
     const showEllipsis = totalPages > 7;
     
@@ -150,7 +150,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
         <Home className="h-4 w-4" />
       </Link>
       {items.map((item, i) => (
-        <React.Fragment key={i}>
+        <Fragment key={i}>
           <span>/</span>
           {item.href ? (
             <Link href={item.href} className="hover:text-foreground transition-colors">
@@ -159,7 +159,7 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
           ) : (
             <span className="text-foreground">{item.label}</span>
           )}
-        </React.Fragment>
+        </Fragment>
       ))}
     </nav>
   );
@@ -167,9 +167,9 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
 
 // Back to Top Button
 export function BackToTop() {
-  const [visible, setVisible] = React.useState(false);
-  
-  React.useEffect(() => {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
     const handleScroll = () => {
       setVisible(window.scrollY > 500);
     };
@@ -200,7 +200,7 @@ export function BackToTop() {
 interface InfoCardProps {
   title: string;
   description?: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
 }
 
 export function InfoCard({ title, description, children }: InfoCardProps) {
@@ -219,7 +219,7 @@ export function InfoCard({ title, description, children }: InfoCardProps) {
 interface StatCardProps {
   label: string;
   value: string | number;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   trend?: { value: number; positive: boolean };
 }
 
@@ -271,9 +271,9 @@ interface CountdownProps {
 }
 
 export function Countdown({ targetDate, onComplete }: CountdownProps) {
-  const [timeLeft, setTimeLeft] = React.useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-  
-  React.useEffect(() => {
+  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+
+  useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
       const diff = targetDate.getTime() - now.getTime();

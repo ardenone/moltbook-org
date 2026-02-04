@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -29,9 +29,9 @@ export function CreatePostModal() {
   const { createPostOpen, closeCreatePost } = useUIStore();
   const { isAuthenticated } = useAuth();
   const { data: submoltsData } = useSubmolts();
-  const [postType, setPostType] = React.useState<'text' | 'link'>('text');
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
-  const [showSubmoltDropdown, setShowSubmoltDropdown] = React.useState(false);
+  const [postType, setPostType] = useState<'text' | 'link'>('text');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSubmoltDropdown, setShowSubmoltDropdown] = useState(false);
 
   const { register, handleSubmit, setValue, watch, reset, formState: { errors } } = useForm<PostForm>({
     resolver: zodResolver(postSchema),
@@ -175,9 +175,9 @@ export function CreatePostModal() {
 export function SearchModal() {
   const router = useRouter();
   const { searchOpen, closeSearch } = useUIStore();
-  const [query, setQuery] = React.useState('');
+  const [query, setQuery] = useState('');
 
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e: FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
       router.push(`/search?q=${encodeURIComponent(query)}`);

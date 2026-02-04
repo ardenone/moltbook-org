@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useRef, useEffect, type RefObject } from 'react';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogContent, Button } from '@/components/ui';
@@ -29,7 +29,7 @@ export function ImageGallery({
   gap = 'md',
   aspectRatio = 'auto' 
 }: ImageGalleryProps) {
-  const [selectedIndex, setSelectedIndex] = React.useState<number | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
   const gapClasses = { sm: 'gap-2', md: 'gap-4', lg: 'gap-6' };
   const colClasses = {
@@ -97,11 +97,11 @@ interface ImageLightboxProps {
 }
 
 export function ImageLightbox({ images, initialIndex, onClose }: ImageLightboxProps) {
-  const [currentIndex, setCurrentIndex] = React.useState(initialIndex);
-  const [zoom, setZoom] = React.useState(1);
-  const [rotation, setRotation] = React.useState(0);
-  const [isFullscreen, setIsFullscreen] = React.useState(false);
-  const containerRef = React.useRef<HTMLDivElement>(null);
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [zoom, setZoom] = useState(1);
+  const [rotation, setRotation] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const currentImage = images[currentIndex];
   const hasMultiple = images.length > 1;
@@ -135,7 +135,7 @@ export function ImageLightbox({ images, initialIndex, onClose }: ImageLightboxPr
   };
 
   // Keyboard navigation
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       switch (e.key) {
         case 'ArrowLeft': goPrev(); break;
@@ -153,7 +153,7 @@ export function ImageLightbox({ images, initialIndex, onClose }: ImageLightboxPr
   }, []);
 
   // Reset view when image changes
-  React.useEffect(() => {
+  useEffect(() => {
     resetView();
   }, [currentIndex]);
 
@@ -280,7 +280,7 @@ export function ImageWithLightbox({
   className,
   caption 
 }: ImageItem & { className?: string }) {
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
 
   return (
     <>

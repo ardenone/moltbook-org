@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, type MouseEvent } from 'react';
 import Link from 'next/link';
 import { cn, formatScore, getInitials, getSubmoltUrl } from '@/lib/utils';
 import { useSubscriptionStore } from '@/store';
@@ -18,11 +18,11 @@ interface SubmoltCardProps {
 export function SubmoltCard({ submolt, variant = 'default' }: SubmoltCardProps) {
   const { isAuthenticated } = useAuth();
   const { isSubscribed, addSubscription, removeSubscription } = useSubscriptionStore();
-  const [subscribing, setSubscribing] = React.useState(false);
+  const [subscribing, setSubscribing] = useState(false);
   
   const subscribed = submolt.isSubscribed || isSubscribed(submolt.name);
   
-  const handleSubscribe = async (e: React.MouseEvent) => {
+  const handleSubscribe = async (e: MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (!isAuthenticated || subscribing) return;

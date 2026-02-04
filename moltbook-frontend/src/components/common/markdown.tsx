@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useMemo, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 interface MarkdownProps {
@@ -127,7 +127,7 @@ function highlightCode(code: string, language: string): string {
 }
 
 export function Markdown({ content, className, allowHtml = false }: MarkdownProps) {
-  const html = React.useMemo(() => parseMarkdown(content, allowHtml), [content, allowHtml]);
+  const html = useMemo(() => parseMarkdown(content, allowHtml), [content, allowHtml]);
 
   return (
     <div 
@@ -139,8 +139,8 @@ export function Markdown({ content, className, allowHtml = false }: MarkdownProp
 
 // Code block component
 export function CodeBlock({ code, language, showLineNumbers = true }: { code: string; language?: string; showLineNumbers?: boolean }) {
-  const [copied, setCopied] = React.useState(false);
-  const highlighted = React.useMemo(() => language ? highlightCode(code, language) : code, [code, language]);
+  const [copied, setCopied] = useState(false);
+  const highlighted = useMemo(() => language ? highlightCode(code, language) : code, [code, language]);
   const lines = code.split('\n');
 
   const copyToClipboard = async () => {
@@ -188,8 +188,8 @@ export function CodeBlock({ code, language, showLineNumbers = true }: { code: st
 }
 
 // Spoiler component
-export function Spoiler({ children, label = 'Spoiler' }: { children: React.ReactNode; label?: string }) {
-  const [revealed, setRevealed] = React.useState(false);
+export function Spoiler({ children, label = 'Spoiler' }: { children: ReactNode; label?: string }) {
+  const [revealed, setRevealed] = useState(false);
 
   return (
     <div className="spoiler-wrapper">
@@ -216,7 +216,7 @@ export function Spoiler({ children, label = 'Spoiler' }: { children: React.React
 }
 
 // Quote component
-export function Quote({ children, author, source }: { children: React.ReactNode; author?: string; source?: string }) {
+export function Quote({ children, author, source }: { children: ReactNode; author?: string; source?: string }) {
   return (
     <blockquote className="border-l-4 border-primary pl-4 py-2 my-4">
       <div className="italic">{children}</div>

@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Button, Popover, PopoverTrigger, PopoverContent } from '@/components/ui';
 import { Smile, Plus, Search } from 'lucide-react';
@@ -18,17 +18,17 @@ const EMOJI_CATEGORIES = {
 
 interface EmojiPickerProps {
   onSelect: (emoji: string) => void;
-  trigger?: React.ReactNode;
+  trigger?: ReactNode;
 }
 
 export function EmojiPicker({ onSelect, trigger }: EmojiPickerProps) {
-  const [search, setSearch] = React.useState('');
-  const [activeCategory, setActiveCategory] = React.useState('Smileys');
-  const [recentEmojis, setRecentEmojis] = React.useState<string[]>([]);
-  const [open, setOpen] = React.useState(false);
+  const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState('Smileys');
+  const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
 
   // Load recent from localStorage
-  React.useEffect(() => {
+  useEffect(() => {
     const saved = localStorage.getItem('moltbook_recent_emojis');
     if (saved) setRecentEmojis(JSON.parse(saved));
   }, []);
@@ -156,7 +156,7 @@ interface ReactionsProps {
 }
 
 export function Reactions({ reactions, onReact, maxDisplay = 6 }: ReactionsProps) {
-  const [showAll, setShowAll] = React.useState(false);
+  const [showAll, setShowAll] = useState(false);
   const sortedReactions = [...reactions].sort((a, b) => b.count - a.count);
   const displayReactions = showAll ? sortedReactions : sortedReactions.slice(0, maxDisplay);
   const hiddenCount = sortedReactions.length - maxDisplay;

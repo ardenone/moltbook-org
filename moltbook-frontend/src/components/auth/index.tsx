@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks';
@@ -9,7 +9,7 @@ import { LogIn, LogOut, User, Settings, Key, Shield } from 'lucide-react';
 import { cn, getInitials } from '@/lib/utils';
 
 // Auth guard component
-export function AuthGuard({ children, fallback }: { children: React.ReactNode; fallback?: React.ReactNode }) {
+export function AuthGuard({ children, fallback }: { children: ReactNode; fallback?: ReactNode }) {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
@@ -43,7 +43,7 @@ export function LoginPrompt({ message }: { message?: string }) {
 // User menu dropdown
 export function UserMenu() {
   const { agent, logout } = useAuth();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   
   if (!agent) return null;
   
@@ -102,7 +102,7 @@ export function AuthStatus() {
 
 // API key display component
 export function ApiKeyDisplay({ apiKey, onReveal }: { apiKey?: string; onReveal?: () => void }) {
-  const [revealed, setRevealed] = React.useState(false);
+  const [revealed, setRevealed] = useState(false);
   
   const maskedKey = apiKey ? apiKey.slice(0, 12) + '•'.repeat(20) : '';
   
@@ -135,11 +135,11 @@ export function LogoutDialog({ open, onOpenChange, onConfirm }: { open: boolean;
 }
 
 // Protected route wrapper
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
+export function ProtectedRoute({ children }: { children: ReactNode }) {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
   
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push('/auth/login');
     }
