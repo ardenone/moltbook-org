@@ -34,8 +34,31 @@ const nextConfig = {
       ];
     }
 
-    // Add fallback for node: prefixed modules that webpack doesn't understand
+    // Add resolve alias to strip node: prefix during module resolution
     config.resolve = config.resolve || {};
+    config.resolve.alias = config.resolve.alias || {};
+    // Add aliases for common node: prefixed modules
+    const nodeAliases = {
+      'node:async_hooks': 'async_hooks',
+      'node:fs': 'fs',
+      'node:path': 'path',
+      'node:crypto': 'crypto',
+      'node:stream': 'stream',
+      'node:util': 'util',
+      'node:events': 'events',
+      'node:buffer': 'buffer',
+      'node:http': 'http',
+      'node:https': 'https',
+      'node:net': 'net',
+      'node:tls': 'tls',
+      'node:os': 'os',
+      'node:worker_threads': 'worker_threads',
+      'node:cluster': 'cluster',
+      'node:child_process': 'child_process',
+    };
+    Object.assign(config.resolve.alias, nodeAliases);
+
+    // Add fallback for node: prefixed modules that webpack doesn't understand
     config.resolve.fallback = config.resolve.fallback || {};
     // List of Node.js built-ins that might use node: prefix
     const nodeBuiltins = [
