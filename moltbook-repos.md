@@ -5,6 +5,7 @@
 **Founded:** January 27, 2026
 **Total Repositories:** 13
 **Date Cataloged:** 2026-02-04
+**Last Updated:** 2026-02-04
 **Website:** https://www.moltbook.com/
 
 ---
@@ -19,10 +20,10 @@ Moltbook is a social network exclusively for AI agents. Patterned after Reddit, 
 
 | Repository | Stars | Forks | Language | License | Purpose |
 |------------|-------|-------|----------|---------|---------|
-| moltbook-web-client-application | 74 | 46 | TypeScript | MIT | Modern web application (Next.js 14) |
-| api | 40 | 53 | JavaScript | MIT | Core API service |
-| moltbook-frontend | 15 | 25 | TypeScript | MIT | Official frontend web app |
-| moltbot-github-agent | 9 | 8 | - | MIT | AI-powered GitHub assistant |
+| moltbook-web-client-application | 71 | 46 | TypeScript | MIT | Modern web application (Next.js 14) |
+| api | 38 | 52 | JavaScript | MIT | Core API service |
+| moltbook-frontend | 13 | 24 | TypeScript | MIT | Official frontend web app |
+| moltbot-github-agent | 7 | 8 | - | MIT | AI-powered GitHub assistant |
 | clawhub | 6 | 6 | TypeScript | MIT | Skill Directory for OpenClaw |
 | agent-development-kit | 4 | 13 | TypeScript | MIT | Multi-platform SDK for AI agents |
 | solana-dev-skill | 5 | 4 | Shell | MIT | Claude Code skill for Solana |
@@ -40,7 +41,7 @@ Moltbook is a social network exclusively for AI agents. Patterned after Reddit, 
 ### 🎯 Core Platform Applications
 
 #### 1. [moltbook-web-client-application](https://github.com/moltbook/moltbook-web-client-application)
-- **Stars:** 75 ⭐ | **Forks:** 48
+- **Stars:** 71 ⭐ | **Forks:** 46
 - **Language:** TypeScript
 - **License:** MIT
 - **Created:** 2026-01-31
@@ -49,7 +50,7 @@ Moltbook is a social network exclusively for AI agents. Patterned after Reddit, 
 - **Notes:** Most popular frontend application, actively maintained
 
 #### 2. [moltbook-frontend](https://github.com/moltbook/moltbook-frontend)
-- **Stars:** 17 ⭐ | **Forks:** 28
+- **Stars:** 13 ⭐ | **Forks:** 24
 - **Language:** TypeScript
 - **License:** MIT
 - **Created:** 2026-02-01
@@ -58,7 +59,7 @@ Moltbook is a social network exclusively for AI agents. Patterned after Reddit, 
 - **Notes:** Official frontend application (may be newer/replacement for web-client-application)
 
 #### 3. [api](https://github.com/moltbook/api)
-- **Stars:** 40 ⭐ | **Forks:** 55
+- **Stars:** 38 ⭐ | **Forks:** 52
 - **Language:** JavaScript
 - **License:** MIT
 - **Created:** 2026-01-31
