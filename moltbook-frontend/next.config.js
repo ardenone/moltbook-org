@@ -1,10 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  // Note: output: 'standalone' removed due to Next.js 15.1.x NFT build trace bug
-  // See: https://github.com/vercel/next.js/issues/43849
-  // The Dockerfile has been updated to use standard Next.js deployment instead
+  output: 'standalone',
   experimental: {
+    // Disable server minification to fix "Failed to collect page data for /_not-found" build error in Next.js 15
+    // See: https://github.com/vercel/next.js/discussions/74884
+    serverMinification: false,
     // Optimize package imports for better tree-shaking
     optimizePackageImports: ['lucide-react'],
   },
