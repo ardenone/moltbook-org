@@ -21,7 +21,7 @@ This is a chicken-and-egg problem:
 3. The current devpod:default ServiceAccount only has **read-only** access
 4. Self-elevation is not possible for security reasons
 
-### Investigation Results (2026-02-04)
+### Investigation Results
 
 **Attempted by**: mo-3ax bead (claude-glm-foxtrot worker)
 **Result**: BLOCKED - Cannot self-elevate to cluster-admin
@@ -42,6 +42,15 @@ kubectl get clusterrole namespace-creator
 kubectl get clusterrolebinding devpod-namespace-creator
 # Error: NotFound
 ```
+
+**Re-verified by**: mo-138 bead (claude-sonnet, zai-bravo worker, 2026-02-04)
+**Result**: CONFIRMED - Blocker still requires cluster-admin action
+
+**Re-verification**:
+- Attempted to apply RBAC from devpod context
+- Confirmed Forbidden error for ClusterRole creation
+- Confirmed Forbidden error for ClusterRoleBinding creation
+- Verified resources still do not exist in cluster
 
 ### Required Action (Cluster Admin Only)
 
@@ -86,7 +95,8 @@ This will deploy:
 ### Related Beads
 
 - **mo-2j8b** (Priority 0): RBAC: Cluster admin must apply devpod-namespace-creator ClusterRoleBinding
-- **mo-3ax** (This bead): RBAC: Apply devpod-namespace-creator ClusterRoleBinding for Moltbook deployment
+- **mo-3ax** (Priority 1): RBAC: Document devpod-namespace-creator blocker - requires cluster-admin
+- **mo-138** (Priority 1): Blocker: Apply RBAC for Moltbook namespace creation (re-verification)
 - **mo-saz**: Implementation: Deploy Moltbook platform to ardenone-cluster
 
 ### Architecture Notes

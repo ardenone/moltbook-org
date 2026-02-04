@@ -83,9 +83,10 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 
 ### Related Beads
 
-- **mo-39sj**: Current cluster-admin action bead (P0) - Apply devpod-namespace-creator ClusterRoleBinding
-- **mo-3ax**: This task - Investigation and verification of RBAC blocker (current task)
-- **mo-138**: Previous verification of RBAC blocker
+- **mo-3e6j**: Current cluster-admin action bead (P0) - BLOCKER: Cluster-admin must apply devpod RBAC for namespace creation
+- **mo-39sj**: Previous cluster-admin action bead (P0) - Apply devpod-namespace-creator ClusterRoleBinding
+- **mo-138**: This task - Document RBAC blocker verification for Moltbook deployment (current task)
+- **mo-3ax**: Original task - Investigation and verification of RBAC blocker
 
 **Note**: There are many duplicate beads tracking the same RBAC blocker. Consider consolidating:
 - mo-339m, mo-2j8b, mo-12ee, mo-3kcj, mo-1c9d, mo-2ym4, mo-1k2i, mo-nohd, mo-1njh, mo-20r2, mo-1u4t, mo-1gj4, mo-h6lv, mo-1z4t, mo-3b71, mo-2bxj, mo-33lq, mo-2hgx, mo-1s5e, mo-2hoz, mo-30b6, mo-yos4 (and possibly more)
