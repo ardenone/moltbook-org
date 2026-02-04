@@ -18,8 +18,12 @@ The Moltbook deployment is blocked by a missing ClusterRoleBinding that must be 
 A cluster administrator must apply the RBAC manifest:
 
 ```bash
-# From the ardenone-cluster repository
+# RECOMMENDED: Single manifest that creates RBAC + namespace (from moltbook-org)
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
+
+# ALTERNATIVE: Two-step approach using ardenone-cluster repo
 kubectl apply -f /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/namespace/moltbook-namespace.yml
 ```
 
 ### What the Manifest Creates
