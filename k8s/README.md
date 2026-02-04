@@ -17,9 +17,9 @@ moltbook-api Service (ClusterIP)
     ↓
 moltbook-api Deployment (2 replicas)
     ↓
-moltbook-db (CloudNativePG - PostgreSQL 16)
+moltbook-postgres (CloudNativePG - PostgreSQL 16)
     ↓
-moltbook-db-rw Service (ClusterIP)
+moltbook-postgres-rw Service (ClusterIP)
 
 redis Service (ClusterIP)
     ↓
@@ -46,18 +46,17 @@ cd k8s
 
 # 1. Create database secret
 kubectl create secret generic moltbook-db-credentials \
-  --from-literal=username=moltbook \
   --from-literal=password=$(openssl rand -base64 32) \
   --from-literal=jwt-secret=$(openssl rand -base64 64) \
   --from-literal=api-superuser-key=$(openssl rand -hex 32) \
   --namespace=moltbook \
   --dry-run=client -o yaml | \
-  kubeseal --format yaml > database/sealedsecret.yml
+  kubeseal --format yaml > database/db-credentials-sealedsecret.yml
 
 # 2. Create API secret with DATABASE_URL
 DB_PASSWORD=$(your_generated_password)
 kubectl create secret generic moltbook-api-secrets \
-  --from-literal=DATABASE_URL="postgresql://moltbook:${DB_PASSWORD}@moltbook-db-rw.moltbook.svc.cluster.local:5432/moltbook" \
+  --from-literal=DATABASE_URL="postgresql://moltbook:${DB_PASSWORD}@moltbook-postgres-rw.moltbook.svc.cluster.local:5432/moltbook" \
   --from-literal=JWT_SECRET=$(openssl rand -base64 64) \
   --namespace=moltbook \
   --dry-run=client -o yaml | \
@@ -81,7 +80,7 @@ kubectl apply -f argocd-application.yml
 kubectl create namespace moltbook
 
 # Apply secrets first
-kubectl apply -f database/sealedsecret.yml
+kubectl apply -f database/db-credentials-sealedsecret.yml
 kubectl apply -f api/sealedsecret.yml
 
 # Apply all resources
@@ -126,7 +125,7 @@ kubectl logs -f deployment/moltbook-api -n moltbook
 kubectl logs -f deployment/moltbook-frontend -n moltbook
 
 # Database logs
-kubectl logs -f -l cnpg.io/cluster=moltbook-db -n moltbook
+kubectl logs -f -l cnpg.io/cluster=moltbook-postgres -n moltbook
 ```
 
 ## Health Checks
@@ -141,7 +140,7 @@ kubectl logs -f -l cnpg.io/cluster=moltbook-db -n moltbook
 Check if the database is running:
 ```bash
 kubectl get cluster -n moltbook
-kubectl describe cluster moltbook-db -n moltbook
+kubectl describe cluster moltbook-postgres -n moltbook
 ```
 
 ### API Returns 502

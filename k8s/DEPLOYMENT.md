@@ -23,7 +23,7 @@ This guide covers deploying Moltbook to ardenone-cluster.
 
    # Create SealedSecret for API
    kubectl create secret generic moltbook-api-secrets \
-     --from-literal=DATABASE_URL="postgresql://moltbook:${DB_PASSWORD}@moltbook-db-rw.moltbook.svc.cluster.local:5432/moltbook" \
+     --from-literal=DATABASE_URL="postgresql://moltbook:${DB_PASSWORD}@moltbook-postgres-rw.moltbook.svc.cluster.local:5432/moltbook" \
      --from-literal=JWT_SECRET=$JWT_SECRET \
      --namespace=moltbook \
      --dry-run=client -o yaml | \
