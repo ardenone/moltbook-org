@@ -12,20 +12,6 @@ spec:
       kind: Rule
       services:
         - name: moltbook-api
-          port: 3000
-      middlewares:
-        - name: moltbook-api-stripprefix
+          port: 80
   tls:
     certResolver: letsencrypt
-
----
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: moltbook-api-stripprefix
-  namespace: moltbook
-spec:
-  stripPrefix:
-    prefixes:
-      - /api
-    # Keep the /api/v1 path, don't strip it
