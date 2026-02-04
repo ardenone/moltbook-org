@@ -38,7 +38,7 @@ Error from server (NotFound): namespaces "argocd" not found
 
 ## Available Solution Options
 
-### Option 1: Cluster Admin Creates RBAC + Namespace (Recommended)
+### Option 1: Cluster Admin Creates RBAC + Namespace (Recommended for ardenone-cluster)
 
 A cluster administrator applies the consolidated manifest:
 
@@ -56,6 +56,7 @@ kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.y
 - One-time cluster admin action
 - Enables future namespace creation without intervention
 - Fully automated deployment from devpod
+- **This is the RECOMMENDED approach for ardenone-cluster** (ArgoCD is NOT installed)
 
 ---
 
