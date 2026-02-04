@@ -91,21 +91,20 @@ kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
 - `k8s/ARGOCD_INSTALLATION_GUIDE.md` - Detailed installation guide
 - `k8s/CLUSTER_ADMIN_README.md` - Quick start for cluster admins
 
-## Duplicate Beads (Related to mo-e9cb)
+## Blocker Bead
 
-The following beads are duplicates/related to this blocker:
-- mo-3viq
-- mo-2xbd
-- mo-b0ko
-- mo-27cr
-- mo-1hoi
-- mo-lh29
-- mo-2217
-- mo-3b71
-- mo-4gtz
-- mo-17u8
+**mo-1xks**: Fix: Grant RBAC permissions to install ArgoCD in ardenone-cluster
+- Created: 2026-02-04 22:25 UTC
+- Priority: 0 (Critical)
+- Status: Awaiting cluster-admin action
 
-These should be marked as related to mo-e9cb to consolidate tracking.
+## Related Documentation
+
+- `k8s/ARGOCD_INSTALL_REQUEST.yml` - RBAC manifest for cluster-admin
+- `k8s/install-argocd.sh` - Installation script
+- `k8s/argocd-application.yml` - Moltbook ArgoCD Application
+- `k8s/ARGOCD_INSTALLATION_GUIDE.md` - Detailed installation guide
+- `k8s/CLUSTER_ADMIN_README.md` - Quick start for cluster admins
 
 ## Next Steps
 
