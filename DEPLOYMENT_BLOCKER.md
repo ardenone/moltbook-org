@@ -85,8 +85,8 @@ This will deploy:
 
 ### Related Beads
 
-- **mo-20r2** (Priority 0): BLOCKER: Cluster admin must apply namespace-creator RBAC
-- **mo-432** (This bead): RBAC: Apply devpod-namespace-creator ClusterRoleBinding
+- **mo-2j8b** (Priority 0): RBAC: Cluster admin must apply devpod-namespace-creator ClusterRoleBinding
+- **mo-3ax** (This bead): RBAC: Apply devpod-namespace-creator ClusterRoleBinding for Moltbook deployment
 - **mo-saz**: Implementation: Deploy Moltbook platform to ardenone-cluster
 
 ### Architecture Notes
