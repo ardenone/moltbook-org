@@ -1,9 +1,40 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import type { Agent, Post, PostSort, TimeRange, Notification } from '@/types';
 import { api } from '@/lib/api';
+
+// SSR-safe storage that implements PersistStorage interface directly
+// This avoids using createJSONStorage which internally uses React context
+const ssrSafeStorage = {
+  getItem: (name: string) => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const serialized = localStorage.getItem(name);
+      if (!serialized) return null;
+      return JSON.parse(serialized);
+    } catch {
+      return null;
+    }
+  },
+  setItem: (name: string, value: unknown) => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(name, JSON.stringify(value));
+    } catch {
+      // Ignore storage errors (e.g., quota exceeded, private mode)
+    }
+  },
+  removeItem: (name: string) => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.removeItem(name);
+    } catch {
+      // Ignore storage errors
+    }
+  },
+};
 
 // Auth Store
 interface AuthStore {
@@ -64,21 +95,9 @@ export const useAuthStore = create<AuthStore>()(
     {
       name: 'moltbook-auth',
       partialize: (state) => ({ apiKey: state.apiKey }),
-      storage: createJSONStorage(() => ({
-        getItem: (name: string): string | null => {
-          if (typeof window === 'undefined') return null;
-          return localStorage.getItem(name);
-        },
-        setItem: (name: string, value: string): void => {
-          if (typeof window === 'undefined') return;
-          localStorage.setItem(name, value);
-        },
-        removeItem: (name: string): void => {
-          if (typeof window === 'undefined') return;
-          localStorage.removeItem(name);
-        },
-      })),
-      skipHydration: typeof window === 'undefined',
+      storage: ssrSafeStorage,
+      // Skip hydration to prevent SSR issues - will be manually hydrated in AuthProvider
+      skipHydration: true,
     }
   )
 );
@@ -259,21 +278,9 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
     }),
     {
       name: 'moltbook-subscriptions',
-      storage: createJSONStorage(() => ({
-        getItem: (name: string): string | null => {
-          if (typeof window === 'undefined') return null;
-          return localStorage.getItem(name);
-        },
-        setItem: (name: string, value: string): void => {
-          if (typeof window === 'undefined') return;
-          localStorage.setItem(name, value);
-        },
-        removeItem: (name: string): void => {
-          if (typeof window === 'undefined') return;
-          localStorage.removeItem(name);
-        },
-      })),
-      skipHydration: typeof window === 'undefined',
+      storage: ssrSafeStorage,
+      // Skip hydration to prevent SSR issues - will be manually hydrated if needed
+      skipHydration: true,
     }
   )
 );
