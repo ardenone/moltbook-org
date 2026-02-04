@@ -49,7 +49,42 @@ gh run list --workflow=build-push.yml
 gh run watch
 ```
 
-## Method 2: Safe Build Wrapper (NEW!)
+## Method 2: GitHub Actions Helper Script (NEW!)
+
+🚀 **EASIEST FROM DEVPOD** - Trigger GitHub Actions builds directly from the devpod!
+
+A helper script that makes it easy to trigger GitHub Actions builds from within the devpod environment.
+
+### Using the Helper Script
+
+```bash
+# Trigger build and watch progress in real-time
+./scripts/build-images-devpod.sh --watch
+
+# Trigger build and exit (check status later)
+./scripts/build-images-devpod.sh
+
+# Trigger and monitor with GitHub CLI
+./scripts/build-images-devpod.sh --watch
+```
+
+### What It Does
+
+- **Checks GitHub CLI authentication** before triggering
+- **Triggers the build-push.yml workflow** in GitHub Actions
+- **Optional --watch flag** to monitor build progress in real-time
+- **Provides build run URL** for easy browser access
+- **Works perfectly from devpod** since it only triggers external builds
+
+### Why This Approach?
+
+The overlay filesystem limitation in devpods is a kernel-level restriction. By using this helper script:
+- Build environment has no overlay filesystem limitations (GitHub Actions runners)
+- Consistent build environment across all developers
+- Automated image tagging and SBOM generation
+- Easy monitoring with `--watch` flag
+
+## Method 3: Safe Build Wrapper (Prevention)
 
 ⚠️ **PROTECTED** - Prevents the overlay filesystem error with automatic detection!
 
@@ -73,15 +108,7 @@ A safe build wrapper script automatically detects when you're in a devpod enviro
 - **Suggests alternatives** (GitHub Actions, host machine build, pre-built images)
 - **Delegates to build-images.sh** if running on host machine
 
-### Devpod Detection
-
-The wrapper checks for:
-- Kubernetes service account token (`/var/run/secrets/kubernetes.io/serviceaccount/token`)
-- Devpod environment variables (`DEVPOD`, `DEVPOD_NAME`)
-- Container markers (`/.dockerenv`, `/run/.containerenv`)
-- Devpod hostname patterns (`devpod-*`, `*-workspace-*`)
-
-## Method 3: Local Build on Host Machine
+## Method 4: Local Build on Host Machine
 
 ### Prerequisites
 
@@ -162,19 +189,22 @@ If GitHub Actions fails:
 
 | Method | Best For | Devpod Compatible | Automation |
 |--------|----------|-------------------|------------|
-| GitHub Actions | Production deployments | N/A | Fully automatic |
+| GitHub Actions Helper | Devpod development | ✅ Yes | Manual trigger |
+| GitHub Actions CLI | Production deployments | N/A | Fully automatic |
 | Safe Build Wrapper | Protected local builds | ✅ Yes (prevents error) | Manual |
 | Host Machine Build | Local testing on host | N/A | Semi-automatic |
 
 **Recommended**:
-- **Production**: Use GitHub Actions for fully automated CI/CD
-- **Devpod Development**: Use Safe Build Wrapper to prevent overlay filesystem errors
+- **Devpod Development**: Use `./scripts/build-images-devpod.sh --watch`
+- **Production**: Push to main branch for automatic CI/CD
 - **Host Development**: Use build-images.sh directly on host machine
 
 ## Related Documentation
 
-- **`DOCKER_BUILD_WORKAROUND.md`** - ⚠️ **READ THIS FIRST** for overlay filesystem error details
+- **`DOCKER_BUILD.md`** - Comprehensive Docker build guide with all options
+- **`DOCKER_BUILD_WORKAROUND.md`** - Technical details about overlay filesystem error
 - `DEPLOYMENT_READY.md` - Deployment prerequisites
 - `DEPLOYMENT_STATUS.md` - Current deployment status
+- `scripts/build-images-devpod.sh` - GitHub Actions trigger helper (NEW!)
 - `scripts/build-images-safe.sh` - Safe build wrapper with devpod detection
 - `scripts/build-images.sh` - Original host machine build script
