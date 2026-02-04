@@ -12,9 +12,9 @@ RUN npm install --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Build the application with telemetry disabled
+# Build the application with telemetry disabled, explicitly using webpack
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+RUN npx next build --webpack
 
 # Ensure public directory exists (even if empty) for the COPY instruction
 RUN mkdir -p /app/public && touch /app/public/.gitkeep
