@@ -1,10 +1,6 @@
 # Beads
 .beads/
 
-# Separate git repositories (api and frontend are their own repos)
-api/
-moltbook-frontend/
-
 # Secrets - NEVER commit real secrets
 *-secret.yml
 *-secrets.yml
