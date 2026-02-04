@@ -5,8 +5,14 @@
 # Purpose: Grant the devpod ServiceAccount permission to create namespaces
 # Required for: Deploying applications that need new namespaces (like Moltbook)
 #
+# BLOCKER: Moltbook deployment is blocked until this RBAC is applied by a cluster admin.
+# See bead mo-3c3c for details.
+#
 # To apply (requires cluster-admin permissions):
 #   kubectl apply -f devpod-namespace-creator-rbac.yml
+#
+# After applying this RBAC, the devpod can create namespaces:
+#   kubectl apply -f moltbook-namespace.yml
 #
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole

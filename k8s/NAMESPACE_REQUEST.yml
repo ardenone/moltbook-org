@@ -7,8 +7,14 @@
 # The devpod ServiceAccount (system:serviceaccount:devpod:default) lacks
 # permission to create namespaces at cluster scope.
 #
-# To create the namespace, run:
-#   kubectl apply -f NAMESPACE_REQUEST.yml
+# RECOMMENDED APPROACH: Grant devpod namespace creation permissions
+#   kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+#
+# Then from the devpod, create the namespace:
+#   kubectl apply -f k8s/namespace/moltbook-namespace.yml
+#
+# ALTERNATIVE: Create namespace directly as cluster admin:
+#   kubectl apply -f k8s/NAMESPACE_REQUEST.yml
 #
 # After the namespace is created, the main deployment can proceed using:
 #   kubectl apply -k k8s/

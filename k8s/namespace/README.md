@@ -8,8 +8,8 @@ This directory contains manifests for setting up the Moltbook namespace in the a
 
 - Namespace `moltbook`: **Does NOT exist**
 - RBAC `devpod-namespace-creator`: **NOT applied**
-- Blocker bead: **mo-3g41** (Fix: Create moltbook namespace in ardenone-cluster)
-- Helper script: `./scripts/create-moltbook-namespace.sh`
+- Blocker bead: **mo-s45e** (Blocker: RBAC permissions for Moltbook namespace creation)
+- Helper script: `../setup-namespace.sh` (run from k8s directory)
 
 ## Prerequisites
 
