@@ -8,14 +8,10 @@ const nextConfig = {
   // Optimize package imports for better tree-shaking
   experimental: {
     optimizePackageImports: ['lucide-react'],
-    // Disable turbo mode for Next.js 15.1 build stability
-    turbo: undefined,
   },
-  // Disable webpack caching to prevent NFT build trace errors
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.cache = false;
-    }
+  // Disable webpack caching completely to prevent build errors
+  webpack: (config) => {
+    config.cache = false;
     return config;
   },
 };

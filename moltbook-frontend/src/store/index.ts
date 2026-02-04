@@ -5,9 +5,8 @@ import { persist } from 'zustand/middleware';
 import type { Agent, Post, PostSort, TimeRange, Notification } from '@/types';
 import { api } from '@/lib/api';
 
-// SSR-safe storage that delays localStorage access to client-side only
-// Using a plain storage object instead of createJSONStorage to avoid React context dependency
-// during Next.js build/SSR, which causes "TypeError: createContext is not a function" errors
+// SSR-safe storage: plain storage object (not using createJSONStorage to avoid React context)
+// This prevents "TypeError: createContext is not a function" errors during Next.js build/SSR
 const ssrSafeStorage = {
   getItem: (name: string): string | null => {
     if (typeof window === 'undefined') return null;
@@ -93,11 +92,11 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'moltbook-auth',
-      partialize: (state) => ({ apiKey: state.apiKey } as Partial<AuthStore>),
-      storage: ssrSafeStorage,
-      // Skip hydration to prevent SSR issues - will be manually hydrated in AuthProvider
+      partialize: (state: AuthStore) => ({ apiKey: state.apiKey }),
+      storage: ssrSafeStorage as any,
+      // Always skip hydration - we'll manually hydrate in the AuthProvider
       skipHydration: true,
-    }
+    } as any
   )
 );
 
@@ -277,9 +276,9 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
     }),
     {
       name: 'moltbook-subscriptions',
-      storage: ssrSafeStorage,
-      // Skip hydration to prevent SSR issues - will be manually hydrated if needed
+      storage: ssrSafeStorage as any,
+      // Always skip hydration - we'll manually hydrate if needed
       skipHydration: true,
-    }
+    } as any
   )
 );
