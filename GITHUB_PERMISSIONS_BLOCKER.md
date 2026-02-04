@@ -75,7 +75,14 @@ Expected output should include `"push": true`
 ## Related Beads
 - **mo-2l68** - This blocker bead (PRIORITY 0)
 - **mo-2xz2** - Docker build blocker caused by missing permissions
-- **mo-1le** - Original task requesting permissions
+- **mo-1le** - Admin action task requesting permissions (this task)
+
+## Task Completion Status
+The task mo-1le is **complete** in the sense that all documentation is in place. The actual permission grant requires:
+1. A human with admin access to the `moltbook` GitHub organization
+2. Manual action via GitHub UI or CLI (see "Action Required" section above)
+
+This is an **external dependency** that cannot be automated.
 
 ## Technical Details
 
