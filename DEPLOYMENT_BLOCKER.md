@@ -80,27 +80,6 @@ This creates:
 
 ### After Cluster Admin Applies RBAC
 
-### Quick Start - One Command Setup
-
-A cluster administrator should run:
-
-```bash
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
-```
-
-**From outside the cluster** (with cluster-admin credentials):
-```bash
-# Apply using your cluster-admin kubectl context
-kubectl apply -f NAMESPACE_SETUP_REQUEST.yml
-```
-
-This creates:
-- **ClusterRole**: `namespace-creator` (create/get/list/watch namespaces)
-- **ClusterRoleBinding**: `devpod-namespace-creator` (binds to devpod ServiceAccount)
-- **Namespace**: `moltbook` with ArgoCD labels
-
-### After Cluster Admin Applies RBAC
-
 Once the RBAC is in place, deployment can proceed automatically:
 
 ```bash
@@ -116,7 +95,7 @@ This will deploy:
 - Traefik IngressRoutes
 - Monitoring and observability resources
 
-**Note**: The namespace is already created by NAMESPACE_SETUP_REQUEST.yml, so kustomization-no-namespace.yml is not needed.
+**Note**: The namespace is already created by NAMESPACE_SETUP_REQUEST.yml.
 
 ### Related Beads
 

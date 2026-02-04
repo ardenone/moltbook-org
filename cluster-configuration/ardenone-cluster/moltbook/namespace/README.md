@@ -42,24 +42,79 @@ Once ArgoCD is installed in ardenone-cluster (tracked in mo-3tx), the Applicatio
 - `devpod-namespace-creator-rbac.yml` - RBAC to grant namespace creation permission
 - `NAMESPACE_SETUP_REQUEST.yml` - Request manifest for cluster admin action
 
-## Verification
+## Quick Start for Cluster Admins
+
+### Option 1: Single Command (Recommended)
 
 ```bash
-# Check if namespace exists
+# Apply RBAC + Namespace in one command
+kubectl apply -f NAMESPACE_SETUP_REQUEST.yml
+```
+
+### Option 2: Two-Step Process
+
+```bash
+# Step 1: Grant devpod permission to create namespaces
+kubectl apply -f devpod-namespace-creator-rbac.yml
+
+# Step 2: Create the moltbook namespace
+kubectl apply -f moltbook-namespace.yml
+```
+
+## Verification
+
+After applying, verify with:
+
+```bash
+# Check ClusterRole exists
+kubectl get clusterrole namespace-creator
+
+# Check ClusterRoleBinding exists
+kubectl get clusterrolebinding devpod-namespace-creator
+
+# Check namespace exists
 kubectl get namespace moltbook
 
-# Check if RBAC is applied
-kubectl get clusterrolebinding devpod-namespace-creator
+# Verify devpod SA can create namespaces
+kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 ```
+
+**Expected output**: All commands should return `yes` or show the resource exists.
+
+## After RBAC is Applied
+
+Once the ClusterRoleBinding is in place, deploy Moltbook from the devpod:
+
+```bash
+# Option 1: Use the deployment script (recommended)
+/home/coder/Research/moltbook-org/scripts/deploy-moltbook-after-rbac.sh
+
+# Option 2: Manual deployment
+kubectl apply -k /home/coder/Research/moltbook-org/k8s/
+```
+
+This will deploy:
+- ✅ SealedSecrets (encrypted secrets)
+- ✅ PostgreSQL cluster (CloudNativePG)
+- ✅ Redis cache
+- ✅ moltbook-api deployment
+- ✅ moltbook-frontend deployment
+- ✅ Traefik IngressRoutes
+
+## Related Documentation
+
+- **[../CLUSTER_ADMIN_ACTION_REQUIRED.md](../CLUSTER_ADMIN_ACTION_REQUIRED.md)** - Comprehensive cluster-admin guide
+- **[../README.md](../README.md)** - Moltbook cluster configuration overview
+- **[../../RBAC_BLOCKER.md](../../RBAC_BLOCKER.md)** - Detailed RBAC blocker analysis
+- **[../../DEPLOYMENT_GUIDE.md](../../DEPLOYMENT_GUIDE.md)** - Complete deployment guide
 
 ## Related Beads
 
-- **mo-1te** - Fix: Moltbook deployment blocked by missing RBAC permissions (this documentation task)
-- **mo-30c1** - Blocker: Apply ClusterRole for Moltbook namespace creation (cluster-admin action required)
-- **mo-3tx** - CRITICAL: Install ArgoCD in ardenone-cluster for Moltbook deployment
-- **mo-saz** - Implementation: Deploy Moltbook platform to ardenone-cluster (blocked)
+- **mo-1te** - Fix: Moltbook deployment blocked by missing RBAC permissions (current task)
+- **mo-eypj** (P0) - Cluster-admin action: Apply devpod-namespace-creator ClusterRoleBinding
+- **mo-3ax** - Investigation and verification of RBAC blocker
 
-## Verification from devpod
+## Verification from devpod (Pre-RBAC)
 
 ```bash
 # Verify namespace does NOT exist (expected blocker)
