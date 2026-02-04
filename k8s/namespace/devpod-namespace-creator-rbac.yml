@@ -1,12 +1,30 @@
 ---
-# ClusterRole to allow namespace creation
+# ============================================================================
+# CLUSTERROLE FOR NAMESPACE CREATION (LEGACY APPROACH)
+# ============================================================================
+#
+# DEPRECATED: This is a LEGACY alternative approach.
+#
+# RECOMMENDED: Use ArgoCD GitOps with automatic namespace creation.
+# See ../argocd-application.yml - it has CreateNamespace=true enabled.
+#
+# ============================================================================
+# DEPLOYMENT COMPARISON
+# ============================================================================
+#
+# | Approach | Pros | Cons |
+# |----------|------|------|
+# | **ArgoCD with CreateNamespace** ✅ | GitOps native, no RBAC sprawl, self-healing | Requires one-time cluster admin action |
+# | RBAC (this file) | Manual control | Not GitOps, RBAC sprawl, security risk |
+#
+# ============================================================================
+# IF YOU STILL WANT TO USE THIS LEGACY RBAC APPROACH:
+# ============================================================================
+#
 # This manifest must be applied by a cluster administrator
 #
 # Purpose: Grant the devpod ServiceAccount permission to create namespaces
 # Required for: Deploying applications that need new namespaces (like Moltbook)
-#
-# BLOCKER: Moltbook deployment is blocked until this RBAC is applied by a cluster admin.
-# See bead mo-3c3c for details.
 #
 # To apply (requires cluster-admin permissions):
 #   kubectl apply -f devpod-namespace-creator-rbac.yml

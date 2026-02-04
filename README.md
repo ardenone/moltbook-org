@@ -4,6 +4,7 @@ Private deployment study for moltbook and OpenClaw agents.
 
 ## Quick Links
 
+- **[Cluster Admin Setup Guide](k8s/CLUSTER_ADMIN_README.md)** - **START HERE if namespace doesn't exist**
 - **[Docker Build Documentation](DOCKER_BUILD.md)** - How to build Docker images (important for devpod users)
 - **[Build Status Script](scripts/check-build-status.sh)** - Check GitHub Actions build status
 
@@ -11,30 +12,18 @@ Private deployment study for moltbook and OpenClaw agents.
 
 ### Namespace Creation (Requires Cluster Admin)
 
-The `moltbook` namespace must be created before deploying the application. There are two options:
+**ACTION REQUIRED**: The `moltbook` namespace must be created by a cluster administrator.
 
-**Option 1: Run Helper Script (Recommended)**
+See **[k8s/CLUSTER_ADMIN_README.md](k8s/CLUSTER_ADMIN_README.md)** for quick instructions.
 
-```bash
-# Run this as cluster admin - creates RBAC + namespace in one step
-./scripts/create-moltbook-namespace.sh
-```
-
-**Option 2: Manual Setup**
-
-Create RBAC to allow devpod namespace creation (recommended for development):
+Quick options:
 
 ```bash
-# Run this as cluster admin
-kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+# Option 1: Create namespace only (30 seconds)
+kubectl create namespace moltbook
+
+# Option 2: Grant RBAC + create namespace (recommended for development)
 kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml
-```
-
-Or create just the namespace:
-
-```bash
-# Run this as cluster admin
-kubectl apply -f k8s/NAMESPACE_REQUEST.yml
 ```
 
 ### Verify Namespace Exists
@@ -55,11 +44,11 @@ kubectl apply -k k8s/
 
 **BLOCKER**: The `moltbook` namespace does not exist and requires cluster admin intervention.
 
-- **Bead mo-1e6t**: Blocker: Apply namespace-creator ClusterRole for Moltbook deployment (P0)
-- See `DEPLOYMENT_GUIDE.md` for detailed instructions
-- See `DEPLOYMENT_BLOCKER.md` for blocker status
+- **Bead mo-3rs**: Fix: Grant devpod namespace creation permissions or create moltbook namespace (P0)
+- See `k8s/CLUSTER_ADMIN_README.md` for cluster admin instructions
+- See `k8s/DEPLOYMENT_BLOCKER_MO-CX8.md` for detailed blocker analysis
 
-Once the namespace is created, deployment can proceed automatically via ArgoCD or manually via kubectl.
+Once the namespace is created, deployment can proceed automatically.
 
 ## Important Note for Developers
 

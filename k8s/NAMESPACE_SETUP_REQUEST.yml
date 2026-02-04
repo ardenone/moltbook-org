@@ -3,6 +3,27 @@
 # ONE-TIME NAMESPACE SETUP FOR MOLTBOOK PLATFORM
 # ============================================================================
 #
+# DEPRECATED: This is a LEGACY alternative approach.
+#
+# RECOMMENDED APPROACH: Use ArgoCD GitOps with automatic namespace creation.
+# See k8s/argocd-application.yml - it has CreateNamespace=true enabled.
+#
+# To deploy with ArgoCD (cluster admin one-time action):
+#   kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
+#
+# ==============================================================================
+# WHY ARGOCD IS PREFERRED OVER THIS RBAC APPROACH:
+# ==============================================================================
+#
+# | Approach | Pros | Cons |
+# |----------|------|------|
+# | **ArgoCD with CreateNamespace** ✅ | GitOps native, no RBAC sprawl, self-healing | Requires one-time cluster admin action |
+# | RBAC (this file) | Manual control | Not GitOps, RBAC sprawl, security risk |
+#
+# ==============================================================================
+# IF YOU STILL WANT TO USE THIS LEGACY RBAC APPROACH:
+# ==============================================================================
+#
 # IMPORTANT: This manifest requires cluster-admin permissions to apply.
 #
 # Run the following command as a cluster administrator:

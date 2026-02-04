@@ -63,12 +63,11 @@ This is an intentional security boundary. Namespace creation requires cluster-ad
 
 ## Option Comparison
 
-| Option | Namespace Created | RBAC Granted | Future Management | Best For |
-|--------|------------------|--------------|-------------------|----------|
-| 1 (ArgoCD) | ✅ (auto) | ❌ (not needed) | ✅ Full GitOps sync | Production |
-| 2 (create only) | ✅ | ❌ | ⚠️ Limited (can't recreate if deleted) | Quick testing |
-| 3 (RBAC + namespace) | ✅ | ✅ | ✅ Full namespace management | Development |
+| Option | Namespace Created | RBAC Granted | Future Management |
+|--------|------------------|--------------|-------------------|
+| 1 (create only) | ✅ | ❌ | ⚠️ Limited (can't recreate if deleted) |
+| 2 (RBAC + namespace) | ✅ | ✅ | ✅ Full namespace management |
 
 **Recommendation:**
-- For production: Use Option 1 (ArgoCD GitOps)
-- For development: Use Option 3 (RBAC + namespace) to allow future namespace creation
+- For production: Use Option 1 (create only) - minimal permissions
+- For development: Use Option 2 (RBAC + namespace) to allow future namespace creation
