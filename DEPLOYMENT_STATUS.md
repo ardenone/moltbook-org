@@ -350,8 +350,9 @@ The GitHub Actions workflow automatically builds and pushes images when:
 - **API Source**: `/home/coder/Research/moltbook-org/api/`
 - **Frontend Source**: `/home/coder/Research/moltbook-org/moltbook-frontend/`
 - **Namespace Request**: `k8s/NAMESPACE_REQUEST.yml`
+- **RBAC Manifest**: `k8s/namespace/devpod-namespace-creator-rbac.yml`
 - **Documentation**: `DEPLOYMENT_GUIDE.md`
-- **Blocker Bead**: `mo-3o6` - Namespace creation permissions
+- **Blocker Bead**: `mo-2it` - Namespace creation permissions
 
 ## 🐛 Known Issues
 
