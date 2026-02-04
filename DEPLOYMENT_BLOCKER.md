@@ -1,152 +1,93 @@
-# Moltbook Deployment Blocker - Namespace Creation Permissions
+# Moltbook Deployment Blocker
 
-## Status: 🔴 BLOCKED
+## Status: BLOCKED - Cluster Admin Action Required
 
-**Bead**: mo-cx8
-**Blocker Bead**: mo-1e6t
-**Date**: 2026-02-04
-**Last Verified**: 2026-02-04 19:30 UTC
+### Summary
 
-## Problem Summary
+The Moltbook deployment to `ardenone-cluster` is blocked because the devpod ServiceAccount lacks permissions to create namespaces and cluster-scoped RBAC resources.
 
-The Moltbook Kubernetes deployment is **blocked** because the devpod ServiceAccount lacks the necessary cluster-level permissions to:
+### Current State
 
-1. **Create namespaces** at cluster scope
-2. **Apply ClusterRole/ClusterRoleBinding** for RBAC setup
-3. **Create the moltbook namespace** required for all platform resources
+- **Namespace**: Does NOT exist (`moltbook`)
+- **ClusterRole**: Does NOT exist (`namespace-creator`)
+- **ClusterRoleBinding**: Does NOT exist (`devpod-namespace-creator`)
+- **Devpod ServiceAccount**: Has read-only access only (via `k8s-observer-devpod-cluster-resources`)
 
-## Current State
+### Root Cause
 
-```bash
-# Permission check results:
-$ kubectl auth can-i create namespace
-no  # ❌ BLOCKED
+This is a chicken-and-egg problem:
+1. The manifest at `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml` grants the devpod ServiceAccount permission to create namespaces
+2. However, applying this manifest requires **cluster-admin** privileges
+3. The current devpod:default ServiceAccount only has **read-only** access
+4. Self-elevation is not possible for security reasons
 
-# Existing infrastructure:
-$ kubectl get clusterrole namespace-creator
-Error from server (NotFound)  # ❌ Does not exist
+### Required Action (Cluster Admin Only)
 
-$ kubectl get clusterrolebinding devpod-namespace-creator
-Error from server (NotFound)  # ❌ Does not exist
-
-$ kubectl get namespace moltbook
-Error from server (NotFound)  # ❌ Does not exist
-```
-
-## Required Action: Cluster Admin Intervention
-
-### Option 1: One-Click Setup (Recommended) ✅
-
-A cluster administrator should run:
+A cluster administrator must run:
 
 ```bash
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
+kubectl apply -f /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml
 ```
 
-**This single command creates:**
-- ✅ `namespace-creator` ClusterRole (grants namespace/role/rolebinding creation)
-- ✅ `devpod-namespace-creator` ClusterRoleBinding (binds to devpod ServiceAccount)
-- ✅ `moltbook` namespace with proper labels
+This creates:
+- **ClusterRole**: `namespace-creator`
+  - Permissions: create/get/list/watch namespaces
+  - Permissions: create/update roles and rolebindings
+  - Permissions: create/update/delete traefik middlewares
+- **ClusterRoleBinding**: `devpod-namespace-creator`
+  - Binds to: `system:serviceaccount:devpod:default`
 
-**After this is applied, mo-cx8 can proceed autonomously with:**
-```bash
-kubectl apply -k k8s/
-```
+### After Cluster Admin Applies RBAC
 
-### Option 2: Alternative Approaches
-
-#### A) Minimal RBAC + Manual Namespace Creation
-```bash
-# Apply RBAC only (as cluster admin):
-kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
-
-# Then create namespace (from devpod):
-kubectl apply -f k8s/namespace/moltbook-namespace.yml
-```
-
-#### B) Manual Namespace Only (Least Preferred)
-```bash
-# Create namespace directly (as cluster admin):
-kubectl apply -f k8s/NAMESPACE_REQUEST.yml
-
-# Then proceed with deployment (from devpod):
-kubectl apply -k k8s/
-```
-
-⚠️ **Drawback**: Option 2B doesn't grant ongoing namespace management permissions to devpod.
-
-## Deployment Readiness Checklist
-
-Once the namespace exists and RBAC is applied, the following is **ready to deploy**:
-
-### ✅ Kubernetes Resources (All Manifests Complete)
-- [x] Namespace definition (`k8s/namespace/moltbook-namespace.yml`)
-- [x] RBAC for devpod ServiceAccount (`k8s/namespace/moltbook-rbac.yml`)
-- [x] SealedSecrets (encrypted secrets, safe for Git)
-  - [x] API secrets (`k8s/secrets/moltbook-api-sealedsecret.yml`)
-  - [x] PostgreSQL superuser (`k8s/secrets/moltbook-postgres-superuser-sealedsecret.yml`)
-  - [x] Database credentials (`k8s/secrets/moltbook-db-credentials-sealedsecret.yml`)
-- [x] CloudNativePG PostgreSQL cluster (`k8s/database/cluster.yml`)
-- [x] PostgreSQL schema ConfigMap (`k8s/database/schema-configmap.yml`)
-- [x] Schema initialization deployment (`k8s/database/schema-init-deployment.yml`)
-- [x] Redis deployment (`k8s/redis/deployment.yml`)
-- [x] API backend deployment (`k8s/api/deployment.yml`)
-- [x] Frontend deployment (`k8s/frontend/deployment.yml`)
-- [x] Traefik IngressRoute for API (`k8s/api/ingressroute.yml`)
-- [x] Traefik IngressRoute for frontend (`k8s/frontend/ingressroute.yml`)
-- [x] Kustomization configuration (`k8s/kustomization.yml`)
-- [x] ArgoCD Application manifest (`k8s/argocd-application.yml`)
-
-### ✅ Container Images (Built and Pushed)
-- [x] `ghcr.io/ardenone/moltbook-api:f04cb91`
-- [x] `ghcr.io/ardenone/moltbook-frontend:f04cb91`
-
-## Post-Unblock Deployment Steps
-
-Once cluster admin applies `NAMESPACE_SETUP_REQUEST.yml`:
+Once the RBAC is in place, deployment can proceed automatically:
 
 ```bash
-# 1. Verify namespace exists
-kubectl get namespace moltbook
-
-# 2. Verify RBAC permissions
-kubectl auth can-i create namespace
-kubectl auth can-i create deployment -n moltbook
-kubectl auth can-i create clusterpool -n moltbook  # CNPG
-
-# 3. Deploy all resources
-kubectl apply -k k8s/
-
-# 4. Verify deployment
-kubectl get all -n moltbook
-kubectl get clusterpool -n moltbook
-kubectl get ingressroute -n moltbook
-
-# 5. Check application health
-kubectl get pods -n moltbook
-kubectl logs -n moltbook -l app.kubernetes.io/component=api
-kubectl logs -n moltbook -l app.kubernetes.io/component=frontend
+# From devpod, this will work:
+kubectl apply -k /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/
 ```
 
-## ArgoCD Integration
+This will deploy:
+- Namespace: `moltbook`
+- PostgreSQL cluster (via CNPG)
+- Redis deployment
+- Moltbook API deployment
+- Moltbook frontend deployment
+- Traefik IngressRoute
+- Monitoring and observability resources
 
-Optional: Deploy via ArgoCD instead of kubectl:
+### Related Beads
+
+- **mo-20r2** (Priority 0): BLOCKER: Cluster admin must apply namespace-creator RBAC
+- **mo-432** (This bead): RBAC: Apply devpod-namespace-creator ClusterRoleBinding
+- **mo-saz**: Implementation: Deploy Moltbook platform to ardenone-cluster
+
+### Architecture Notes
+
+The devpod namespace already has a `rolebinding-controller` ServiceAccount that can:
+- Create RoleBindings in existing namespaces
+- Watch/list/get namespaces
+- Bind specific ClusterRoles
+
+However, it **cannot**:
+- Create new namespaces
+- Create ClusterRoles
+- Create ClusterRoleBindings
+
+This is by design to prevent privilege escalation from within devpods.
+
+### Verification
+
+After the cluster admin applies the RBAC, verify with:
 
 ```bash
-kubectl apply -f k8s/argocd-application.yml
+# Check ClusterRole exists
+kubectl get clusterrole namespace-creator
+
+# Check ClusterRoleBinding exists
+kubectl get clusterrolebinding devpod-namespace-creator
+
+# Check devpod SA can create namespaces
+kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
+
+# Should return: yes
 ```
-
-This will create an ArgoCD Application that syncs the `k8s/` directory.
-
-## Related Documentation
-
-- **RBAC Setup**: `k8s/NAMESPACE_SETUP_REQUEST.yml` (primary)
-- **RBAC Reference**: `k8s/namespace/devpod-namespace-creator-rbac.yml`
-- **Namespace Only**: `k8s/NAMESPACE_REQUEST.yml`
-- **Main Kustomization**: `k8s/kustomization.yml`
-
-## Tracking
-
-- **Original Bead**: mo-cx8 (this deployment task)
-- **Blocker Bead**: mo-1e6t (priority 0 - critical)
-- **Related**: mo-3c3c (original RBAC request documentation)
