@@ -11,6 +11,7 @@ resources:
   - secrets/moltbook-postgres-superuser-sealedsecret.yml
   - secrets/moltbook-db-credentials-sealedsecret.yml
   - database/cluster.yml
+  - database/service.yml
   - database/schema-configmap.yml
   - database/schema-init-job.yml
   - redis/configmap.yml
