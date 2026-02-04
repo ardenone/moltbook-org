@@ -12,6 +12,6 @@ spec:
       kind: Rule
       services:
         - name: moltbook-api
-          port: 3000
+          port: 80
   tls:
     certResolver: letsencrypt
