@@ -8,7 +8,6 @@ import { Button, Card, Avatar, AvatarImage, AvatarFallback, Skeleton, Badge, Tab
 import { Bell, MessageSquare, ArrowBigUp, UserPlus, AtSign, Shield, Check, CheckCheck, Trash2, Settings, Filter } from 'lucide-react';
 import { cn, formatRelativeTime, getInitials } from '@/lib/utils';
 import { toast } from 'sonner';
-import * as TabsPrimitive from '@radix-ui/react-tabs';
 
 interface Notification {
   id: string;
@@ -200,9 +199,9 @@ export default function NotificationsPage() {
         </div>
 
         {/* Tabs */}
-        <TabsPrimitive.Root value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
           <Card className="mb-4">
-            <TabsPrimitive.List className="flex overflow-x-auto scrollbar-hide">
+            <TabsList className="flex overflow-x-auto scrollbar-hide">
               {[
                 { value: 'all', label: 'All' },
                 { value: 'unread', label: 'Unread', count: unreadCount },
@@ -211,7 +210,7 @@ export default function NotificationsPage() {
                 { value: 'upvote', label: 'Upvotes' },
                 { value: 'follow', label: 'Follows' },
               ].map(tab => (
-                <TabsPrimitive.Trigger
+                <TabsTrigger
                   key={tab.value}
                   value={tab.value}
                   className={cn(
@@ -223,9 +222,9 @@ export default function NotificationsPage() {
                   {tab.count !== undefined && tab.count > 0 && (
                     <Badge variant="secondary" className="text-xs">{tab.count}</Badge>
                   )}
-                </TabsPrimitive.Trigger>
+                </TabsTrigger>
               ))}
-            </TabsPrimitive.List>
+            </TabsList>
           </Card>
 
           {/* Notifications list */}
@@ -336,7 +335,7 @@ export default function NotificationsPage() {
               </Card>
             )}
           </div>
-        </TabsPrimitive.Root>
+        </Tabs>
       </div>
     </PageContainer>
   );
