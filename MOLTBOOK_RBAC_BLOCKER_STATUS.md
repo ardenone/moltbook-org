@@ -272,3 +272,40 @@ kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenon
 ```
 
 This single command will create all required resources (RBAC + namespace).
+
+---
+
+## Verification Log Update (mo-18q - 2026-02-04 22:45 UTC)
+
+| Check | Result | Command |
+|-------|--------|---------|
+| Namespace `moltbook` exists | ❌ NotFound | `kubectl get namespace moltbook` |
+| ClusterRole `namespace-creator` exists | ❌ NotFound | `kubectl get clusterrole namespace-creator` |
+| ClusterRoleBinding `devpod-namespace-creator` exists | ❌ NotFound | `kubectl get clusterrolebinding devpod-namespace-creator` |
+| Devpod SA can create namespaces | ❌ Forbidden | `kubectl auth can-i create namespaces` |
+| Devpod SA can create clusterrole | ❌ No permission | Resource 'namespaces' is not namespace scoped |
+
+**Conclusion from mo-18q**: Task was to verify and apply RBAC manifests for Moltbook deployment. Verified that:
+1. **RBAC manifests exist and are valid**:
+   - `k8s/namespace/devpod-namespace-creator-rbac.yml` (ClusterRole + ClusterRoleBinding for namespace creation)
+   - `k8s/namespace/moltbook-rbac.yml` (Role + RoleBinding for namespace-scoped permissions)
+2. **NAMESPACE_SETUP_REQUEST.yml exists** (two identical copies):
+   - `k8s/NAMESPACE_SETUP_REQUEST.yml`
+   - `cluster-configuration/ardenone-cluster/moltbook/namespace/NAMESPACE_SETUP_REQUEST.yml`
+3. **RBAC has NOT been applied**: ClusterRole, ClusterRoleBinding, and namespace all do not exist
+4. **Current ServiceAccount lacks permissions**: Cannot create namespaces, ClusterRoles, or ClusterRoleBindings
+5. **All manifests are ready**: No code changes needed - just awaiting cluster-admin action
+
+**Action bead mo-4n69** (P0) remains OPEN and requires cluster-admin execution.
+
+**Action Required**: Cluster-admin must run:
+```bash
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
+```
+
+This single command creates:
+1. ClusterRole `namespace-creator` (create/get/list/watch namespaces)
+2. ClusterRoleBinding `devpod-namespace-creator` (binds to devpod:default SA)
+3. Namespace `moltbook` with ArgoCD labels
+
+After RBAC is applied, the devpod can then apply `moltbook-rbac.yml` for namespace-scoped permissions.

@@ -4,7 +4,9 @@
 
 **Current State:**
 - Namespace `moltbook`: **Does NOT exist**
-- Blocker created: **mo-3rs** (Fix: Grant devpod namespace creation permissions or create moltbook namespace)
+- Blocker beads documenting this issue:
+  - **mo-3rs** - Fix: Grant devpod namespace creation permissions or create moltbook namespace
+  - **mo-18q** - Blocker: Apply RBAC manifests for Moltbook deployment (this bead)
 
 ## Quick Fix (30 seconds)
 
