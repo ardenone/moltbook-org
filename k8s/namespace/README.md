@@ -8,8 +8,17 @@ This directory contains manifests for setting up the Moltbook namespace in the a
 
 - Namespace `moltbook`: **Does NOT exist**
 - RBAC `devpod-namespace-creator`: **NOT applied**
-- Blocker bead: **mo-drj** (Fix: Create moltbook namespace in ardenone-cluster)
+- Blocker bead: **mo-3flx** (BLOCKER: Cluster Admin needed - Create moltbook namespace)
+- Related bead: **mo-drj** (Fix: Create moltbook namespace in ardenone-cluster)
 - Helper script: `../setup-namespace.sh` (run from k8s directory)
+
+### Why This is Blocked
+
+The devpod ServiceAccount (`system:serviceaccount:devpod:default`) does not have cluster-scoped permissions to:
+1. Create namespaces (cluster-scoped resource)
+2. Create ClusterRole/ClusterRoleBinding (cluster-scoped resources)
+
+This is an intentional security boundary. Namespace creation requires cluster-admin privileges.
 
 ## Prerequisites
 
