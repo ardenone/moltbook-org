@@ -194,12 +194,13 @@ curl https://api-moltbook.ardenone.com/health
 
 ## 🔄 Related Beads
 
-**Active Blockers:**
-- **mo-39k** (Priority 0): Blocker: Moltbook namespace creation in ardenone-cluster (NEW - 2026-02-04)
-- **mo-300** (Priority 1): Build and push Docker images to ghcr.io
-- **mo-9zd** (Priority 1): Install ArgoCD on ardenone-cluster
+**Primary Blocker:**
+- **mo-3p2** (Priority 0): Action: Cluster Admin - Create moltbook namespace (NEW - 2026-02-04)
 
-**Note**: Many duplicate beads exist for the same blockers. Recommend consolidating or closing duplicates. Use mo-39k as the primary tracker for namespace creation.
+**Note:** All duplicate namespace/RBAC beads have been consolidated. Use mo-3p2 as the primary tracker for namespace creation.
+
+**Secondary Beads (lower priority):**
+- **mo-300** (Priority 1): Build and push Docker images to ghcr.io
 
 ## ✅ Success Criteria Met
 
