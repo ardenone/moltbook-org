@@ -80,8 +80,8 @@ This is an intentional security boundary. Namespace creation requires cluster-ad
 |--------|------------------|--------------|-------------------|----------|
 | 1 (RBAC + namespace) | ✅ | ✅ | ✅ Full namespace management | **Development** (ardenone-cluster) |
 | 2 (create only) | ✅ | ❌ | ⚠️ Limited (can't recreate if deleted) | Quick testing |
-| 3 (ArgoCD) | ✅ (auto) | ❌ (not needed) | ✅ Full GitOps sync | Production (requires ArgoCD installed) |
+| 3 (ArgoCD) | ⚠️ NOT AVAILABLE | ❌ | ❌ | Requires ArgoCD installation (not present) |
 
 **Recommendation:**
-- For ardenone-cluster (where devpods run): Use **Option 1** (RBAC + namespace) - ArgoCD is NOT installed
-- For production clusters with ArgoCD: Use Option 3 (ArgoCD GitOps)
+- For ardenone-cluster (where devpods run): Use **Option 1** (RBAC + namespace via NAMESPACE_SETUP_REQUEST.yml)
+- Option 3 is NOT available - ArgoCD is NOT installed in ardenone-cluster

@@ -38,6 +38,8 @@ kubectl create namespace moltbook
 ```
 
 > **Note:** Option 3 only creates the namespace. The devpod ServiceAccount can still deploy resources into an existing namespace. However, Option 1 or 2 is recommended for future namespace management needs.
+>
+> **Important:** ArgoCD is NOT installed in ardenone-cluster. The ArgoCD application manifest (`k8s/argocd-application.yml`) is for a different cluster or requires ArgoCD installation first.
 
 ## After Setup
 
