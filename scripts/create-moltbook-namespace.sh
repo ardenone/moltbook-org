@@ -25,9 +25,9 @@ if kubectl get namespace "$NAMESPACE" &>/dev/null; then
     exit 0
 fi
 
-# Create namespace using the manifest
-echo "Creating namespace '$NAMESPACE'..."
-kubectl apply -f "$PROJECT_DIR/k8s/NAMESPACE_REQUEST.yml"
+# Create namespace using the combined setup manifest (RBAC + namespace)
+echo "Creating namespace '$NAMESPACE' with RBAC..."
+kubectl apply -f "$PROJECT_DIR/k8s/NAMESPACE_SETUP_REQUEST.yml"
 
 # Verify namespace was created
 if kubectl get namespace "$NAMESPACE" &>/dev/null; then

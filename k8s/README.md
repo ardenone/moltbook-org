@@ -4,15 +4,14 @@ This directory contains Kubernetes manifests for deploying Moltbook to ardenone-
 
 ## Deployment Status
 
-✅ **DEPLOYED** - Moltbook manifests have been deployed to ardenone-cluster via GitOps.
+🚫 **BLOCKED** - Namespace creation requires cluster-admin action.
 
-- **Manifests Location:** `ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/`
-- **ArgoCD Application:** Configured and pointing to the ardenone-cluster repository
-- **Repository:** https://github.com/ardenone/ardenone-cluster.git
-- **Path:** `cluster-configuration/ardenone-cluster/moltbook`
+- **Current Blocker:** Namespace `moltbook` does not exist in ardenone-cluster
+- **Blocker Bead:** mo-s45e (Blocker: RBAC permissions for Moltbook namespace creation)
+- **Required Action:** Cluster admin must run `./setup-namespace.sh` or `kubectl create namespace moltbook`
 - **Last Updated:** 2026-02-04
 
-ArgoCD will automatically sync changes from the ardenone-cluster repository to deploy Moltbook to the cluster.
+See `NAMESPACE_SETUP_README.md` for detailed instructions on resolving the blocker.
 
 ## Architecture
 
@@ -90,6 +89,29 @@ kubectl create secret generic moltbook-api-secrets \
 
 ## Deployment Steps
 
+### Prerequisite: Create Namespace (Requires Cluster Admin)
+
+The moltbook namespace must be created before ArgoCD can sync resources.
+
+**Option 1: Run the helper script (requires cluster-admin)**
+```bash
+./scripts/create-moltbook-namespace.sh
+```
+
+**Option 2: Manual namespace creation (requires cluster-admin)**
+```bash
+kubectl create namespace moltbook
+```
+
+**Option 3: Grant devpod namespace creation permissions (one-time setup)**
+```bash
+# Apply RBAC to allow devpod ServiceAccount to create namespaces
+kubectl apply -f namespace/devpod-namespace-creator-rbac.yml
+
+# Now namespace creation can be done from devpod
+kubectl create namespace moltbook
+```
+
 ### 1. Deploy via ArgoCD
 
 Apply the ArgoCD Application manifest:
@@ -98,12 +120,11 @@ Apply the ArgoCD Application manifest:
 kubectl apply -f argocd-application.yml
 ```
 
+Note: ArgoCD has `CreateNamespace=true` but requires cluster-admin permissions to create namespaces. The namespace must exist before ArgoCD can sync resources to it.
+
 ### 2. Manual Deployment (for testing)
 
 ```bash
-# Create namespace
-kubectl create namespace moltbook
-
 # Apply secrets first
 kubectl apply -f database/db-credentials-sealedsecret.yml
 kubectl apply -f api/sealedsecret.yml

@@ -2,6 +2,15 @@
 
 This directory contains manifests for setting up the Moltbook namespace in the ardenone-cluster.
 
+## Current Status (2026-02-04)
+
+**BLOCKED - Awaiting Cluster Admin Action**
+
+- Namespace `moltbook`: **Does NOT exist**
+- RBAC `devpod-namespace-creator`: **NOT applied**
+- Blocker bead: **mo-3g41** (Fix: Create moltbook namespace in ardenone-cluster)
+- Helper script: `./scripts/create-moltbook-namespace.sh`
+
 ## Prerequisites
 
 This setup requires **cluster-admin** privileges to create namespaces and apply RBAC.
