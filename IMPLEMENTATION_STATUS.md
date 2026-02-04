@@ -161,18 +161,71 @@ curl https://api-moltbook.ardenone.com/health
 - [ ] **Images built** (blocked - mo-3fp)
 - [ ] **Deployed to cluster** (blocked - depends on above)
 
+## Deployment Attempt (2026-02-04)
+
+**Attempted Actions**:
+1. ✅ Validated kustomization builds successfully (1050+ lines)
+2. ✅ Verified all prerequisites are running:
+   - CNPG operator: 1/1 pods running in cnpg-system
+   - Traefik: 3/3 pods running in traefik namespace
+   - Sealed Secrets: 2/2 pods running in sealed-secrets
+3. ❌ **Namespace creation failed**: Permission denied
+
+**Error Details**:
+```
+Error from server (Forbidden): error when creating "k8s/namespace/moltbook-namespace.yml":
+namespaces is forbidden: User "system:serviceaccount:devpod:default" cannot create resource
+"namespaces" in API group "" at the cluster scope
+```
+
+**Root Cause**: The devpod ServiceAccount lacks cluster-level namespace creation permissions.
+
+**Resolution Path**:
+- A cluster administrator must apply: `k8s/namespace/devpod-namespace-creator-rbac.yml`
+- This grants the necessary ClusterRole and ClusterRoleBinding
+- After RBAC is applied, deployment can proceed via: `kubectl apply -k k8s/`
+
 ## Conclusion
 
 **Implementation Status**: ✅ 100% Complete
 
 All autonomous work for bead mo-saz is finished. The Moltbook platform is fully implemented with production-ready manifests, validated configurations, and comprehensive documentation.
 
-**Deployment Status**: 🟡 Ready, Awaiting Prerequisites
+**Deployment Status**: 🔴 Blocked, Ready to Deploy
 
 Deployment requires:
-1. Cluster-admin intervention for namespace creation (or RBAC grant)
-2. Container images built and pushed to registry
+1. **Critical Blocker**: Cluster-admin intervention for namespace creation (or RBAC grant)
+   - Tracked in bead: mo-272, mo-1pp, and multiple others
+   - Solution: Apply `k8s/namespace/devpod-namespace-creator-rbac.yml` as cluster-admin
+2. **High Priority**: Container images built and pushed to registry
+   - Tracked in bead: mo-3fp
+   - Solution: Run `./scripts/build-images.sh --push` or push to GitHub to trigger CI/CD
 
 Both blockers are tracked in dedicated beads with clear action steps.
 
 **This bead (mo-saz) is complete and can be marked as done.**
+
+---
+
+## Automated Deployment Instructions
+
+Once blockers are resolved, deployment is fully automated:
+
+```bash
+# After RBAC is granted and images are built:
+cd /home/coder/Research/moltbook-org
+kubectl apply -k k8s/
+
+# Monitor deployment:
+kubectl get pods -n moltbook -w
+
+# Expected pods:
+# - moltbook-postgres-1 (PostgreSQL via CNPG)
+# - moltbook-redis (Cache layer)
+# - moltbook-api (2 replicas)
+# - moltbook-frontend (2 replicas)
+
+# Verify ingress:
+curl -I https://moltbook.ardenone.com
+curl https://api-moltbook.ardenone.com/health
+```
