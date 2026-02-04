@@ -33,7 +33,7 @@ kubectl create namespace moltbook
 ```bash
 # NOTE: ArgoCD is NOT installed in ardenone-cluster
 # This option only works if ArgoCD is first installed
-kubectl apply -f k8s/argocd-application.yml
+# kubectl apply -f k8s/argocd-application.yml
 ```
 
 ## Verification
