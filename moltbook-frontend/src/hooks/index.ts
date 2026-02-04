@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import useSWR, { SWRConfiguration } from 'swr';
 import { useInView } from 'react-intersection-observer';
@@ -18,11 +20,11 @@ const fetcher = <T>(fn: () => Promise<T>) => fn();
 // Auth hooks
 export function useAuth() {
   const { agent, apiKey, isLoading, error, login, logout, refresh } = useAuthStore();
-  
+
   useEffect(() => {
     if (apiKey && !agent) refresh();
   }, [apiKey, agent, refresh]);
-  
+
   return { agent, apiKey, isLoading, error, isAuthenticated: !!agent, login, logout, refresh };
 }
 
@@ -39,7 +41,7 @@ export function usePosts(options: { sort?: PostSort; submolt?: string } = {}, co
 export function usePostVote(postId: string) {
   const [isVoting, setIsVoting] = useState(false);
   const updatePostVote = useFeedStore(s => s.updatePostVote);
-  
+
   const vote = useCallback(async (direction: 'up' | 'down') => {
     if (isVoting) return;
     setIsVoting(true);
@@ -53,7 +55,7 @@ export function usePostVote(postId: string) {
       setIsVoting(false);
     }
   }, [postId, isVoting, updatePostVote]);
-  
+
   return { vote, isVoting };
 }
 
@@ -64,7 +66,7 @@ export function useComments(postId: string, options: { sort?: CommentSort } = {}
 
 export function useCommentVote(commentId: string) {
   const [isVoting, setIsVoting] = useState(false);
-  
+
   const vote = useCallback(async (direction: 'up' | 'down') => {
     if (isVoting) return;
     setIsVoting(true);
@@ -76,7 +78,7 @@ export function useCommentVote(commentId: string) {
       setIsVoting(false);
     }
   }, [commentId, isVoting]);
-  
+
   return { vote, isVoting };
 }
 
@@ -113,23 +115,23 @@ export function useSearch(query: string, config?: SWRConfiguration) {
 // Infinite scroll hook
 export function useInfiniteScroll(onLoadMore: () => void, hasMore: boolean) {
   const { ref, inView } = useInView({ threshold: 0, rootMargin: '100px' });
-  
+
   useEffect(() => {
     if (inView && hasMore) onLoadMore();
   }, [inView, hasMore, onLoadMore]);
-  
+
   return { ref, inView };
 }
 
 // Debounce hook
 export function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
-  
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedValue(value), delay);
     return () => clearTimeout(timer);
   }, [value, delay]);
-  
+
   return debouncedValue;
 }
 
@@ -142,7 +144,7 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       return item ? JSON.parse(item) : initialValue;
     } catch { return initialValue; }
   });
-  
+
   const setValue = useCallback((value: T | ((prev: T) => T)) => {
     setStoredValue(prev => {
       const newValue = value instanceof Function ? value(prev) : value;
@@ -152,23 +154,23 @@ export function useLocalStorage<T>(key: string, initialValue: T): [T, (value: T 
       return newValue;
     });
   }, [key]);
-  
+
   return [storedValue, setValue];
 }
 
 // Media query hook
 export function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(false);
-  
+
   useEffect(() => {
     const media = window.matchMedia(query);
     setMatches(media.matches);
-    
+
     const listener = (e: MediaQueryListEvent) => setMatches(e.matches);
     media.addEventListener('change', listener);
     return () => media.removeEventListener('change', listener);
   }, [query]);
-  
+
   return matches;
 }
 
@@ -188,18 +190,18 @@ export function useIsDesktop() {
 // Click outside hook
 export function useClickOutside<T extends HTMLElement>(callback: () => void) {
   const ref = useRef<T>(null);
-  
+
   useEffect(() => {
     const handleClick = (event: MouseEvent) => {
       if (ref.current && !ref.current.contains(event.target as Node)) {
         callback();
       }
     };
-    
+
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, [callback]);
-  
+
   return ref;
 }
 
@@ -217,7 +219,7 @@ export function useKeyboardShortcut(key: string, callback: () => void, options: 
         callback();
       }
     };
-    
+
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [key, callback, options]);
@@ -226,7 +228,7 @@ export function useKeyboardShortcut(key: string, callback: () => void, options: 
 // Copy to clipboard hook
 export function useCopyToClipboard(): [boolean, (text: string) => Promise<void>] {
   const [copied, setCopied] = useState(false);
-  
+
   const copy = useCallback(async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -234,7 +236,7 @@ export function useCopyToClipboard(): [boolean, (text: string) => Promise<void>]
       setTimeout(() => setCopied(false), 2000);
     } catch { setCopied(false); }
   }, []);
-  
+
   return [copied, copy];
 }
 
