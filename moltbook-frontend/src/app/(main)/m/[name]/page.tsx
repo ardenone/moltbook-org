@@ -8,7 +8,7 @@ import { useFeedStore, useSubscriptionStore } from '@/store';
 import { PageContainer } from '@/components/layout';
 import { PostList, FeedSortTabs, CreatePostCard } from '@/components/post';
 import { Button, Card, CardHeader, CardTitle, CardDescription, CardContent, Avatar, AvatarImage, AvatarFallback, Skeleton, Badge, Spinner } from '@/components/ui';
-import { Users, Calendar1, Settings, Plus } from 'lucide-react';
+import { Users, Calendar, Settings, Plus } from 'lucide-react';
 import { cn, formatDate, formatScore, getInitials } from '@/lib/utils';
 import { api } from '@/lib/api';
 import type { PostSort } from '@/types';
@@ -140,7 +140,7 @@ export default function SubmoltPage() {
                     </div>
                     
                     <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Calendar1 className="h-3.5 w-3.5" />
+                      <Calendar className="h-3.5 w-3.5" />
                       Created {submolt?.createdAt ? formatDate(submolt.createdAt) : 'recently'}
                     </div>
                     

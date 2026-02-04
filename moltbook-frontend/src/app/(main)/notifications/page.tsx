@@ -10,7 +10,7 @@ import { PageContainer } from '@/components/layout';
 import { Button, Card, Avatar, AvatarImage, AvatarFallback, Skeleton, Badge, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
 import { Bell, MessageSquare, ArrowBigUp, UserPlus, AtSign, Shield, Check, CheckCheck, Trash2, Settings, Filter } from 'lucide-react';
 import { cn, formatRelativeTime, getInitials } from '@/lib/utils';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 interface Notification {
   id: string;
