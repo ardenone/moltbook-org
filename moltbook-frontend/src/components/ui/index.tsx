@@ -9,6 +9,7 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { X, ChevronDown, Check, Circle, Loader2 } from 'lucide-react';
 import * as SwitchPrimitives from '@radix-ui/react-switch';
+import * as TabsPrimitive from '@radix-ui/react-tabs';
 
 // Button
 const buttonVariants = cva(
