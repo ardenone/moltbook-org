@@ -1,0 +1,54 @@
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: moltbook-db
+  namespace: moltbook
+spec:
+  instances: 1
+
+  # PostgreSQL version
+  imageName: ghcr.io/cloudnative-pg/postgresql:16.2
+
+  # Storage configuration
+  storage:
+    size: 10Gi
+    storageClass: local-path
+
+  # Primary node selector
+  nodeSelector:
+    kubernetes.io/arch: amd64
+
+  # Database credentials
+  bootstrap:
+    initdb:
+      database: moltbook
+      owner: moltbook
+      secret:
+        name: moltbook-db-credentials
+
+  # Resource limits
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  # Backup configuration
+  backup:
+    retentionPolicy: 30d
+    barmanObjectStore:
+      wal:
+        retentionPolicy: 7d
+      destinationPath: /tmp
+      endpointURL: http://minio.moltbook.svc.cluster.local:9000
+      serverName: moltbook-db
+      data:
+        compression: gzip
+
+  # Monitoring
+  monitoring:
+    enabled: false
+    podMetricsEnabled: false

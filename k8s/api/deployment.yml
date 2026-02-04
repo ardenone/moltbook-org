@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,14 +6,8 @@ metadata:
   namespace: moltbook
   labels:
     app: moltbook-api
-    component: backend
 spec:
   replicas: 2
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
   selector:
     matchLabels:
       app: moltbook-api
@@ -20,80 +15,93 @@ spec:
     metadata:
       labels:
         app: moltbook-api
-        component: backend
     spec:
+      # Init container to run database migrations
+      initContainers:
+      - name: migrate-db
+        image: ghcr.io/moltbook/api:latest
+        command: ["sh", "-c", "node -e \"const pg = require('pg'); const client = new pg.Client({ connectionString: process.env.DATABASE_URL }); client.connect().then(() => client.query(require('fs').readFileSync('/etc/schema/schema.sql', 'utf8'))).then(() => client.end()).catch(err => { console.error(err); process.exit(1); });\""]
+        envFrom:
+        - secretRef:
+            name: moltbook-api-secrets
+        volumeMounts:
+        - name: schema
+          mountPath: /etc/schema
+          readOnly: true
+
       containers:
       - name: api
-        image: ghcr.io/moltbook/api:latest  # Update with actual image registry
-        imagePullPolicy: Always
+        image: ghcr.io/moltbook/api:latest
         ports:
-        - name: http
-          containerPort: 3000
-          protocol: TCP
+        - containerPort: 3000
+          name: http
         env:
-        - name: NODE_ENV
-          value: "production"
         - name: PORT
-          value: "3000"
+          valueFrom:
+            configMapKeyRef:
+              name: moltbook-api-config
+              key: PORT
+        - name: NODE_ENV
+          valueFrom:
+            configMapKeyRef:
+              name: moltbook-api-config
+              key: NODE_ENV
         - name: BASE_URL
-          value: "https://api-moltbook.ardenone.com"
-
-        # Database configuration
+          valueFrom:
+            configMapKeyRef:
+              name: moltbook-api-config
+              key: BASE_URL
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: moltbook-api-config
+              key: REDIS_URL
         - name: DATABASE_URL
           valueFrom:
             secretKeyRef:
-              name: moltbook-db-connection
+              name: moltbook-api-secrets
               key: DATABASE_URL
-
-        # JWT Secret
         - name: JWT_SECRET
           valueFrom:
             secretKeyRef:
-              name: moltbook-secrets
+              name: moltbook-api-secrets
               key: JWT_SECRET
-
-        # Optional: Redis
-        - name: REDIS_URL
+        - name: TWITTER_CLIENT_ID
           valueFrom:
             secretKeyRef:
-              name: moltbook-secrets
-              key: REDIS_URL
+              name: moltbook-api-secrets
+              key: TWITTER_CLIENT_ID
               optional: true
-
+        - name: TWITTER_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: moltbook-api-secrets
+              key: TWITTER_CLIENT_SECRET
+              optional: true
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "100m"
+            cpu: 100m
+            memory: 128Mi
           limits:
-            memory: "512Mi"
-            cpu: "500m"
-
+            cpu: 500m
+            memory: 512Mi
         livenessProbe:
           httpGet:
-            path: /api/v1/health
+            path: /health
             port: http
-          initialDelaySeconds: 30
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: http
+          initialDelaySeconds: 5
           periodSeconds: 10
           timeoutSeconds: 3
           failureThreshold: 3
-
-        readinessProbe:
-          httpGet:
-            path: /api/v1/health
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
-
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 1001
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          readOnlyRootFilesystem: false
-
-      securityContext:
-        fsGroup: 1001
+      volumes:
+      - name: schema
+        configMap:
+          name: moltbook-db-schema

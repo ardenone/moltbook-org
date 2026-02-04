@@ -1,0 +1,31 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: moltbook-api
+  namespace: moltbook
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`api-moltbook.ardenone.com`)
+      kind: Rule
+      services:
+        - name: moltbook-api
+          port: 80
+      middlewares:
+        - name: moltbook-api-stripprefix
+  tls:
+    certResolver: letsencrypt
+
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: moltbook-api-stripprefix
+  namespace: moltbook
+spec:
+  stripPrefix:
+    prefixes:
+      - /api
+    # Keep the /api/v1 path, don't strip it

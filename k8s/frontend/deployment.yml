@@ -1,3 +1,4 @@
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,14 +6,8 @@ metadata:
   namespace: moltbook
   labels:
     app: moltbook-frontend
-    component: frontend
 spec:
   replicas: 2
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
   selector:
     matchLabels:
       app: moltbook-frontend
@@ -20,62 +15,43 @@ spec:
     metadata:
       labels:
         app: moltbook-frontend
-        component: frontend
     spec:
       containers:
       - name: frontend
-        image: ghcr.io/moltbook/frontend:latest  # Update with actual image registry
-        imagePullPolicy: Always
+        image: ghcr.io/moltbook/frontend:latest
         ports:
-        - name: http
-          containerPort: 3000
-          protocol: TCP
+        - containerPort: 3000
+          name: http
         env:
-        - name: NODE_ENV
-          value: "production"
+        - name: NEXT_PUBLIC_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: moltbook-frontend-config
+              key: NEXT_PUBLIC_API_URL
         - name: PORT
           value: "3000"
-        - name: HOSTNAME
-          value: "0.0.0.0"
-
-        # API URL for frontend to call backend
-        - name: NEXT_PUBLIC_API_URL
-          value: "https://api-moltbook.ardenone.com/api/v1"
-
+        - name: NODE_ENV
+          value: "production"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "100m"
+            cpu: 100m
+            memory: 128Mi
           limits:
-            memory: "512Mi"
-            cpu: "500m"
-
+            cpu: 500m
+            memory: 512Mi
         livenessProbe:
           httpGet:
             path: /
             port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
+          initialDelaySeconds: 10
+          periodSeconds: 30
           timeoutSeconds: 5
           failureThreshold: 3
-
         readinessProbe:
           httpGet:
             path: /
             port: http
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 5
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
           failureThreshold: 3
-
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 1001
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
-          readOnlyRootFilesystem: false
-
-      securityContext:
-        fsGroup: 1001

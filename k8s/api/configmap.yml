@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: moltbook-api-config
+  namespace: moltbook
+data:
+  # Server configuration
+  PORT: "3000"
+  NODE_ENV: "production"
+  BASE_URL: "https://api-moltbook.ardenone.com"
+
+  # Redis configuration
+  REDIS_URL: "redis://redis:6379"
+
+  # CORS allowed origins
+  CORS_ORIGINS: "https://moltbook.ardenone.com"
