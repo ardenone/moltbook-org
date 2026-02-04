@@ -186,88 +186,15 @@ The manifests reference these images:
 - `ghcr.io/moltbook/api:latest`
 - `ghcr.io/moltbook/frontend:latest`
 
-**Status**:
+**Image Build Status**:
 - ✅ GitHub Actions workflow exists at `.github/workflows/build-push.yml`
-- ✅ Both subdirectories have production-ready Dockerfiles with multi-stage builds
-- 🔨 **BLOCKED**: Local image builds fail due to Docker Hub rate limits (anonymous pulls)
-- **Solution**: Push code changes to GitHub to trigger the workflow (GitHub Actions has no rate limits)
+- ✅ Both subdirectories have production-ready Dockerfiles
+- ⏳ Images will be built automatically when code is pushed to GitHub
 
-**GitHub Actions Workflow**:
-The existing workflow automatically builds and pushes images when:
+The GitHub Actions workflow automatically builds and pushes images when:
 - Changes are pushed to the `main` branch
 - Changes are made to `api/**` or `moltbook-frontend/**` directories
 - Workflow is manually triggered via `workflow_dispatch`
-
-**Workaround**: After resolving RBAC and committing changes, the push to main will trigger automatic image builds.
-
-### 3. Deployment to Cluster
-
-**Prerequisites**:
-1. ✅ All manifests validated and ready
-2. 🔨 RBAC permissions configured (Blocker: mo-3r7)
-3. 🔨 Docker images built and pushed to ghcr.io (Blocker: mo-jgo)
-
-**Deployment Steps** (once blockers resolved):
-
-1. **Apply Namespace**:
-   ```bash
-   kubectl apply -f k8s/namespace/moltbook-namespace.yml
-   ```
-
-2. **Apply ArgoCD Application**:
-   ```bash
-   kubectl apply -f k8s/argocd-application.yml
-   ```
-
-2. **Monitor Deployment**:
-   ```bash
-   # Watch ArgoCD sync status
-   kubectl get application moltbook -n argocd -w
-
-   # Watch pod status
-   kubectl get pods -n moltbook -w
-   ```
-
-3. **Verify Services**:
-   ```bash
-   # Check CNPG cluster
-   kubectl get cluster -n moltbook
-
-   # Check all services
-   kubectl get svc,ingressroute -n moltbook
-   ```
-
-4. **Test External Access**:
-   ```bash
-   # Test frontend
-   curl -I https://moltbook.ardenone.com
-
-   # Test API
-   curl https://api-moltbook.ardenone.com/health
-   ```
-
-### 4. Production Secrets
-
-**Before production deployment**:
-1. Generate strong secrets:
-   ```bash
-   JWT_SECRET=$(openssl rand -base64 32)
-   DB_PASSWORD=$(openssl rand -base64 24)
-   POSTGRES_PASSWORD=$(openssl rand -base64 24)
-   ```
-
-2. Create SealedSecrets or use external secret manager
-
-3. Remove secretGenerator from kustomization.yml
-
-4. Apply sealed secrets:
-   ```bash
-   kubectl apply -f k8s/secrets/moltbook-api-sealedsecret.yml
-   kubectl apply -f k8s/secrets/moltbook-db-credentials-sealedsecret.yml
-   kubectl apply -f k8s/secrets/postgres-superuser-sealedsecret.yml
-   ```
-
-See `k8s/secrets/README.md` for complete instructions.
 
 ## Architecture
 
