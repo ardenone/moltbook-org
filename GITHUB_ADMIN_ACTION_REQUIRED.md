@@ -204,7 +204,22 @@ moltbook  https://github.com/moltbook/moltbook-frontend.git
 
 ---
 
+## ✅ WORKAROUND IMPLEMENTED (mo-3ps)
+
+Fork-based PRs have been created to unblock Docker image builds:
+- **API PR**: https://github.com/moltbook/api/pull/103
+- **Frontend PR**: https://github.com/moltbook/moltbook-frontend/pull/8
+
+Once these PRs are merged by a moltbook organization maintainer, GitHub Actions will automatically build and push Docker images to ghcr.io.
+
+## 🔴 LONG-TERM SOLUTION REQUIRED
+
+For ongoing development, the moltbook organization owner should grant `jedarden` direct push permissions. See "Action Required" section above.
+
+---
+
 **Last Updated**: 2026-02-04
-**Status**: 🔴 BLOCKER - Awaiting moltbook org owner/admin action
+**Status**: 🟡 WORKAROUND IN PLACE - PRs created, awaiting review
 **Priority**: P0 (Critical)
 **Estimated Time**: 5 minutes (one-time setup)
+**Related Bead**: mo-2uzu (Blocker: Grant GitHub push permissions)
