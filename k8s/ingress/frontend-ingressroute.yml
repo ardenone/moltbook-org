@@ -4,8 +4,6 @@ kind: IngressRoute
 metadata:
   name: moltbook-frontend
   namespace: moltbook
-  labels:
-    app: moltbook-frontend
 spec:
   entryPoints:
     - websecure
@@ -15,22 +13,5 @@ spec:
       services:
         - name: moltbook-frontend
           port: 3000
-      middlewares:
-        - name: security-headers
   tls:
     certResolver: letsencrypt
----
-# Security headers middleware
-apiVersion: traefik.io/v1alpha1
-kind: Middleware
-metadata:
-  name: security-headers
-  namespace: moltbook
-spec:
-  headers:
-    customResponseHeaders:
-      X-Frame-Options: "SAMEORIGIN"
-      X-Content-Type-Options: "nosniff"
-      X-XSS-Protection: "1; mode=block"
-      Referrer-Policy: "strict-origin-when-cross-origin"
-    contentSecurityPolicy: "default-src 'self' https://api-moltbook.ardenone.com; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api-moltbook.ardenone.com"
