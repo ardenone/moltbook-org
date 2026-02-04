@@ -7,6 +7,7 @@ const nextConfig = {
   experimental: {},
   // Ensure React is bundled correctly
   transpilePackages: [],
+  // Use webpack instead of Turbopack for compatibility
   webpack: (config, { isServer }) => {
     // Minimal webpack configuration to avoid breaking Next.js internals
     if (isServer) {
@@ -18,6 +19,10 @@ const nextConfig = {
       }
     }
     return config;
+  },
+  // Explicitly disable Turbopack to use webpack
+  experimental: {
+    turbo: undefined,
   },
 };
 

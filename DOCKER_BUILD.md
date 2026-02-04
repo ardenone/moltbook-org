@@ -1,5 +1,21 @@
 # Docker Build Strategy for Moltbook
 
+## Quick Start
+
+**For devpod users:** Use GitHub Actions (automated on push to main)
+**For local machines with Docker:** Use the build script directly
+
+```
+# On a local machine with Docker:
+export GITHUB_TOKEN=your_token_here
+./scripts/build-images.sh --push
+
+# Or trigger GitHub Actions from devpod:
+gh workflow run build-push.yml
+```
+
+---
+
 ## Problem: Overlay Filesystem Error in Devpod
 
 When trying to build Docker images inside the devpod, you'll encounter this error:
@@ -96,7 +112,49 @@ gh run view <run-id>
 gh run watch
 ```
 
-### 5. Using Specific Image Tags
+### 5. Building on a Local Machine with Docker
+
+If you have Docker or Podman installed on your local machine (not in devpod), you can build and push images directly:
+
+**Prerequisites:**
+- Docker or Podman installed
+- GitHub Personal Access Token with `write:packages` scope
+- Create token at: https://github.com/settings/tokens
+
+**Build Commands:**
+
+```bash
+# From the project root directory:
+
+# Set your GitHub token
+export GITHUB_TOKEN=ghp_your_token_here
+
+# Build and push both images
+./scripts/build-images.sh --push
+
+# Build only API
+./scripts/build-images.sh --push --api-only
+
+# Build only frontend
+./scripts/build-images.sh --push --frontend-only
+
+# Build with custom tag
+./scripts/build-images.sh --push --tag v1.0.0
+
+# Build without pushing (dry run)
+./scripts/build-images.sh --dry-run
+```
+
+**Images Produced:**
+- `ghcr.io/ardenone/moltbook-api:latest`
+- `ghcr.io/ardenone/moltbook-frontend:latest`
+
+**After Building:**
+1. Images are pushed to GHCR
+2. Update `k8s/kustomization.yml` to use the new tags (if not using `latest`)
+3. ArgoCD will detect changes and deploy automatically
+
+### 6. Using Specific Image Tags
 
 The `k8s/kustomization.yml` file controls which image tags are deployed:
 
