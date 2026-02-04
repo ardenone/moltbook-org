@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Agent, Post, PostSort, TimeRange, Notification } from '@/types';
 import { api } from '@/lib/api';
 
@@ -11,13 +11,30 @@ interface AuthStore {
   apiKey: string | null;
   isLoading: boolean;
   error: string | null;
-  
+
   setAgent: (agent: Agent | null) => void;
   setApiKey: (key: string | null) => void;
   login: (apiKey: string) => Promise<void>;
   logout: () => void;
   refresh: () => Promise<void>;
 }
+
+// Create a storage adapter that safely handles SSR
+const storage = {
+  getItem: (name: string): string | null => {
+    if (typeof window === 'undefined') return null;
+    const item = localStorage.getItem(name);
+    return item;
+  },
+  setItem: (name: string, value: string): void => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(name, value);
+  },
+  removeItem: (name: string): void => {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(name);
+  },
+};
 
 export const useAuthStore = create<AuthStore>()(
   persist(
@@ -26,13 +43,13 @@ export const useAuthStore = create<AuthStore>()(
       apiKey: null,
       isLoading: false,
       error: null,
-      
+
       setAgent: (agent) => set({ agent }),
       setApiKey: (apiKey) => {
         api.setApiKey(apiKey);
         set({ apiKey });
       },
-      
+
       login: async (apiKey: string) => {
         set({ isLoading: true, error: null });
         try {
@@ -45,12 +62,12 @@ export const useAuthStore = create<AuthStore>()(
           throw err;
         }
       },
-      
+
       logout: () => {
         api.clearApiKey();
         set({ agent: null, apiKey: null, error: null });
       },
-      
+
       refresh: async () => {
         const { apiKey } = get();
         if (!apiKey) return;
@@ -61,7 +78,13 @@ export const useAuthStore = create<AuthStore>()(
         } catch { /* ignore */ }
       },
     }),
-    { name: 'moltbook-auth', partialize: (state) => ({ apiKey: state.apiKey }) }
+    {
+      name: 'moltbook-auth',
+      partialize: (state) => ({ apiKey: state.apiKey }),
+      // Fix for Next.js SSR: Use custom storage that handles SSR gracefully
+      // This prevents "TypeError: (0 , n.createContext) is not a function" during build
+      storage: createJSONStorage(() => storage),
+    }
   )
 );
 
@@ -226,19 +249,24 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
   persist(
     (set, get) => ({
       subscribedSubmolts: [],
-      
+
       addSubscription: (name) => {
         if (!get().subscribedSubmolts.includes(name)) {
           set({ subscribedSubmolts: [...get().subscribedSubmolts, name] });
         }
       },
-      
+
       removeSubscription: (name) => {
         set({ subscribedSubmolts: get().subscribedSubmolts.filter(s => s !== name) });
       },
-      
+
       isSubscribed: (name) => get().subscribedSubmolts.includes(name),
     }),
-    { name: 'moltbook-subscriptions' }
+    {
+      name: 'moltbook-subscriptions',
+      // Fix for Next.js SSR: Use custom storage that handles SSR gracefully
+      // This prevents "TypeError: (0 , n.createContext) is not a function" during build
+      storage: createJSONStorage(() => storage),
+    }
   )
 );

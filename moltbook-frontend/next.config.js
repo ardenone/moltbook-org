@@ -4,6 +4,7 @@ const nextConfig = {
   output: 'standalone',
   // Explicitly disable Turbopack to use webpack with custom config
   turbopack: false,
+  // We have custom webpack config for node: prefix resolution
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Add resolve alias to strip node: prefix during module resolution
@@ -21,6 +22,10 @@ const nextConfig = {
         'node:http': 'http',
         'node:https': 'https',
       };
+
+      // Fix for "TypeError: (0 , n.createContext) is not a function"
+      // This ensures React is resolved correctly in server-side chunks
+      config.resolve.mainFields = ['module', 'main'];
     }
     return config;
   },
