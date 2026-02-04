@@ -1,15 +1,10 @@
 'use client';
 
-import { useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui';
-import { AlertTriangle, Home, RefreshCcw } from 'lucide-react';
+import { AlertTriangle, Home } from 'lucide-react';
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  useEffect(() => {
-    console.error('Application error:', error);
-  }, [error]);
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="text-center max-w-md">
@@ -20,7 +15,6 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         <p className="text-muted-foreground mb-6">An unexpected error occurred. Please try again.</p>
         <div className="flex gap-2 justify-center">
           <Button onClick={reset} variant="outline">
-            <RefreshCcw className="h-4 w-4 mr-2" />
             Try again
           </Button>
           <Link href="/">
