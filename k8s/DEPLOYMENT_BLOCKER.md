@@ -27,16 +27,21 @@ The task "Install ArgoCD in ardenone-cluster" is based on an incorrect assumptio
 ### Error Messages
 
 ```
-Error: customresourcedefinitions.apiextensions.k8s.io is forbidden:
-User "system:serviceaccount:devpod:default" cannot create resource "customresourcedefinitions"
-
 Error: namespaces is forbidden: User "system:serviceaccount:devpod:default"
 cannot create resource "namespaces" at cluster scope
 ```
 
----
+### Resolution: Use External ArgoCD
 
-## Related Blocker: Namespace Creation (mo-3rs)
+The **correct path forward** is to use the external ArgoCD at `argocd-manager.ardenone.com`:
+
+1. Cluster admin creates namespace: `kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml`
+2. Register Moltbook with external ArgoCD (via UI or API)
+3. ArgoCD syncs manifests from moltbook-org repository
+
+**Alternative**: Direct deployment via `kubectl apply -k k8s/` (non-GitOps)
+
+---
 
 ---
 
