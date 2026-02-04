@@ -82,8 +82,10 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 
 ### Related Documentation
 
-- `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml` - RBAC manifest
-- `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/` - Complete Moltbook manifests
+- `/home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml` - Complete setup manifest (RBAC + namespace)
+- `/home/coder/Research/moltbook-org/k8s/namespace/devpod-namespace-creator-rbac.yml` - RBAC only (moltbook-org)
+- `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml` - RBAC only (ardenone-cluster)
+- `/home/coder/Research/moltbook-org/k8s/` - Complete Moltbook manifests
 
 ### Related Beads
 
