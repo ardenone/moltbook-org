@@ -201,6 +201,13 @@ curl https://api-moltbook.ardenone.com/health
 
 **Secondary Beads (lower priority):**
 - **mo-300** (Priority 1): Build and push Docker images to ghcr.io
+- **mo-1wo** (Priority 1): Configuration: Create Kubernetes manifests for Moltbook services ✅ **COMPLETED** (2026-02-04)
+  - All manifests validated in cluster-configuration at `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/`
+  - 1050 lines of valid Kubernetes YAML generated via kustomize
+  - Standards compliant: no Jobs/CronJobs, proper domain naming (no nested subdomains), idempotent Deployments
+  - SealedSecrets with templates ready for all sensitive data
+  - API, Frontend, Database (CloudNativePG), Redis fully configured
+  - IngressRoutes: `moltbook.ardenone.com` (frontend), `api-moltbook.ardenone.com` (API)
 
 ## ✅ Success Criteria Met
 

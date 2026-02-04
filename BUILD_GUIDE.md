@@ -302,6 +302,72 @@ kubectl get pods -n moltbook -w
 - [Deployment Status](DEPLOYMENT_READY.md)
 - [Final Status](FINAL_STATUS.md)
 
+## Kubernetes Manifests Validation
+
+The Moltbook Kubernetes manifests have been created and validated in the cluster-configuration repository:
+
+**Location**: `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/`
+
+**Structure**:
+```
+moltbook/
+├── api/
+│   ├── deployment.yml         (2 replicas, health checks, resource limits)
+│   ├── service.yml            (ClusterIP, port 80)
+│   ├── configmap.yml          (PORT, NODE_ENV, BASE_URL, REDIS_URL, CORS_ORIGINS)
+│   └── ingressroute.yml       (api-moltbook.ardenone.com with CORS and rate limiting)
+├── frontend/
+│   ├── deployment.yml         (2 replicas, health checks, resource limits)
+│   ├── service.yml            (ClusterIP, port 80)
+│   ├── configmap.yml          (NEXT_PUBLIC_API_URL)
+│   └── ingressroute.yml       (moltbook.ardenone.com with security headers)
+├── database/
+│   ├── cluster.yml            (CloudNativePG cluster, 1 instance, 10Gi storage)
+│   ├── service.yml            (ClusterIP for postgres)
+│   ├── schema-configmap.yml   (Database schema SQL)
+│   └── schema-init-deployment.yml (Idempotent schema initialization - NOT a Job)
+├── redis/
+│   ├── deployment.yml         (1 replica, persistence disabled, maxmemory-policy allkeys-lru)
+│   ├── service.yml            (ClusterIP, port 6379)
+│   └── configmap.yml          (Redis configuration)
+├── secrets/
+│   ├── moltbook-api-sealedsecret.yml             (Encrypted API secrets)
+│   ├── moltbook-api-secrets-template.yml         (Template for API secrets)
+│   ├── moltbook-postgres-superuser-sealedsecret.yml (Encrypted superuser password)
+│   ├── postgres-superuser-secret-template.yml    (Template for superuser)
+│   ├── moltbook-db-credentials-sealedsecret.yml  (Encrypted app user credentials)
+│   ├── moltbook-db-credentials-template.yml      (Template for app user)
+│   └── create-sealedsecrets.sh                   (Helper script)
+├── namespace/
+│   ├── moltbook-namespace.yml                     (Namespace with labels)
+│   ├── moltbook-rbac.yml                          (Role and RoleBinding for devpod SA)
+│   └── devpod-namespace-creator-rbac.yml          (ClusterRole for namespace creation)
+├── kustomization.yml          (Main kustomization with 1050 lines of output)
+├── argocd-application.yml     (ArgoCD Application manifest)
+└── README.md                  (Deployment documentation)
+```
+
+**Standards Compliance**:
+- ✅ No `Job` or `CronJob` resources (uses idempotent Deployments)
+- ✅ Domain naming follows Cloudflare convention (no nested subdomains)
+  - `moltbook.ardenone.com` (frontend)
+  - `api-moltbook.ardenone.com` (API)
+- ✅ All secrets use SealedSecrets with `.template` files
+- ✅ Health checks configured for all deployments
+- ✅ Resource limits and requests defined
+- ✅ Kustomization builds successfully (1050 lines)
+
+**Image References**:
+- API: `ghcr.io/moltbook/api:latest`
+- Frontend: `ghcr.io/moltbook/frontend:latest`
+
+**Validation**:
+```bash
+cd /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook
+kubectl kustomize . | wc -l
+# Output: 1050 lines (manifests validated successfully)
+```
+
 ## Support
 
 For issues or questions:
