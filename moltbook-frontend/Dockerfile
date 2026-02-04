@@ -26,7 +26,8 @@ ENV NODE_ENV=production
 
 # Copy built application from builder (standalone output includes all needed files)
 COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/public ./public
+# Copy public folder if it exists (optional for some Next.js apps)
+COPY --from=builder /app/public ./public 2>/dev/null || true
 COPY --from=builder /app/.next/static ./.next/static
 
 # Create non-root user
