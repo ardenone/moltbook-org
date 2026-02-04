@@ -9,27 +9,28 @@ Private deployment study for moltbook and OpenClaw agents.
 
 ## Initial Setup (One-Time)
 
-### Namespace Creation
+### Namespace Creation (Requires Cluster Admin)
 
 The `moltbook` namespace must be created before deploying the application. There are two options:
 
-**Option 1: Cluster Admin Creates RBAC (Recommended for Devpod Users)**
-
-A cluster admin should apply the RBAC manifest to grant the devpod ServiceAccount namespace creation permissions:
+**Option 1: Run Helper Script (Recommended)**
 
 ```bash
-# Run this as cluster admin (outside devpod or with cluster-admin privileges)
+# Run this as cluster admin - creates RBAC + namespace in one step
+./scripts/create-moltbook-namespace.sh
+```
+
+**Option 2: Manual Setup**
+
+Create RBAC to allow devpod namespace creation (recommended for development):
+
+```bash
+# Run this as cluster admin
 kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml
 ```
 
-After the RBAC is applied, the devpod can create namespaces:
-
-```bash
-# Now this will work from the devpod
-kubectl apply -f k8s/namespace/moltbook-namespace.yml
-```
-
-**Option 2: Cluster Admin Creates Namespace Directly**
+Or create just the namespace:
 
 ```bash
 # Run this as cluster admin
