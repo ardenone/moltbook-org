@@ -64,23 +64,35 @@ export const useAuthStore = create<AuthStore>()(
     {
       name: 'moltbook-auth',
       partialize: (state) => ({ apiKey: state.apiKey }),
-      // Fix for Next.js SSR: Use createJSONStorage with a function that returns localStorage
-      // This prevents "TypeError: (0 , n.createContext) is not a function" during build
+      // SSR-safe storage that delays localStorage access to client-side only
       storage: createJSONStorage(() => ({
         getItem: (name: string): string | null => {
           if (typeof window === 'undefined') return null;
-          return localStorage.getItem(name);
+          try {
+            return localStorage.getItem(name);
+          } catch {
+            return null;
+          }
         },
         setItem: (name: string, value: string): void => {
           if (typeof window === 'undefined') return;
-          localStorage.setItem(name, value);
+          try {
+            localStorage.setItem(name, value);
+          } catch {
+            // Ignore storage errors (e.g., quota exceeded, private mode)
+          }
         },
         removeItem: (name: string): void => {
           if (typeof window === 'undefined') return;
-          localStorage.removeItem(name);
+          try {
+            localStorage.removeItem(name);
+          } catch {
+            // Ignore storage errors
+          }
         },
       })),
-      skipHydration: typeof window === 'undefined',
+      // Always skip hydration - we'll manually hydrate in the AuthProvider
+      skipHydration: true,
     }
   )
 );
