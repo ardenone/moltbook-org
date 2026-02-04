@@ -99,6 +99,7 @@ This will deploy:
 
 ### Related Beads
 
+- **mo-xoy0** (Priority 0): ADMIN: Cluster Admin Action - Apply NAMESPACE_SETUP_REQUEST.yml for Moltbook deployment (NEW - supersedes 40+ duplicate RBAC beads)
 - **mo-1te** (Priority 0): Fix: Moltbook deployment blocked by missing RBAC permissions (current bead - documentation update)
 - **mo-2j8b** (Priority 0): RBAC: Cluster admin must apply devpod-namespace-creator ClusterRoleBinding
 - **mo-3ax** (Priority 1): RBAC: Document devpod-namespace-creator blocker - requires cluster-admin
