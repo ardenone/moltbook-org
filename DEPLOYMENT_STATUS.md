@@ -1,8 +1,8 @@
 # Moltbook Deployment Status
 
-**Last Updated**: 2026-02-04 15:18 UTC
+**Last Updated**: 2026-02-04 15:20 UTC
 **Bead**: mo-saz
-**Status**: 🔨 Blocked - Awaiting Docker Images and RBAC Permissions
+**Status**: ⚠️ Deployment Manifests Complete - BLOCKED on ArgoCD Installation
 
 ## Summary
 
@@ -77,28 +77,45 @@ Created comprehensive guides:
 
 ## 🔨 Remaining Work & Blockers
 
-### 1. RBAC Permissions
+### 1. ArgoCD Installation (CRITICAL)
 
-**Blocker Bead**: `mo-3r7` - "Fix: ServiceAccount permissions for Moltbook deployment"
+**Blocker Bead**: `mo-p0w` - "Setup: Install ArgoCD in ardenone-cluster"
+
+**Status**: 🚨 **CRITICAL BLOCKER**
+
+ArgoCD is not installed in ardenone-cluster. The manifests are designed for GitOps deployment via ArgoCD.
+
+**Verification**:
+```bash
+$ kubectl get pods -n argocd
+No resources found in argocd namespace.
+```
+
+**Required Actions**:
+1. Install ArgoCD operator/controller in ardenone-cluster
+2. Configure ArgoCD to access Git repositories
+3. Apply ArgoCD Application manifest
+
+**Without ArgoCD**, alternative deployment requires cluster-admin permissions.
+
+### 1.1 RBAC Permissions
+
+**Blocker Bead**: `mo-1kr` - "Fix: Grant devpod ServiceAccount namespace creation permissions"
 
 **Status**: 🔨 **BLOCKED**
 
-The `system:serviceaccount:devpod:default` ServiceAccount lacks permissions to:
-- Create namespaces
-- Create/manage ArgoCD applications
+The `system:serviceaccount:devpod:default` ServiceAccount lacks cluster-scoped permissions to create namespaces.
 
 **Attempted Action**: Applied namespace manifest but got permission denied error.
 
 **Solution Options**:
-1. **Grant ClusterRole** to devpod ServiceAccount for namespace and ArgoCD application management
-2. **Pre-create namespace** with cluster-admin and grant devpod RoleBinding in that namespace
-3. **Use ArgoCD** to manage the deployment (requires ArgoCD application permissions)
+1. **Install ArgoCD** (recommended) - ArgoCD has cluster-admin permissions
+2. **Grant ClusterRole** to devpod ServiceAccount for namespace creation
+3. **Pre-create namespace** manually with cluster-admin
 
-Once RBAC is configured, deployment can proceed with:
-```bash
-kubectl apply -f k8s/namespace/moltbook-namespace.yml
-kubectl apply -f k8s/argocd-application.yml
-```
+**RBAC Created**:
+- ✅ `k8s/namespace/moltbook-rbac.yml` - Role and RoleBinding for devpod in moltbook namespace
+- ⚠️ Does NOT include cluster-scoped namespace creation permissions
 
 ### 2. Docker Images
 
@@ -269,13 +286,14 @@ See `k8s/secrets/README.md` for complete instructions.
 
 ## Next Steps (Priority Order)
 
-1. **CRITICAL** (`mo-3r7`): Fix RBAC permissions for devpod ServiceAccount
-2. **CRITICAL** (`mo-jgo`): Resolve Docker Hub rate limit issue
-3. **High**: Push code to trigger GitHub Actions workflow for image builds
-4. **High**: Apply namespace and ArgoCD application to cluster
-5. **Medium**: Verify deployment and test all services
-6. **Low**: Replace development secrets with SealedSecrets for production
-7. **Low**: Set up monitoring and alerting for the platform
+1. **CRITICAL** (`mo-p0w`): Install ArgoCD in ardenone-cluster
+2. **CRITICAL** (`mo-1kr`): Fix namespace creation permissions OR pre-create namespace
+3. **CRITICAL** (`mo-jgo`): Resolve Docker Hub rate limit issue (for local builds)
+4. **High**: Push code to trigger GitHub Actions workflow for image builds
+5. **High**: Apply namespace and ArgoCD application to cluster
+6. **Medium**: Verify deployment and test all services
+7. **Low**: Replace development secrets with SealedSecrets for production
+8. **Low**: Set up monitoring and alerting for the platform
 
 ## Notes
 
@@ -291,7 +309,9 @@ See `k8s/secrets/README.md` for complete instructions.
 ✅ ArgoCD application manifest ready
 ✅ Documentation complete
 ✅ GitHub Actions workflow configured
-🔨 **BLOCKED**: RBAC permissions (mo-3r7)
+✅ RBAC manifest created for moltbook namespace
+🚨 **CRITICAL BLOCKER**: ArgoCD not installed (mo-p0w)
+🔨 **BLOCKED**: Namespace creation permissions (mo-1kr)
 🔨 **BLOCKED**: Docker images (mo-jgo)
 ⏳ Namespace creation
 ⏳ ArgoCD application deployment
