@@ -29,17 +29,17 @@ WARNINGS=0
 
 function check_pass() {
     echo -e "${GREEN}✓${NC} $1"
-    ((CHECKS_PASSED++))
+    : $((CHECKS_PASSED++))
 }
 
 function check_fail() {
     echo -e "${RED}✗${NC} $1"
-    ((CHECKS_FAILED++))
+    : $((CHECKS_FAILED++))
 }
 
 function check_warn() {
     echo -e "${YELLOW}⚠${NC} $1"
-    ((WARNINGS++))
+    : $((WARNINGS++))
 }
 
 echo -e "${BLUE}1. Validating Kubernetes Tools${NC}"
