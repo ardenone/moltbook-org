@@ -12,49 +12,65 @@ This directory contains secret templates for the Moltbook platform.
 
 1. Copy the template files and fill in real values:
 ```bash
-cp moltbook-secrets-template.yml moltbook-secrets.yml
+cp moltbook-api-secrets-template.yml moltbook-api-secrets.yml
+cp moltbook-db-credentials-template.yml moltbook-db-credentials.yml
 cp postgres-superuser-secret-template.yml postgres-superuser-secret.yml
 ```
 
-2. Edit the files and replace placeholder values:
+2. Generate strong passwords and secrets:
 ```bash
-# Generate JWT secret
-openssl rand -base64 32
+# Generate JWT secret (32 bytes, base64 encoded)
+JWT_SECRET=$(openssl rand -base64 32)
+echo "JWT_SECRET: $JWT_SECRET"
 
-# Generate database passwords
-openssl rand -base64 24
+# Generate database password (24 bytes, base64 encoded)
+DB_PASSWORD=$(openssl rand -base64 24)
+echo "DB_PASSWORD: $DB_PASSWORD"
+
+# Generate PostgreSQL superuser password
+POSTGRES_PASSWORD=$(openssl rand -base64 24)
+echo "POSTGRES_PASSWORD: $POSTGRES_PASSWORD"
 ```
 
-3. Create SealedSecrets:
+3. Edit the files and replace REPLACE_ME placeholders with the generated values
+
+4. Create SealedSecrets:
 ```bash
-# Seal the moltbook app secrets
-kubeseal --format yaml < moltbook-secrets.yml > moltbook-sealedsecret.yml
+# Seal the API secrets
+kubeseal --format yaml < moltbook-api-secrets.yml > moltbook-api-sealedsecret.yml
+
+# Seal the database credentials
+kubeseal --format yaml < moltbook-db-credentials.yml > moltbook-db-credentials-sealedsecret.yml
 
 # Seal the postgres superuser secret
 kubeseal --format yaml < postgres-superuser-secret.yml > postgres-superuser-sealedsecret.yml
 ```
 
-4. Apply the SealedSecrets to the cluster:
+5. Apply the SealedSecrets to the cluster:
 ```bash
-kubectl apply -f moltbook-sealedsecret.yml
+kubectl apply -f moltbook-api-sealedsecret.yml
+kubectl apply -f moltbook-db-credentials-sealedsecret.yml
 kubectl apply -f postgres-superuser-sealedsecret.yml
 ```
 
-5. Clean up the plain secret files (DO NOT COMMIT):
+6. Clean up the plain secret files (DO NOT COMMIT):
 ```bash
-rm moltbook-secrets.yml
+rm moltbook-api-secrets.yml
+rm moltbook-db-credentials.yml
 rm postgres-superuser-secret.yml
 ```
 
 ## Required Secrets
 
-### moltbook-secrets
-- `JWT_SECRET`: JWT signing key for API authentication
-- `DATABASE_USER`: PostgreSQL application user
-- `DATABASE_PASSWORD`: PostgreSQL application password
-- `DATABASE_NAME`: Database name (default: moltbook)
+### moltbook-api-secrets
+- `DATABASE_URL`: PostgreSQL connection string (format: postgresql://user:pass@host:port/db)
+- `JWT_SECRET`: JWT signing key for API authentication (generate with `openssl rand -base64 32`)
 - `TWITTER_CLIENT_ID`: (Optional) Twitter OAuth client ID
 - `TWITTER_CLIENT_SECRET`: (Optional) Twitter OAuth secret
+
+### moltbook-db-credentials
+- `username`: PostgreSQL application user (default: moltbook)
+- `password`: PostgreSQL application password
 
 ### moltbook-postgres-superuser
 - `username`: PostgreSQL superuser (default: postgres)

@@ -2,7 +2,7 @@
 
 **Last Updated**: 2026-02-04
 **Bead**: mo-saz
-**Status**: ✅ Manifests Ready, 🔨 Awaiting Docker Images
+**Status**: ✅ Manifests Ready, 🔨 Awaiting RBAC & Docker Images
 
 ## Summary
 
@@ -48,9 +48,12 @@ All manifests are in the `k8s/` directory and validated with kustomize:
 - **⚠️ Production**: Must be replaced with SealedSecrets or external secret manager
 
 **Templates Created**:
-- `k8s/secrets/postgres-superuser-secret-template.yml`
-- `k8s/api/secret.yml.template`
-- All templates documented with usage instructions
+- ✅ `k8s/secrets/moltbook-api-secrets-template.yml` - API secrets including JWT and DB connection
+- ✅ `k8s/secrets/moltbook-db-credentials-template.yml` - Database application user credentials
+- ✅ `k8s/secrets/postgres-superuser-secret-template.yml` - PostgreSQL superuser credentials
+- ✅ `k8s/secrets/db-connection-secret-template.yml` - Database connection string
+- ✅ `k8s/secrets/README.md` - Complete documentation for creating SealedSecrets
+- All templates include detailed instructions for generating strong secrets and using kubeseal
 
 ### 3. ArgoCD Application
 
@@ -74,7 +77,22 @@ Created comprehensive guides:
 
 ## 🔨 Remaining Work
 
-### 1. Docker Images
+### 1. RBAC Permissions
+
+**Follow-up Bead**: `mo-2qa` - "Setup RBAC for moltbook namespace deployment"
+
+The devpod ServiceAccount needs permissions to deploy resources to the moltbook namespace. Options:
+
+1. **Create Role/RoleBinding** for devpod ServiceAccount in moltbook namespace
+2. **Install ArgoCD** for GitOps-based deployment (recommended)
+3. **Use cluster-admin** ServiceAccount (not recommended for production)
+
+Once RBAC is configured, deployment can proceed with:
+```bash
+kubectl apply -k k8s/
+```
+
+### 2. Docker Images
 
 **Follow-up Bead**: `mo-1k0` - "Build and push Moltbook Docker images to ghcr.io"
 
@@ -89,9 +107,9 @@ The manifests reference these images:
 
 Both subdirectories have production-ready Dockerfiles with multi-stage builds.
 
-### 2. Deployment to Cluster
+### 3. Deployment to Cluster
 
-After images are built and pushed:
+After RBAC is configured and images are built/pushed:
 
 1. **Apply ArgoCD Application**:
    ```bash
