@@ -24,15 +24,10 @@ WORKDIR /app
 # Set NODE_ENV to production
 ENV NODE_ENV=production
 
-# Copy package files and install production dependencies only
-COPY package*.json ./
-RUN npm ci --omit=dev --legacy-peer-deps
-
-# Copy built application from builder
-COPY --from=builder /app/.next ./.next
+# Copy built application from builder (standalone output includes all needed files)
+COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/src ./src
-COPY --from=builder /app/next.config.js ./
+COPY --from=builder /app/.next/static ./.next/static
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
@@ -48,5 +43,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD node -e "require('http').get('http://localhost:3000/', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start the application using Next.js runtime
-CMD ["npm", "start"]
+# Start the application (standalone output creates server.js)
+CMD ["node", "server.js"]

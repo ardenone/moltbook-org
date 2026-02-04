@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { Button } from '@/components/ui';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 
+export const dynamic = 'force-dynamic';
+
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
