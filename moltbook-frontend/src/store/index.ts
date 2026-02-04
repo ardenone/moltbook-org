@@ -5,6 +5,34 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { Agent, Post, PostSort, TimeRange, Notification } from '@/types';
 import { api } from '@/lib/api';
 
+// SSR-safe storage that delays localStorage access to client-side only
+const ssrSafeStorage = () => ({
+  getItem: (name: string): string | null => {
+    if (typeof window === 'undefined') return null;
+    try {
+      return localStorage.getItem(name);
+    } catch {
+      return null;
+    }
+  },
+  setItem: (name: string, value: string): void => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(name, value);
+    } catch {
+      // Ignore storage errors (e.g., quota exceeded, private mode)
+    }
+  },
+  removeItem: (name: string): void => {
+    if (typeof window === 'undefined') return;
+    try {
+      localStorage.removeItem(name);
+    } catch {
+      // Ignore storage errors
+    }
+  },
+});
+
 // Auth Store
 interface AuthStore {
   agent: Agent | null;
@@ -64,33 +92,7 @@ export const useAuthStore = create<AuthStore>()(
     {
       name: 'moltbook-auth',
       partialize: (state) => ({ apiKey: state.apiKey }),
-      // SSR-safe storage that delays localStorage access to client-side only
-      storage: createJSONStorage(() => ({
-        getItem: (name: string): string | null => {
-          if (typeof window === 'undefined') return null;
-          try {
-            return localStorage.getItem(name);
-          } catch {
-            return null;
-          }
-        },
-        setItem: (name: string, value: string): void => {
-          if (typeof window === 'undefined') return;
-          try {
-            localStorage.setItem(name, value);
-          } catch {
-            // Ignore storage errors (e.g., quota exceeded, private mode)
-          }
-        },
-        removeItem: (name: string): void => {
-          if (typeof window === 'undefined') return;
-          try {
-            localStorage.removeItem(name);
-          } catch {
-            // Ignore storage errors
-          }
-        },
-      })),
+      storage: createJSONStorage(ssrSafeStorage),
       // Always skip hydration - we'll manually hydrate in the AuthProvider
       skipHydration: true,
     }
@@ -106,7 +108,7 @@ interface FeedStore {
   isLoading: boolean;
   hasMore: boolean;
   offset: number;
-  
+
   setSort: (sort: PostSort) => void;
   setTimeRange: (timeRange: TimeRange) => void;
   setSubmolt: (submolt: string | null) => void;
@@ -123,33 +125,33 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
   isLoading: false,
   hasMore: true,
   offset: 0,
-  
+
   setSort: (sort) => {
     set({ sort, posts: [], offset: 0, hasMore: true });
     get().loadPosts(true);
   },
-  
+
   setTimeRange: (timeRange) => {
     set({ timeRange, posts: [], offset: 0, hasMore: true });
     get().loadPosts(true);
   },
-  
+
   setSubmolt: (submolt) => {
     set({ submolt, posts: [], offset: 0, hasMore: true });
     get().loadPosts(true);
   },
-  
+
   loadPosts: async (reset = false) => {
     const { sort, timeRange, submolt, isLoading } = get();
     if (isLoading) return;
-    
+
     set({ isLoading: true });
     try {
       const offset = reset ? 0 : get().offset;
-      const response = submolt 
+      const response = submolt
         ? await api.getSubmoltFeed(submolt, { sort, limit: 25, offset })
         : await api.getPosts({ sort, timeRange, limit: 25, offset });
-      
+
       set({
         posts: reset ? response.data : [...get().posts, ...response.data],
         hasMore: response.pagination.hasMore,
@@ -161,16 +163,16 @@ export const useFeedStore = create<FeedStore>((set, get) => ({
       console.error('Failed to load posts:', err);
     }
   },
-  
+
   loadMore: async () => {
     const { hasMore, isLoading } = get();
     if (!hasMore || isLoading) return;
     await get().loadPosts();
   },
-  
+
   updatePostVote: (postId, vote, scoreDiff) => {
     set({
-      posts: get().posts.map(p => 
+      posts: get().posts.map(p =>
         p.id === postId ? { ...p, userVote: vote, score: p.score + scoreDiff } : p
       ),
     });
@@ -183,7 +185,7 @@ interface UIStore {
   mobileMenuOpen: boolean;
   createPostOpen: boolean;
   searchOpen: boolean;
-  
+
   toggleSidebar: () => void;
   toggleMobileMenu: () => void;
   openCreatePost: () => void;
@@ -197,7 +199,7 @@ export const useUIStore = create<UIStore>((set) => ({
   mobileMenuOpen: false,
   createPostOpen: false,
   searchOpen: false,
-  
+
   toggleSidebar: () => set(s => ({ sidebarOpen: !s.sidebarOpen })),
   toggleMobileMenu: () => set(s => ({ mobileMenuOpen: !s.mobileMenuOpen })),
   openCreatePost: () => set({ createPostOpen: true }),
@@ -211,7 +213,7 @@ interface NotificationStore {
   notifications: Notification[];
   unreadCount: number;
   isLoading: boolean;
-  
+
   loadNotifications: () => Promise<void>;
   markAsRead: (id: string) => void;
   markAllAsRead: () => void;
@@ -222,27 +224,27 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   notifications: [],
   unreadCount: 0,
   isLoading: false,
-  
+
   loadNotifications: async () => {
     set({ isLoading: true });
     // TODO: Implement API call
     set({ isLoading: false });
   },
-  
+
   markAsRead: (id) => {
     set({
       notifications: get().notifications.map(n => n.id === id ? { ...n, read: true } : n),
       unreadCount: Math.max(0, get().unreadCount - 1),
     });
   },
-  
+
   markAllAsRead: () => {
     set({
       notifications: get().notifications.map(n => ({ ...n, read: true })),
       unreadCount: 0,
     });
   },
-  
+
   clear: () => set({ notifications: [], unreadCount: 0 }),
 }));
 
@@ -273,23 +275,9 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
     }),
     {
       name: 'moltbook-subscriptions',
-      // Fix for Next.js SSR: Use createJSONStorage with a function that returns localStorage
-      // This prevents "TypeError: (0 , n.createContext) is not a function" during build
-      storage: createJSONStorage(() => ({
-        getItem: (name: string): string | null => {
-          if (typeof window === 'undefined') return null;
-          return localStorage.getItem(name);
-        },
-        setItem: (name: string, value: string): void => {
-          if (typeof window === 'undefined') return;
-          localStorage.setItem(name, value);
-        },
-        removeItem: (name: string): void => {
-          if (typeof window === 'undefined') return;
-          localStorage.removeItem(name);
-        },
-      })),
-      skipHydration: typeof window === 'undefined',
+      storage: createJSONStorage(ssrSafeStorage),
+      // Always skip hydration - we'll manually hydrate in the AuthProvider
+      skipHydration: true,
     }
   )
 );
