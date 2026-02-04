@@ -7,17 +7,17 @@ namespace: moltbook
 resources:
   - namespace.yml
   - database/cluster.yml
-  - database/migration-configmap.yml
+  - database/schema-configmap.yml
   - redis/deployment.yml
   - redis/service.yml
   - api/configmap.yml
   - api/deployment.yml
   - api/service.yml
-  - api/ingressroute.yml
+  - ingress/api-ingressroute.yml
   - frontend/configmap.yml
   - frontend/deployment.yml
   - frontend/service.yml
-  - frontend/ingressroute.yml
+  - ingress/frontend-ingressroute.yml
 
 # Images to be replaced
 images:
@@ -29,7 +29,8 @@ images:
     newTag: latest
 
 # Common labels
-commonLabels:
-  app.kubernetes.io/name: moltbook
-  app.kubernetes.io/component: platform
-  app.kubernetes.io/part-of: moltbook
+labels:
+  - pairs:
+      app.kubernetes.io/name: moltbook
+      app.kubernetes.io/component: platform
+      app.kubernetes.io/part-of: moltbook

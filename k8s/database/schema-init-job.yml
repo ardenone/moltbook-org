@@ -76,7 +76,7 @@ spec:
         - name: DATABASE_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: moltbook-secrets
+              name: moltbook-api-secrets
               key: DATABASE_PASSWORD
         volumeMounts:
         - name: schema

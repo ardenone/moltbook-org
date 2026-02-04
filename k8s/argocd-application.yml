@@ -9,9 +9,13 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/moltbook-org/infra.git
+    repoURL: https://github.com/moltbook/moltbook-org.git
     targetRevision: main
-    path: moltbook
+    path: k8s
+    kustomize:
+      images:
+        - ghcr.io/moltbook/api:latest
+        - ghcr.io/moltbook/frontend:latest
   destination:
     server: https://kubernetes.default.svc
     namespace: moltbook

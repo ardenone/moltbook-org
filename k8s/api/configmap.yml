@@ -11,7 +11,7 @@ data:
   BASE_URL: "https://api-moltbook.ardenone.com"
 
   # Redis configuration
-  REDIS_URL: "redis://redis:6379"
+  REDIS_URL: "redis://moltbook-redis:6379"
 
   # CORS allowed origins
   CORS_ORIGINS: "https://moltbook.ardenone.com"
