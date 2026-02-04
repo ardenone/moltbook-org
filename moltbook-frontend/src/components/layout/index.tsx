@@ -279,6 +279,3 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-
-// Re-export RootLayoutClient
-export { RootLayoutClient } from './root-layout-client';
