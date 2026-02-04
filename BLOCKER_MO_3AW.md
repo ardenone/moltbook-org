@@ -98,10 +98,10 @@ The `namespace-creator` ClusterRole follows the principle of least privilege:
 
 ## Next Steps
 
-1. **Cluster Admin**: Apply `NAMESPACE_SETUP_REQUEST.yml` (tracked by mo-4n69)
+1. **Cluster Admin**: Apply `NAMESPACE_SETUP_REQUEST.yml` (tracked by mo-4n69, mo-3vfo)
 2. **Verification**: Confirm namespace exists with `kubectl get namespace moltbook`
 3. **Deployment**: Deploy Moltbook resources once namespace is created
-4. **Update Bead**: Mark mo-4n69 as CLOSED after successful setup
+4. **Update Bead**: Mark action beads as CLOSED after successful setup
 
 ---
 
@@ -116,13 +116,14 @@ The `namespace-creator` ClusterRole follows the principle of least privilege:
 
 This task (mo-3aw) has verified that the moltbook namespace does not exist and cannot be created without cluster-admin privileges. The resolution path is documented in action bead mo-4n69.
 
-**Verification performed (2026-02-04 22:45 UTC):**
+**Verification performed (2026-02-04 22:47 UTC):**
 - ✅ Confirmed namespace `moltbook` does not exist (`kubectl get namespace moltbook` returned NotFound)
 - ✅ Confirmed ClusterRole `namespace-creator` does not exist
 - ✅ Confirmed ClusterRoleBinding `devpod-namespace-creator` does not exist
 - ✅ Confirmed devpod ServiceAccount lacks namespace creation permissions (Forbidden error on create)
 - ✅ Verified NAMESPACE_SETUP_REQUEST.yml manifest exists and is properly formatted
+- ✅ Created action bead mo-3vfo (P0) to track cluster-admin action
 
-**Required action:** Cluster admin must apply `NAMESPACE_SETUP_REQUEST.yml` as documented in mo-4n69.
+**Required action:** Cluster admin must apply `NAMESPACE_SETUP_REQUEST.yml` as documented in mo-4n69 and mo-3vfo.
 
 **Setup is ready:** All manifests are prepared. No additional changes needed - awaiting cluster-admin action to apply RBAC.
