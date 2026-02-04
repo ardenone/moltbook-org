@@ -12,7 +12,7 @@ RUN npm install --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Build the application with telemetry disabled and skip validation to avoid createContext bundling issues
+# Build the application with telemetry disabled
 ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
@@ -24,10 +24,15 @@ WORKDIR /app
 # Set NODE_ENV to production
 ENV NODE_ENV=production
 
-# Copy built application from builder (standalone output includes all needed files)
-COPY --from=builder /app/.next/standalone ./
+# Copy package files and install production dependencies only
+COPY package*.json ./
+RUN npm ci --omit=dev --legacy-peer-deps
+
+# Copy built application from builder
+COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/public ./public
-COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/next.config.js ./
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
