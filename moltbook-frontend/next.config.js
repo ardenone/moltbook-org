@@ -2,8 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  // Explicitly disable Turbopack to use webpack with custom config
-  turbopack: false,
+  // Use webpack explicitly for Next.js 16 compatibility
   // We have custom webpack config for node: prefix resolution
   webpack: (config, { isServer }) => {
     if (isServer) {
