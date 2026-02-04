@@ -1,12 +1,12 @@
 # Moltbook Deployment Status - ardenone-cluster
 
-**Status:** ✅ MANIFESTS COMPLETE - AWAITING NAMESPACE CREATION
+**Status:** ✅ MANIFESTS COMPLETE - AWAITING RBAC SETUP
 
 **Date:** 2026-02-04
 
 **Bead:** mo-saz (Implementation: Deploy Moltbook platform to ardenone-cluster)
 
-**Action Required:** Namespace creation (tracked in bead **mo-3p2**, Priority 0)
+**Action Required:** ClusterRoleBinding for namespace creation (tracked in bead **mo-1zt**, Priority 1)
 
 ---
 
@@ -202,7 +202,4 @@ Traefik (Let's Encrypt TLS)
 ## Related Beads
 
 - **mo-saz** (this bead): Implementation: Deploy Moltbook platform to ardenone-cluster ✅ COMPLETE
-- **mo-3p2** (Priority 0): Action: Cluster Admin - Create moltbook namespace ⏳ PENDING
-- **mo-39k** (Priority 0): Blocker: Moltbook namespace creation in ardenone-cluster (consolidated)
-- **mo-daw** (Priority 0): Fix: Apply RBAC permissions for moltbook namespace deployment (duplicate)
-- **mo-2ei** (follow-up): Admin: Create moltbook namespace and RBAC on ardenone-cluster (admin action required - P0)
+- **mo-1zt** (Priority 1): RBAC: Apply ClusterRoleBinding for namespace creation - The devpod ServiceAccount needs ClusterRoleBinding 'devpod-namespace-creator' to create the moltbook namespace. Apply k8s/namespace/devpod-namespace-creator-rbac.yml with cluster-admin permissions.
