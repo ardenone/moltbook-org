@@ -73,7 +73,8 @@ gh api repos/moltbook/moltbook-frontend --jq '.permissions'
 Expected output should include `"push": true`
 
 ## Related Beads
-- **mo-1le** - This task: Admin action request for push permissions (current bead)
+- **mo-3ps** - This task: Re-verify GitHub permissions blocker status and document findings (current bead)
+- **mo-1le** - Admin action request for push permissions
 - **mo-2xz2** - Docker build blocker caused by missing permissions (PRIORITY 0)
 - **mo-2ik** - Original permission investigation and documentation
 
