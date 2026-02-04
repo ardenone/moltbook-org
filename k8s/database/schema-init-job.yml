@@ -1,0 +1,115 @@
+# Schema initialization Deployment (idempotent)
+# This deployment runs once to initialize the database schema and then sleeps.
+# It's safe for ArgoCD to manage this as a Deployment (not a Job).
+# NOTE: Jobs are prohibited for ArgoCD - use Deployments instead.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: moltbook-db-init
+  namespace: moltbook
+  labels:
+    app: moltbook-db-init
+    component: database-init
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: moltbook-db-init
+  template:
+    metadata:
+      labels:
+        app: moltbook-db-init
+        component: database-init
+    spec:
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 0
+      containers:
+      - name: db-init
+        image: postgres:16
+        command:
+        - /bin/bash
+        - -c
+        - |
+          echo "Waiting for PostgreSQL to be ready..."
+          until pg_isready -h moltbook-postgres-rw -U postgres; do
+            echo "PostgreSQL not ready, waiting..."
+            sleep 2
+          done
+
+          echo "PostgreSQL is ready, initializing database..."
+
+          # Check if schema is already initialized
+          PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "SELECT 1 FROM pg_tables WHERE schemaname='public' LIMIT 1;" | grep -q 1
+
+          if [ $? -eq 0 ]; then
+            echo "Schema already initialized, skipping..."
+          else
+            echo "Running schema initialization..."
+
+            # Create database and user if not exists
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -c "CREATE DATABASE moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -c "CREATE USER moltbook WITH PASSWORD '$DATABASE_PASSWORD';" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -c "ALTER USER moltbook WITH PASSWORD '$DATABASE_PASSWORD';" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -c "GRANT ALL PRIVILEGES ON DATABASE moltbook TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "GRANT ALL ON SCHEMA public TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "ALTER SCHEMA public OWNER TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO moltbook;" || true
+            PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO moltbook;" || true
+
+            echo "Running schema SQL..."
+            PGPASSWORD=$DATABASE_PASSWORD psql -h moltbook-postgres-rw -U moltbook -d moltbook -f /schema/schema.sql
+
+            echo "Database initialization complete!"
+          fi
+
+          echo "Initialization complete. Keeping pod alive for health checks..."
+          sleep infinity
+        env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: moltbook-postgres-superuser
+              key: password
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: moltbook-secrets
+              key: DATABASE_PASSWORD
+        volumeMounts:
+        - name: schema
+          mountPath: /schema
+          readOnly: true
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+        livenessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - pg_isready -h moltbook-postgres-rw -U postgres && PGPASSWORD=$POSTGRES_PASSWORD psql -h moltbook-postgres-rw -U postgres -d moltbook -c "SELECT 1" > /dev/null 2>&1
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - pg_isready -h moltbook-postgres-rw -U postgres
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 3
+      volumes:
+      - name: schema
+        configMap:
+          name: moltbook-db-schema

@@ -1,0 +1,141 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: moltbook-api
+  namespace: moltbook
+  labels:
+    app: moltbook-api
+    component: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: moltbook-api
+      component: backend
+  template:
+    metadata:
+      labels:
+        app: moltbook-api
+        component: backend
+      annotations:
+        # Force restart on config change
+        checksum/config: "{{ .Values.configChecksum }}"
+    spec:
+      containers:
+      - name: api
+        image: ghcr.io/moltbook/api:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: PORT
+          value: "3000"
+        - name: NODE_ENV
+          value: "production"
+        - name: BASE_URL
+          value: "https://api-moltbook.ardenone.com"
+
+        # Database connection
+        - name: DATABASE_URL
+          value: "postgresql://$(DATABASE_USER):$(DATABASE_PASSWORD)@moltbook-postgres-rw:5432/$(DATABASE_NAME)?sslmode=disable"
+        - name: DATABASE_USER
+          valueFrom:
+            secretKeyRef:
+              name: moltbook-secrets
+              key: DATABASE_USER
+        - name: DATABASE_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: moltbook-secrets
+              key: DATABASE_PASSWORD
+        - name: DATABASE_NAME
+          valueFrom:
+            secretKeyRef:
+              name: moltbook-secrets
+              key: DATABASE_NAME
+
+        # Redis connection (optional)
+        - name: REDIS_URL
+          value: "redis://moltbook-redis:6379"
+
+        # Security
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: moltbook-secrets
+              key: JWT_SECRET
+
+        # Twitter/X OAuth (optional)
+        - name: TWITTER_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: moltbook-secrets
+              key: TWITTER_CLIENT_ID
+              optional: true
+        - name: TWITTER_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: moltbook-secrets
+              key: TWITTER_CLIENT_SECRET
+              optional: true
+
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "1000m"
+
+        livenessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /api/v1/health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+
+      # Wait for database to be ready
+      initContainers:
+      - name: wait-for-db
+        image: postgres:16-alpine
+        command:
+        - sh
+        - -c
+        - |
+          echo "Waiting for PostgreSQL to be ready..."
+          until pg_isready -h moltbook-postgres-rw -p 5432; do
+            echo "PostgreSQL not ready, waiting..."
+            sleep 2
+          done
+          echo "PostgreSQL is ready!"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: moltbook-api
+  namespace: moltbook
+  labels:
+    app: moltbook-api
+    component: backend
+spec:
+  type: ClusterIP
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
+    name: http
+  selector:
+    app: moltbook-api
+    component: backend
