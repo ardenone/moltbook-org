@@ -1,31 +1,27 @@
 # Moltbook Deployment Blocker Summary
 
-**Status:** BLOCKED - ArgoCD Installation Requires Cluster Admin
+**Status:** BLOCKED - Namespace Creation Requires Cluster Admin
 **Date:** 2026-02-04
-**Bead:** mo-3tx (CRITICAL: Install ArgoCD in ardenone-cluster for Moltbook deployment)
+**Beads:**
+- mo-3tx (CRITICAL: Install ArgoCD in ardenone-cluster for Moltbook deployment)
+- mo-saz (Moltbook platform deployment)
 
 ## Blocker Summary
 
-The Moltbook deployment requires **ArgoCD** for GitOps-based deployment. ArgoCD is **NOT installed** in ardenone-cluster, and installation requires cluster-admin privileges that the devpod ServiceAccount does not possess.
+**IMPORTANT UPDATE**: External ArgoCD is available at `argocd-manager.ardenone.com` (health check returns "ok").
 
----
+The task "Install ArgoCD in ardenone-cluster" is based on an incorrect assumption. The **external ArgoCD** should be used instead of installing a local instance.
 
-## Primary Blocker: ArgoCD Installation (mo-3tx)
-
-### Why ArgoCD is Required
-
-1. **GitOps Principle**: The project uses ArgoCD for continuous deployment
-2. **ArgoCD Application Manifest**: `k8s/argocd-application.yml` is ready but requires ArgoCD CRDs
-3. **Namespace Auto-Creation**: ArgoCD Application is configured with `CreateNamespace=true`
-4. **Automated Sync**: Keep deployments in sync with Git repository
+**Primary Blocker**: The `moltbook` namespace does not exist and cannot be created from the devpod due to RBAC restrictions. A cluster administrator must create the namespace.
 
 ### Current State
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| ArgoCD CRDs | ❌ Not Installed | Only Argo Rollouts CRDs exist |
-| argocd namespace | ❌ Does Not Exist | Cannot create without cluster-admin |
-| ArgoCD pods | ❌ Not Running | No pods/services found |
+| External ArgoCD | ✅ Online | https://argocd-manager.ardenone.com/healthz returns "ok" |
+| argocd-proxy | ✅ Running | devpod namespace (read-only proxy) |
+| argocd namespace | ❌ Does Not Exist | Local ArgoCD not installed (not needed) |
+| moltbook namespace | ❌ Does Not Exist | Cannot create without cluster-admin |
 | ArgoCD Application manifest | ✅ Ready | `k8s/argocd-application.yml` |
 
 ### Error Messages
@@ -93,23 +89,41 @@ The `devpod` ServiceAccount does not have the `create` verb on `namespaces` reso
 
 ### For Cluster Administrator
 
+**Quick Start (One-Command Setup):**
+
+```bash
+kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace/NAMESPACE_SETUP_REQUEST.yml
+```
+
+This creates:
+- `ClusterRole`: namespace-creator
+- `ClusterRoleBinding`: devpod-namespace-creator
+- `Namespace`: moltbook
+
+**Manual Step-by-Step:**
+
 **Step 1:** Apply the RBAC manifest (one-time setup)
 
 ```bash
-kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml
 ```
 
 This creates:
 - `ClusterRole`: namespace-creator
 - `ClusterRoleBinding`: devpod-namespace-creator
 
-**Step 2:** Verify the RBAC is applied
+**Step 2:** Create the moltbook namespace
 
 ```bash
-kubectl get clusterrolebinding devpod-namespace-creator
+kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace/moltbook-namespace.yml
 ```
 
-**Step 3:** Notify the devpod team that RBAC is applied
+**Step 3:** Verify the setup
+
+```bash
+kubectl get namespace moltbook
+kubectl get clusterrolebinding devpod-namespace-creator
+```
 
 ---
 
@@ -289,8 +303,9 @@ moltbook namespace:
 
 | Purpose | File |
 |---------|------|
-| RBAC (requires admin) | `k8s/namespace/devpod-namespace-creator-rbac.yml` |
-| Namespace | `k8s/namespace/moltbook-namespace.yml` |
+| Namespace Setup Request (all-in-one) | `cluster-configuration/ardenone-cluster/moltbook/namespace/NAMESPACE_SETUP_REQUEST.yml` |
+| RBAC (requires admin) | `cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml` |
+| Namespace | `cluster-configuration/ardenone-cluster/moltbook/namespace/moltbook-namespace.yml` |
 | Kustomization | `k8s/kustomization.yml` |
 | PostgreSQL | `k8s/database/cluster.yml` |
 | API Deployment | `k8s/api/deployment.yml` |
@@ -317,11 +332,13 @@ moltbook namespace:
 ## Related Beads
 
 ### Active Blocker Beads
+- **mo-2s1** (Priority 0): Fix: Create moltbook namespace in ardenone-cluster
+  - Created RBAC and namespace setup manifests
+  - Documentation updated with cluster admin action steps
 - **mo-27cr** (Priority 0): CRITICAL: RBAC for ArgoCD installation - devpod SA needs cluster-admin
   - Created during mo-3tx execution
   - Documents required RBAC for ArgoCD installation
 - **mo-3tx** (Priority 1): CRITICAL: Install ArgoCD in ardenone-cluster for Moltbook deployment
-  - Current bead
   - Created installation script and documentation
 
 ### Previously Documented Blockers

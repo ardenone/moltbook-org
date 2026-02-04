@@ -1,0 +1,45 @@
+# Moltbook Namespace Setup Request
+# This manifest combines the RBAC and namespace creation for cluster admin convenience
+# Apply with: kubectl apply -f NAMESPACE_SETUP_REQUEST.yml
+#
+# This will:
+# 1. Create RBAC to grant devpod namespace creation permissions
+# 2. Create the moltbook namespace
+#
+# After applying, the devpod ServiceAccount can manage the moltbook namespace for deployment.
+
+---
+# Step 1: Grant devpod ServiceAccount permission to create namespaces
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: namespace-creator
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["create", "get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: devpod-namespace-creator
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: devpod
+roleRef:
+  kind: ClusterRole
+  name: namespace-creator
+  apiGroup: rbac.authorization.k8s.io
+
+---
+# Step 2: Create the moltbook namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: moltbook
+  labels:
+    name: moltbook
+    # ArgoCD will manage this namespace once installed
+    argocd.argoproj.io/managed-by: argocd
