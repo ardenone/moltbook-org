@@ -34,9 +34,6 @@ The `devpod-namespace-creator-rbac.yml` manifest creates two resources:
 2. **ClusterRoleBinding: devpod-namespace-creator**
    - Binds `namespace-creator` ClusterRole to `system:serviceaccount:devpod:default`
 
-3. **Namespace: moltbook**
-   - Creates the target namespace for deployment
-
 ### Why This Requires Cluster Admin
 
 - `ClusterRole` and `ClusterRoleBinding` are cluster-scoped resources
@@ -49,8 +46,8 @@ The `devpod-namespace-creator-rbac.yml` manifest creates two resources:
 Once the ClusterRoleBinding is in place, the Moltbook deployment can proceed automatically:
 
 ```bash
-# The devpod can then deploy everything
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/
+# The devpod can then deploy everything via ArgoCD or kubectl
+kubectl apply -k /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/
 ```
 
 This will deploy:
@@ -81,14 +78,14 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 
 ### Related Documentation
 
-- `k8s/NAMESPACE_SETUP_REQUEST.yml` - Consolidated RBAC + namespace manifest
-- `k8s/CLUSTER_ADMIN_README.md` - Detailed setup instructions
-- `k8s/namespace/README.md` - RBAC configuration details
+- `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml` - RBAC manifest
+- `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/` - Complete Moltbook manifests
 
 ### Related Beads
 
 - **mo-3ax**: This task (documenting and tracking the blocker)
 - **mo-1njh**: Original blocker (priority 0 - critical)
+- **mo-1c9d**: Follow-up blocker bead for cluster-admin action
 
 ---
 
