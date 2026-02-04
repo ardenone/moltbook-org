@@ -55,7 +55,7 @@ kubectl apply -k k8s/
 
 **BLOCKER**: The `moltbook` namespace does not exist and requires cluster admin intervention.
 
-- **Bead mo-2bxj**: BLOCKER: Cluster Admin - Apply RBAC for Moltbook namespace creation (P0)
+- **Bead mo-1e6t**: Blocker: Apply namespace-creator ClusterRole for Moltbook deployment (P0)
 - See `DEPLOYMENT_GUIDE.md` for detailed instructions
 - See `DEPLOYMENT_BLOCKER.md` for blocker status
 
