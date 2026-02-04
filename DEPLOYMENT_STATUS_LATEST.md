@@ -59,6 +59,6 @@ kubectl apply -k k8s/
 ✅ Documentation complete
 ✅ SealedSecrets created and secured
 ✅ Beads created for blockers
-🚨 RBAC permissions needed (mo-s9o)
-🚨 Docker images needed (mo-300)
+🚨 RBAC permissions needed (mo-dwb)
+🚨 Docker images needed (mo-sn0) - requires moltbook org repo push access
 ⏳ Deployment pending blocker resolution

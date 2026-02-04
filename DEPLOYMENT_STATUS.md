@@ -84,6 +84,7 @@ All secrets are encrypted using sealed-secrets controller and safe to commit to 
 - ✅ `k8s/kustomization.yml` - Main kustomization file (standard deployment)
 - ✅ `k8s/kustomization-no-namespace.yml` - Alternative without namespace resource (for use after namespace is pre-created)
 - ✅ `k8s/NAMESPACE_REQUEST.yml` - Namespace creation request for cluster admin
+- ✅ `k8s/namespace/devpod-namespace-creator-rbac.yml` - ClusterRole manifest to grant namespace creation permissions to devpod SA
 - ✅ `k8s/argocd-application.yml` - ArgoCD application manifest (for future use when ArgoCD is installed)
 
 ### 5. Documentation
@@ -103,7 +104,7 @@ Created comprehensive guides:
 
 ### Namespace Creation Permissions
 
-**Blocker Bead**: `mo-3o6` - "Fix: Grant devpod ServiceAccount namespace creation permissions"
+**Blocker Bead**: `mo-2it` - "Fix: Grant devpod ServiceAccount namespace creation permissions"
 
 **Status**: 🚨 **CRITICAL BLOCKER**
 
@@ -118,7 +119,7 @@ in API group "" at the cluster scope
 
 **Solutions**:
 
-1. **Option A: Cluster Admin Creates Namespace** (Recommended)
+1. **Option A: Cluster Admin Creates Namespace** (Recommended - Fastest)
    ```bash
    kubectl apply -f k8s/NAMESPACE_REQUEST.yml
    ```
@@ -127,8 +128,12 @@ in API group "" at the cluster scope
    kubectl apply -k k8s/
    ```
 
-2. **Option B: Grant ClusterRole to devpod ServiceAccount**
-   Create ClusterRole with namespace creation permissions and bind to devpod SA.
+2. **Option B: Grant ClusterRole to devpod ServiceAccount** (For future deployments)
+   Cluster admin applies:
+   ```bash
+   kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+   ```
+   This grants the devpod ServiceAccount ability to create namespaces.
 
 3. **Option C: Use ArgoCD** (Future)
    Install ArgoCD which has cluster-admin permissions and can create namespaces automatically.
