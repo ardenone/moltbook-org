@@ -70,7 +70,9 @@ All manifests created, validated, and tested:
 
 **Issue**: ServiceAccount `system:serviceaccount:devpod:default` lacks cluster-scoped permissions to create namespaces.
 
-**Tracked in**: 15+ duplicate beads (mo-s9o, mo-dwb, mo-x9f, mo-3kb, mo-3rp, etc.)
+**Tracked in**: New bead **mo-39k** (Priority 0) - Created 2026-02-04
+
+**Note**: Previous duplicate beads (mo-s9o, mo-dwb, mo-x9f, mo-3kb, mo-3rp, etc.) can be consolidated.
 
 **Error**:
 ```
@@ -190,11 +192,11 @@ curl https://api-moltbook.ardenone.com/health
 ## 🔄 Related Beads
 
 **Active Blockers:**
-- **mo-s9o** (Priority 0): RBAC permissions for Moltbook deployment
+- **mo-39k** (Priority 0): Blocker: Moltbook namespace creation in ardenone-cluster (NEW - 2026-02-04)
 - **mo-300** (Priority 1): Build and push Docker images to ghcr.io
 - **mo-9zd** (Priority 1): Install ArgoCD on ardenone-cluster
 
-**Note**: Many duplicate beads exist for the same blockers. Recommend consolidating or closing duplicates.
+**Note**: Many duplicate beads exist for the same blockers. Recommend consolidating or closing duplicates. Use mo-39k as the primary tracker for namespace creation.
 
 ## ✅ Success Criteria Met
 
