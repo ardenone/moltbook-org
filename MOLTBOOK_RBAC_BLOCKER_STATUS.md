@@ -105,6 +105,13 @@ The `namespace-creator` ClusterRole follows the principle of least privilege:
 ### Active Beads (OPEN)
 - **mo-xoy0** (P0) - ADMIN: Cluster Admin Action - Apply NAMESPACE_SETUP_REQUEST.yml
 - **mo-30c1** (P0) - Blocker: Apply ClusterRole for Moltbook namespace creation
+- **mo-2xn5** (P0) - BLOCKER: Apply devpod-namespace-creator ClusterRoleBinding requires cluster-admin
+
+### Related Beads
+- **mo-32d** - Fix: Apply devpod-namespace-creator ClusterRoleBinding for Moltbook (VERIFIED - requires cluster-admin)
+- **mo-3ax** - Investigation and verification of RBAC blocker
+- **mo-138** - RBAC blocker verification
+- **mo-saz** - Implementation: Deploy Moltbook platform to ardenone-cluster
 
 ### Related Beads
 - **mo-3ax** - Investigation and verification of RBAC blocker
@@ -212,3 +219,25 @@ See: `k8s/ARGOCD_INSTALL_BLOCKER_SUMMARY.md` for complete details.
 | Apply ARGOCD_INSTALL_REQUEST.yml | ❌ Forbidden | Cannot create clusterroles/clusterrolebindings/namespaces |
 
 **Conclusion from mo-y5o**: ArgoCD is NOT installed. Attempted to apply ARGOCD_INSTALL_REQUEST.yml but was blocked by insufficient RBAC permissions. The action bead mo-3viq remains OPEN and requires cluster-admin execution. All preparation work is complete - only cluster-admin action is needed.
+
+---
+
+## Verification Log Update (mo-32d - 2026-02-04 22:33 UTC)
+
+| Check | Result | Command |
+|-------|--------|---------|
+| ClusterRole `namespace-creator` exists | ❌ NotFound | `kubectl get clusterrole namespace-creator` |
+| ClusterRoleBinding `devpod-namespace-creator` exists | ❌ NotFound | `kubectl get clusterrolebinding devpod-namespace-creator` |
+| devpod namespace exists | ✅ Active | `kubectl get namespace devpod` |
+| devpod `default` ServiceAccount exists | ✅ Found | `kubectl get sa -n devpod` |
+| Can create ClusterRole | ❌ Forbidden | `kubectl auth can-i create clusterrole` |
+| Can create ClusterRoleBinding | ❌ Forbidden | `kubectl auth can-i create clusterrolebinding` |
+
+**Conclusion from mo-32d**: Task was to apply `k8s/namespace/devpod-namespace-creator-rbac.yml` but the current ServiceAccount lacks cluster-admin permissions. The manifest is valid and references the correct `default` ServiceAccount in the `devpod` namespace. Created blocker bead **mo-2xn5** (P0) to track cluster-admin action requirement. The manifest is ready for cluster-admin to apply.
+
+**Action Required**: Cluster-admin must run:
+```bash
+kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+```
+
+This will create both the `namespace-creator` ClusterRole and `devpod-namespace-creator` ClusterRoleBinding.
