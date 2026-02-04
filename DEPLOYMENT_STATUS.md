@@ -23,7 +23,14 @@ All Kubernetes manifests for deploying Moltbook platform to ardenone-cluster are
 
 ### 2. Kubernetes Manifests
 
-All manifests are in the `k8s/` directory and validated with kustomize (820 lines):
+All manifests are deployed to `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/` and validated with kustomize (849 lines):
+
+**Recent Fixes** (2026-02-04 15:30):
+- ✅ Fixed kustomization.yml YAML syntax errors
+- ✅ Corrected IngressRoute resource paths (ingress/ directory)
+- ✅ Fixed empty literal values in secretGenerator
+- ✅ Fixed indentation of options block
+- ✅ Kustomize build validated successfully
 
 - ✅ **Namespace**: `moltbook` namespace with proper labels
   - Request file: `k8s/NAMESPACE_REQUEST.yml` (requires cluster admin)
@@ -126,9 +133,26 @@ in API group "" at the cluster scope
 
 Once the `moltbook` namespace is created by cluster admin:
 
-### Step 1: Apply All Resources
+### Step 1: Create Namespace
+**Cluster admin must run:**
 ```bash
-kubectl apply -k k8s/
+kubectl apply -f /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace.yml
+```
+
+OR use the request file:
+```bash
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_REQUEST.yml
+```
+
+### Step 2: Apply All Resources
+**From ardenone-cluster configuration (recommended):**
+```bash
+kubectl apply -k /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/
+```
+
+**OR from moltbook-org repository:**
+```bash
+kubectl apply -k /home/coder/Research/moltbook-org/k8s/
 ```
 
 This will deploy:
@@ -295,7 +319,7 @@ The GitHub Actions workflow automatically builds and pushes images when:
 ## 🎯 Success Criteria
 
 - ✅ All manifests validated and ready
-- ✅ Kustomization builds successfully (820 lines)
+- ✅ Kustomization builds successfully (849 lines) - **FIXED 2026-02-04**
 - ✅ CNPG operator verified and running
 - ✅ Sealed-secrets controller verified and running
 - ✅ SealedSecrets created and encrypted
@@ -303,7 +327,9 @@ The GitHub Actions workflow automatically builds and pushes images when:
 - ✅ Documentation complete
 - ✅ GitHub Actions workflow configured
 - ✅ Namespace request file created
-- 🚨 **BLOCKER**: Namespace creation permissions (`mo-3o6`)
+- ✅ IngressRoutes follow Cloudflare standards (no nested subdomains)
+- ✅ All YAML syntax errors fixed
+- 🚨 **BLOCKER**: Namespace creation permissions (tracked in beads: mo-3kb, mo-3rp, mo-8xz)
 - ⏳ Namespace creation (requires cluster admin)
 - ⏳ Platform deployment
 - ⏳ Deployment verification
@@ -326,6 +352,35 @@ The GitHub Actions workflow automatically builds and pushes images when:
    - **Impact**: Critical blocker for deployment
 
 2. **Docker Images**: Images not yet built/pushed to ghcr.io
+
+## 📋 Recent Session Updates (mo-saz - 2026-02-04 15:30 UTC)
+
+### Completed Tasks
+1. ✅ Explored moltbook-org repository structure
+2. ✅ Verified kubectl access and identified namespace creation blocker
+3. ✅ Fixed kustomization.yml YAML syntax errors in ardenone-cluster configuration
+4. ✅ Verified manifests build correctly (849 lines)
+5. ✅ Confirmed IngressRoutes follow Cloudflare standards
+6. ✅ Committed fixes to ardenone-cluster repository (commit: c5b1b43f)
+
+### Issues Fixed
+- **IngressRoute paths**: Corrected resource references from `api/ingressroute.yml` and `frontend/ingressroute.yml` to `ingress/api-ingressroute.yml` and `ingress/frontend-ingressroute.yml`
+- **Secret generator syntax**: Fixed empty literal values by adding quotes (`""`)
+- **YAML indentation**: Fixed `options:` block indentation under secretGenerator
+
+### Validation Results
+- ✅ Kustomize build: 849 lines generated successfully
+- ✅ All resource types present: Namespace, ConfigMaps, Secrets, Deployments, Services, IngressRoutes, Cluster, Middlewares
+- ✅ IngressRoutes use correct domains: `moltbook.ardenone.com` and `api-moltbook.ardenone.com`
+- ✅ Schema-init correctly uses Deployment (not Job) for ArgoCD compatibility
+
+### Deployment Status
+**Ready for deployment** - All manifests validated and fixed. Awaiting namespace creation by cluster administrator to proceed with deployment.
+
+**Deployment command** (once namespace exists):
+```bash
+kubectl apply -k /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/
+```
    - **Solution**: Push code to GitHub to trigger automatic build
    - **Status**: Will auto-resolve after code push
    - **Impact**: Medium - deployment will wait for images
