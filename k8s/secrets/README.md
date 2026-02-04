@@ -1,8 +1,21 @@
 # Moltbook Secrets
 
-This directory contains secret templates for the Moltbook platform.
+This directory contains SealedSecrets for the Moltbook platform deployment.
 
-## Creating Sealed Secrets
+## SealedSecrets (GitOps Compatible)
+
+The following SealedSecrets have been generated and can be safely committed to Git:
+
+### Existing SealedSecrets
+- `moltbook-api-sealedsecret.yml` - API secrets (DATABASE_URL, JWT_SECRET, OAuth credentials)
+- `postgres-superuser-sealedsecret.yml` - PostgreSQL superuser credentials
+- `db-credentials-sealedsecret.yml` - Database application user credentials
+
+These secrets were generated using the sealed-secrets controller and can be safely committed to version control.
+
+## Regenerating SealedSecrets
+
+If you need to regenerate secrets (e.g., rotation):
 
 ### Prerequisites
 - `kubeseal` CLI installed

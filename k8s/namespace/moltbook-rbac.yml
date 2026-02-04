@@ -1,0 +1,74 @@
+---
+# RBAC for devpod ServiceAccount to deploy to moltbook namespace
+# This allows the devpod to create and manage resources in the moltbook namespace
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: moltbook-deployer
+  namespace: moltbook
+rules:
+  # Namespace management
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["get", "create"]
+
+  # ConfigMaps
+  - apiGroups: [""]
+    resources: ["configmaps"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Secrets
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # SealedSecrets
+  - apiGroups: ["bitnami.com"]
+    resources: ["sealedsecrets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Deployments
+  - apiGroups: ["apps"]
+    resources: ["deployments", "replicasets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Services
+  - apiGroups: [""]
+    resources: ["services"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # CNPG Clusters
+  - apiGroups: ["postgresql.cnpg.io"]
+    resources: ["clusters", "clusters/status", "backups", "scheduledbackups"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # IngressRoutes (Traefik)
+  - apiGroups: ["traefik.io"]
+    resources: ["ingressroutes"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Pods (for debugging)
+  - apiGroups: [""]
+    resources: ["pods", "pods/log"]
+    verbs: ["get", "list", "watch"]
+
+  # Events
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: moltbook-deployer-binding
+  namespace: moltbook
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: devpod
+roleRef:
+  kind: Role
+  name: moltbook-deployer
+  apiGroup: rbac.authorization.k8s.io

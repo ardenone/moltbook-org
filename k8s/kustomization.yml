@@ -6,8 +6,12 @@ namespace: moltbook
 
 resources:
   - namespace/moltbook-namespace.yml
+  - secrets/moltbook-api-sealedsecret.yml
+  - secrets/moltbook-postgres-superuser-sealedsecret.yml
+  - secrets/moltbook-db-credentials-sealedsecret.yml
   - database/cluster.yml
   - database/schema-configmap.yml
+  - database/schema-init-job.yml
   - redis/deployment.yml
   - redis/service.yml
   - api/configmap.yml
@@ -34,25 +38,8 @@ labels:
       app.kubernetes.io/part-of: moltbook
       app.kubernetes.io/managed-by: argocd
 
-# Generate development secrets - REPLACE WITH SealedSecrets IN PRODUCTION
-secretGenerator:
-  - name: moltbook-db-credentials
-    type: Opaque
-    literals:
-      - username=moltbook
-      - password=changeme
-  - name: moltbook-postgres-superuser
-    type: kubernetes.io/basic-auth
-    literals:
-      - username=postgres
-      - password=changeme
-  - name: moltbook-api-secrets
-    type: Opaque
-    literals:
-      - DATABASE_URL=postgresql://moltbook:changeme@moltbook-postgres-rw.moltbook.svc.cluster.local:5432/moltbook
-      - JWT_SECRET=changeme
-      - TWITTER_CLIENT_ID=placeholder
-      - TWITTER_CLIENT_SECRET=placeholder
-
-generatorOptions:
-  disableNameSuffixHash: true
+# SealedSecrets are used instead of secretGenerator
+# Apply sealed secrets before applying this kustomization:
+#   kubectl apply -f secrets/moltbook-api-sealedsecret.yml
+#   kubectl apply -f secrets/postgres-superuser-sealedsecret.yml
+#   kubectl apply -f secrets/db-credentials-sealedsecret.yml
