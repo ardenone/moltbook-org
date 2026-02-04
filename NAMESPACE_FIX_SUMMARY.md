@@ -120,7 +120,7 @@ scripts/
 - **mo-3flx**: BLOCKER - Cluster Admin needed to create namespace (P0)
 - **mo-drj**: This bead - Fix: Create moltbook namespace in ardenone-cluster
 - **mo-cx8**: Deploy: Apply Moltbook manifests to ardenone-cluster
-- **mo-7k95**: BLOCKER - Cluster Admin required to create moltbook namespace (P0) - Created during mo-cx8 execution
+- **mo-2mxj**: BLOCKER - Cluster Admin needed - Create moltbook namespace (P0) - Created during mo-cx8 execution (2026-02-04)
 
 ### Status Update (2026-02-04)
 
