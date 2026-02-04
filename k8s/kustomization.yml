@@ -35,27 +35,25 @@ labels:
       app.kubernetes.io/part-of: moltbook
       app.kubernetes.io/managed-by: argocd
 
+# Generate development secrets - REPLACE WITH SealedSecrets IN PRODUCTION
 secretGenerator:
   - name: moltbook-db-credentials
     type: Opaque
     literals:
       - username=moltbook
       - password=changeme
-    options:
-      disableNameSuffixHash: true
   - name: moltbook-postgres-superuser
     type: kubernetes.io/basic-auth
     literals:
       - username=postgres
       - password=changeme
-    options:
-      disableNameSuffixHash: true
   - name: moltbook-api-secrets
     type: Opaque
     literals:
-      - DATABASE_URL=postgresql://moltbook:changeme@moltbook-postgres-rw.moltbook.svc.cluster.local:5432/moltbook
+      - DATABASE_URL=postgresql://moltbook:changeme@moltbook-db-rw.moltbook.svc.cluster.local:5432/moltbook
       - JWT_SECRET=changeme
-      - TWITTER_CLIENT_ID=
-      - TWITTER_CLIENT_SECRET=
-    options:
-      disableNameSuffixHash: true
+      - TWITTER_CLIENT_ID=placeholder
+      - TWITTER_CLIENT_SECRET=placeholder
+
+generatorOptions:
+  disableNameSuffixHash: true
