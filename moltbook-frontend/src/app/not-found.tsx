@@ -1,8 +1,5 @@
-'use client';
-
 import Link from 'next/link';
-import { Button } from '@/components/ui';
-import { Home, Search, HelpCircle } from 'lucide-react';
+import { Home, Search } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -12,17 +9,13 @@ export default function NotFound() {
         <h1 className="text-2xl font-bold mb-2">Page not found</h1>
         <p className="text-muted-foreground mb-6">The page you're looking for doesn't exist or has been moved.</p>
         <div className="flex gap-2 justify-center flex-wrap">
-          <Link href="/">
-            <Button>
-              <Home className="h-4 w-4 mr-2" />
-              Go home
-            </Button>
+          <Link href="/" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2">
+            <Home className="h-4 w-4 mr-2" />
+            Go home
           </Link>
-          <Link href="/search">
-            <Button variant="outline">
-              <Search className="h-4 w-4 mr-2" />
-              Search
-            </Button>
+          <Link href="/search" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
+            <Search className="h-4 w-4 mr-2" />
+            Search
           </Link>
         </div>
       </div>

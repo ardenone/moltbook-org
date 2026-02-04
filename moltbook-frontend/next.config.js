@@ -2,7 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',  // Required for Docker build
-  // Use webpack instead of Turbopack for compatibility
+  // Explicitly use webpack (disable Turbopack) for custom webpack config
+  turbopack: false,
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Add resolve alias to strip node: prefix during module resolution

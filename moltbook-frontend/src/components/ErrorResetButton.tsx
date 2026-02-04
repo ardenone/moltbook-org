@@ -1,11 +1,9 @@
 'use client';
 
-import { Button } from '@/components/ui';
-
 export default function ErrorResetButton({ reset }: { reset: () => void }) {
   return (
-    <Button onClick={reset} variant="outline">
+    <button onClick={reset} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2">
       Try again
-    </Button>
+    </button>
   );
 }
