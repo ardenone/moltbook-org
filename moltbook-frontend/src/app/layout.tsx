@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
-import { ThemeProvider } from 'next-themes';
-import { Toaster } from 'sonner';
+import { RootLayoutClient } from '@/components/layout';
 import '@/styles/globals.css';
 
 // Force dynamic rendering to avoid SSG build issues with React Context
@@ -39,9 +38,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}>
-        <ClientProviders>
+        <RootLayoutClient>
           {children}
-        </ClientProviders>
+        </RootLayoutClient>
       </body>
     </html>
   );

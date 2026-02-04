@@ -10,6 +10,9 @@ import { Button, Avatar, AvatarImage, AvatarFallback, Input, Skeleton } from '@/
 import { Home, Search, Bell, Plus, Menu, X, Settings, LogOut, User, Flame, Clock, TrendingUp, Zap, ChevronDown, Moon, Sun, Hash, Users } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 
+// Re-export RootLayoutClient
+export { RootLayoutClient } from './root-layout-client';
+
 // Header
 export function Header() {
   const { agent, isAuthenticated, logout } = useAuth();
@@ -276,3 +279,6 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+// Re-export RootLayoutClient
+export { RootLayoutClient } from './root-layout-client';

@@ -9,35 +9,29 @@ mount source: overlay... err: invalid argument
 
 **Root Cause**: The devpod runs as a container inside Kubernetes (container-in-container). The host filesystem uses overlayfs, and Docker inside the container also tries to use overlayfs, causing nested overlay mounts which are not supported by the Linux kernel.
 
-## Solutions
+## Solution: Use GitHub Actions for Building Images
 
-You have TWO options for building Docker images:
+**DO NOT build Docker images inside the devpod.** Instead, use the automated GitHub Actions workflow that builds images externally, or use the helper script to trigger builds.
 
-### Option 1: Build Locally in Devpod (NEW!)
+### Quick Start: Build via Helper Script
 
-With the new Docker Buildx configuration, you can now build images directly in the devpod:
+The easiest way to trigger builds from the devpod:
 
 ```bash
-# One-time setup
-./scripts/setup-docker-buildx.sh
+# Trigger build and watch progress
+./scripts/build-images-devpod.sh --watch
 
-# Build images (dry run - no push)
-./scripts/build-images-devpod.sh --dry-run
-
-# Build and push to GHCR
-GITHUB_TOKEN=your_token ./scripts/build-images-devpod.sh --push
-
-# Build only API
-./scripts/build-images-devpod.sh --dry-run --api-only
+# Trigger build and exit
+./scripts/build-images-devpod.sh
 ```
 
-**How it works**:
-- Creates a custom Docker Buildx builder named `devpod-builder`
-- Uses `docker-container` driver to bypass overlay filesystem limitations
-- Loads images into Docker after building for local testing
-- Can push to GHCR when `--push` flag is used
+This script:
+- Checks your GitHub CLI authentication
+- Triggers the GitHub Actions workflow
+- Optionally watches the build progress in real-time
+- Provides links to view the build in the browser
 
-### Option 2: Use GitHub Actions (Recommended for Production)
+### Option 1: GitHub Actions (Recommended)
 
 For production deployments, use the automated GitHub Actions workflow:
 

@@ -78,12 +78,41 @@ docker push ghcr.io/ardenone/moltbook-frontend:latest
 
 ---
 
+## ✅ NEW: Safe Build Wrapper (Bead mo-1nh)
+
+A new **safe build wrapper** has been added that automatically detects devpod environments and prevents the overlay filesystem error with helpful guidance.
+
+### Usage
+
+```bash
+# Use the safe build wrapper instead of build-images.sh directly
+./scripts/build-images-safe.sh [options]
+```
+
+### What It Does
+
+- Automatically detects when running in devpod/Kubernetes containerized environment
+- Prevents Docker builds with clear, actionable error message
+- Suggests alternatives (GitHub Actions, host machine build, pre-built images)
+- Delegates to build-images.sh when running on host machine
+
+### Detection Methods
+
+The wrapper checks for:
+- Kubernetes service account token (`/var/run/secrets/kubernetes.io/serviceaccount/token`)
+- Devpod environment variables (`DEVPOD`, `DEVPOD_NAME`)
+- Container markers (`/.dockerenv`, `/run/.containerenv`)
+- Devpod hostname patterns (`devpod-*`, `*-workspace-*`)
+
+---
+
 ## Related Issues
 
 | Bead | Title | Priority | Status |
 |------|-------|----------|--------|
 | mo-jgo | Docker Hub rate limit (misdiagnosed) | P1 | ✅ Documented |
 | mo-1na | GitHub Actions workflow failures | P1 | 🔄 In Progress |
+| mo-1nh | Fix: Docker build overlay filesystem error in devpod | P1 | ✅ **COMPLETED** |
 
 ---
 
@@ -93,9 +122,11 @@ docker push ghcr.io/ardenone/moltbook-frontend:latest
 - **Not the Problem**: Docker Hub rate limits (red herring)
 - **Solution**: Use GitHub Actions (needs fixing) or build on host
 - **Workaround**: Build on host machine and push manually
+- **NEW**: Safe build wrapper prevents the error automatically (bead mo-1nh)
 
 ---
 
 **Created**: 2026-02-04
 **Bead**: mo-jgo
-**Status**: ✅ Documented (workflow fix tracked separately)
+**Updated**: 2026-02-04 - Added safe build wrapper (bead mo-1nh)
+**Status**: ✅ **FIXED** - Safe build wrapper prevents overlay filesystem errors

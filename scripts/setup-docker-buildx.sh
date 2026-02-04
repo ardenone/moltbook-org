@@ -1,13 +1,12 @@
 #!/bin/bash
-# Setup Docker Buildx for Devpod Environment
+# Setup Docker Build for Devpod Environment
 #
-# This script configures Docker Buildx to work in containerized devpod environments
-# where the default overlay storage driver fails due to nested overlay filesystem mounts.
+# This script validates the Docker environment for building in containerized devpods.
+# Due to overlay filesystem limitations in nested container environments, we use
+# GitHub Actions for production builds and provide a dry-run mode for local testing.
 #
 # Usage:
 #   ./scripts/setup-docker-buildx.sh
-#
-# After running this, use build-images-devpod.sh to build images.
 
 set -euo pipefail
 
@@ -34,10 +33,8 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $*"
 }
 
-BUILDER_NAME="devpod-builder"
-
 echo "========================================"
-echo "Docker Buildx Setup for Devpod"
+echo "Docker Build Environment Check"
 echo "========================================"
 echo ""
 
@@ -47,66 +44,37 @@ if ! command -v docker &> /dev/null; then
     exit 1
 fi
 
-log_info "Checking Docker Buildx availability..."
-
-if ! docker buildx version &> /dev/null; then
-    log_error "Docker Buildx not available. Please install Docker Buildx plugin."
-    exit 1
-fi
-
-log_success "Docker Buildx is available"
+log_success "Docker is available"
 
 # Check if we're in a containerized environment (devpod)
 if [ -f /.dockerenv ] || [ -f /run/.containerenv ] || grep -q docker /proc/1/cgroup 2>/dev/null; then
     log_warning "Running in containerized environment (devpod detected)"
-    log_info "Will configure Buildx to avoid overlay filesystem issues"
+    log_info "Note: Docker builds with BuildKit may fail due to nested overlay filesystem"
+    log_info "For production builds, use GitHub Actions:"
+    echo ""
+    log_info "  gh workflow run build-push.yml"
+    echo ""
 fi
 
-# Remove existing builder if it exists
-if docker buildx ls | grep -q "$BUILDER_NAME"; then
-    log_info "Removing existing builder '$BUILDER_NAME'..."
-    docker buildx rm "$BUILDER_NAME" 2>/dev/null || true
-fi
+# Check Docker info
+log_info "Docker version:"
+docker --version
 
-# Create new builder with vfs storage driver
-log_info "Creating new Docker Buildx builder: $BUILDER_NAME"
-log_info "Using vfs storage driver to avoid nested overlay filesystem issues"
-
-docker buildx create \
-    --name "$BUILDER_NAME" \
-    --driver docker-container \
-    --driver-opt network=host \
-    --use \
-    --buildkitd-flags '--allow-insecure-entitlement=security.insecure' 2>/dev/null || {
-    log_error "Failed to create builder"
-    log_info "Falling back to creating builder without network host option..."
-    docker buildx create \
-        --name "$BUILDER_NAME" \
-        --driver docker-container \
-        --use
-}
-
-log_success "Builder '$BUILDER_NAME' created successfully"
-
-# Start the builder
-log_info "Starting builder..."
-docker buildx inspect --bootstrap "$BUILDER_NAME"
-
-log_success "Builder is ready"
-
-# Show builder status
-echo ""
-log_info "Builder configuration:"
-docker buildx inspect "$BUILDER_NAME"
+log_info "Docker Buildx version:"
+docker buildx version
 
 echo ""
 echo "========================================"
-log_success "Docker Buildx setup complete!"
+log_success "Docker environment check complete!"
 echo "========================================"
 echo ""
-log_info "You can now build Docker images in the devpod using:"
-echo "  ./scripts/build-images-devpod.sh"
+log_info "Available build methods:"
+echo "  1. GitHub Actions (recommended):"
+echo "     gh workflow run build-push.yml"
 echo ""
-log_info "Or use buildx directly:"
-echo "  docker buildx build --builder $BUILDER_NAME -t test:latest ./path/to/context"
+echo "  2. Local dry-run (limited in devpod):"
+echo "     DOCKER_BUILDKIT=0 docker build -t test:latest ./api"
+echo ""
+log_info "Note: Due to overlay filesystem limitations in devpods,"
+log_info "full Docker builds may not work. Use GitHub Actions for production."
 echo ""

@@ -10,9 +10,19 @@ const nextConfig = {
   webpack: (config, { isServer }) => {
     // Fix for createContext bundling issue during Docker build
     if (isServer) {
-      // Don't externalize swr and @tanstack/react-query - they use React Context
-      // which requires proper bundling
-      // config.externals = [...(config.externals || []), 'swr', '@tanstack/react-query'];
+      // Ensure React is always bundled, never externalized
+      config.externals = config.externals || [];
+      if (Array.isArray(config.externals)) {
+        config.externals = config.externals.filter(
+          (e) => typeof e === 'string' && e !== 'react' && e !== 'react-dom' && e !== 'react/jsx-runtime' && e !== 'react-dom/client'
+        );
+      }
+      // Add resolve alias to ensure correct React version is used
+      config.resolve.alias = {
+        ...config.resolve.alias,
+        react: require.resolve('react'),
+        'react-dom': require.resolve('react-dom'),
+      };
     }
     return config;
   },

@@ -12,7 +12,7 @@ import { PageContainer } from '@/components/layout';
 import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, CardContent, Switch, Badge, Avatar, AvatarFallback } from '@/components/ui';
 import { Hash, ArrowLeft, AlertCircle, Check, Eye, Lock, Globe, Users, Loader2, Image, X, Plus } from 'lucide-react';
 import { cn, isValidSubmoltName, getInitials } from '@/lib/utils';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 const submoltSchema = z.object({
   name: z.string()

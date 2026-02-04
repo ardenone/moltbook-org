@@ -49,46 +49,37 @@ gh run list --workflow=build-push.yml
 gh run watch
 ```
 
-## Method 2: Local Build in Devpod (NEW!)
+## Method 2: Safe Build Wrapper (NEW!)
 
-✅ **NOW WORKS** - Using Docker Buildx with custom configuration!
+⚠️ **PROTECTED** - Prevents the overlay filesystem error with automatic detection!
 
-The overlay filesystem limitation has been solved with a new Docker Buildx configuration specifically for devpod environments.
+A safe build wrapper script automatically detects when you're in a devpod environment and prevents the build with helpful guidance.
 
-### One-Time Setup
-
-```bash
-# Run this once to configure Docker Buildx for devpod
-./scripts/setup-docker-buildx.sh
-```
-
-This creates a custom builder named `devpod-builder` that uses the `docker-container` driver to bypass overlay filesystem limitations.
-
-### Building Images
+### Using the Safe Build Wrapper
 
 ```bash
-# Build images (dry run - no push)
-./scripts/build-images-devpod.sh --dry-run
+# Use this wrapper instead of calling build-images.sh directly
+./scripts/build-images-safe.sh [options]
 
-# Build and push to GHCR
-GITHUB_TOKEN=your_token_here ./scripts/build-images-devpod.sh --push
-
-# Build only API image
-./scripts/build-images-devpod.sh --dry-run --api-only
-
-# Build only Frontend image
-./scripts/build-images-devpod.sh --dry-run --frontend-only
-
-# Build with custom tag
-GITHUB_TOKEN=your_token_here ./scripts/build-images-devpod.sh --push --tag v1.0.0
+# Examples:
+./scripts/build-images-safe.sh --dry-run      # Will show error message in devpod
+./scripts/build-images-safe.sh --push         # Will show error message in devpod
 ```
 
-### How It Works
+### What It Does
 
-- Uses Docker Buildx with `docker-container` driver
-- Bypasses nested overlay filesystem issues
-- Loads images into Docker for local testing
-- Can push to GHCR when `--push` is specified
+- **Automatically detects devpod environment** (Kubernetes service account, container markers, hostname patterns)
+- **Prevents builds with clear error messaging** if running in devpod
+- **Suggests alternatives** (GitHub Actions, host machine build, pre-built images)
+- **Delegates to build-images.sh** if running on host machine
+
+### Devpod Detection
+
+The wrapper checks for:
+- Kubernetes service account token (`/var/run/secrets/kubernetes.io/serviceaccount/token`)
+- Devpod environment variables (`DEVPOD`, `DEVPOD_NAME`)
+- Container markers (`/.dockerenv`, `/run/.containerenv`)
+- Devpod hostname patterns (`devpod-*`, `*-workspace-*`)
 
 ## Method 3: Local Build on Host Machine
 
@@ -169,18 +160,21 @@ If GitHub Actions fails:
 
 ## Summary
 
-| Method | Best For | Automation |
-|--------|----------|------------|
-| GitHub Actions | Production deployments | Fully automatic |
-| Build Script | Local testing | Semi-automatic |
-| Manual Build | Debugging | Manual |
+| Method | Best For | Devpod Compatible | Automation |
+|--------|----------|-------------------|------------|
+| GitHub Actions | Production deployments | N/A | Fully automatic |
+| Safe Build Wrapper | Protected local builds | ✅ Yes (prevents error) | Manual |
+| Host Machine Build | Local testing on host | N/A | Semi-automatic |
 
-**Recommended**: Use GitHub Actions for production, build script for local testing.
+**Recommended**:
+- **Production**: Use GitHub Actions for fully automated CI/CD
+- **Devpod Development**: Use Safe Build Wrapper to prevent overlay filesystem errors
+- **Host Development**: Use build-images.sh directly on host machine
 
 ## Related Documentation
 
-- **`DOCKER_BUILD_WORKAROUND.md`** - ⚠️ **READ THIS FIRST** if local builds fail
+- **`DOCKER_BUILD_WORKAROUND.md`** - ⚠️ **READ THIS FIRST** for overlay filesystem error details
 - `DEPLOYMENT_READY.md` - Deployment prerequisites
 - `DEPLOYMENT_STATUS.md` - Current deployment status
-- `FINAL_STATUS.md` - Overall project status
-- `scripts/build-images.sh` - Build script implementation
+- `scripts/build-images-safe.sh` - Safe build wrapper with devpod detection
+- `scripts/build-images.sh` - Original host machine build script

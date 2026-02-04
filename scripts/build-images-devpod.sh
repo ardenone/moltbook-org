@@ -1,56 +1,39 @@
 #!/bin/bash
-# Moltbook Container Image Build Script for Devpod Environment
+# Moltbook Image Build Helper - GitHub Actions Trigger
 #
-# This script is designed to work in devpod/containerized environments where
-# the standard overlay storage driver fails due to nested overlay filesystem mounts.
-#
-# Prerequisites:
-#   1. Run ./scripts/setup-docker-buildx.sh first (one-time setup)
-#   2. Set GITHUB_TOKEN environment variable if pushing images
+# Due to overlay filesystem limitations in devpod/containerized environments,
+# Docker builds may fail. This script triggers GitHub Actions to build images
+# externally and provides status monitoring.
 #
 # Usage:
 #   ./scripts/build-images-devpod.sh [OPTIONS]
 #
 # Options:
-#   --dry-run       Build images without pushing to registry
-#   --push          Push images to registry (requires GITHUB_TOKEN)
+#   --watch         Watch the build progress
 #   --api-only      Build only the API image
 #   --frontend-only Build only the Frontend image
-#   --tag TAG       Use specific tag instead of 'latest'
 #   --help          Show this help message
 #
 # Examples:
-#   ./scripts/build-images-devpod.sh --dry-run              # Build only, don't push
-#   GITHUB_TOKEN=xxx ./scripts/build-images-devpod.sh --push  # Build and push
-#   ./scripts/build-images-devpod.sh --push --api-only      # Build and push API only
+#   ./scripts/build-images-devpod.sh                # Trigger build and exit
+#   ./scripts/build-images-devpod.sh --watch        # Trigger build and watch progress
+#   ./scripts/build-images-devpod.sh --api-only     # Build only API
 
 set -euo pipefail
 
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
-REGISTRY="ghcr.io"
-ORGANIZATION="ardenone"
-API_IMAGE_NAME="${REGISTRY}/${ORGANIZATION}/moltbook-api"
-FRONTEND_IMAGE_NAME="${REGISTRY}/${ORGANIZATION}/moltbook-frontend"
-DEFAULT_TAG="${IMAGE_TAG:-latest}"
-BUILDER_NAME="devpod-builder"
 
 # Parse arguments
-DRY_RUN=false
-DO_PUSH=false
+DO_WATCH=false
 BUILD_API=true
 BUILD_FRONTEND=true
-TAG="$DEFAULT_TAG"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --dry-run)
-      DRY_RUN=true
-      shift
-      ;;
-    --push)
-      DO_PUSH=true
+    --watch)
+      DO_WATCH=true
       shift
       ;;
     --api-only)
@@ -60,10 +43,6 @@ while [[ $# -gt 0 ]]; do
     --frontend-only)
       BUILD_API=false
       shift
-      ;;
-    --tag)
-      TAG="$2"
-      shift 2
       ;;
     --help)
       sed -n '/^# Usage/,/^$/p' "$0" | sed 's/^# //g' | sed 's/^#//g'
@@ -105,26 +84,19 @@ log_error() {
 check_prerequisites() {
     log_info "Checking prerequisites..."
 
-    # Check for docker
-    if ! command -v docker &> /dev/null; then
-        log_error "Docker not found. Please install Docker."
+    # Check for gh CLI
+    if ! command -v gh &> /dev/null; then
+        log_error "GitHub CLI (gh) not found. Please install it from: https://cli.github.com/"
         exit 1
     fi
 
-    # Check for buildx
-    if ! docker buildx version &> /dev/null; then
-        log_error "Docker Buildx not found. Please install Docker Buildx plugin."
+    # Check authentication
+    if ! gh auth status &> /dev/null; then
+        log_error "Not authenticated with GitHub CLI. Run: gh auth login"
         exit 1
     fi
 
-    log_success "Docker and Docker Buildx are available"
-
-    # Check if devpod-builder exists
-    if ! docker buildx ls | grep -q "$BUILDER_NAME"; then
-        log_warning "Builder '$BUILDER_NAME' not found"
-        log_info "Running setup script..."
-        bash "${SCRIPT_DIR}/setup-docker-buildx.sh"
-    fi
+    log_success "GitHub CLI is authenticated"
 
     # Check if we're in the right directory
     if [[ ! -f "${PROJECT_ROOT}/api/Dockerfile" ]]; then
@@ -140,162 +112,81 @@ check_prerequisites() {
     log_success "Project structure validated"
 }
 
-# Authenticate to registry
-authenticate() {
-    if [[ "$DRY_RUN" == "true" ]]; then
-        log_warning "Dry run mode: Skipping authentication"
-        return
-    fi
+# Trigger GitHub Actions workflow
+trigger_build() {
+    log_info "Triggering GitHub Actions workflow..."
 
-    if [[ "$DO_PUSH" == "false" ]]; then
-        log_info "Push not requested: Skipping authentication"
-        return
-    fi
-
-    log_info "Authenticating to ${REGISTRY}..."
-
-    # Check for GITHUB_TOKEN
-    if [[ -z "${GITHUB_TOKEN:-}" ]]; then
-        log_error "GITHUB_TOKEN environment variable not set"
-        log_error "Please set it with: export GITHUB_TOKEN=your_token_here"
-        log_error "Or create a Personal Access Token at: https://github.com/settings/tokens"
-        log_error "Required scopes: write:packages, read:packages"
-        exit 1
-    fi
-
-    # Authenticate using echo to pipe the token
-    echo "$GITHUB_TOKEN" | docker login "${REGISTRY}" --username "${GITHUB_USERNAME:-github}" --password-stdin
-
-    if [[ $? -eq 0 ]]; then
-        log_success "Authenticated to ${REGISTRY}"
+    # Trigger the build-push workflow
+    if gh workflow run build-push.yml; then
+        log_success "Workflow triggered successfully"
     else
-        log_error "Authentication failed"
+        log_error "Failed to trigger workflow"
         exit 1
+    fi
+
+    # Get the latest run
+    sleep 2  # Give GitHub a moment to register the run
+    LATEST_RUN=$(gh run list --workflow=build-push.yml --limit 1 --json databaseId --jq '.[0].databaseId' 2>/dev/null || echo "")
+
+    if [ -n "$LATEST_RUN" ]; then
+        log_info "Run ID: $LATEST_RUN"
+        log_info "View at: https://github.com/ardenone/moltbook-org/actions/runs/$LATEST_RUN"
     fi
 }
 
-# Build a single image using buildx
-build_image() {
-    local name="$1"
-    local dockerfile="$2"
-    local context="$3"
-    local image_tag="${name}:${TAG}"
+# Watch the build progress
+watch_build() {
+    log_info "Watching build progress..."
+    echo ""
 
-    log_info "Building ${image_tag}..."
-    log_info "  Context: ${context}"
-    log_info "  Dockerfile: ${dockerfile}"
-    log_info "  Builder: $BUILDER_NAME"
-
-    # Build arguments
-    local build_args=(
-        "--builder" "$BUILDER_NAME"
-        "--file" "${dockerfile}"
-        "--tag" "${image_tag}"
-        "--tag" "${name}:latest"
-        "--load"  # Load the image into Docker after building
-    )
-
-    # Add build labels
-    build_args+=(
-        "--label" "org.opencontainers.image.source=https://github.com/ardenone/moltbook-org"
-        "--label" "org.opencontainers.image.created=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-        "--label" "org.opencontainers.image.revision=$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
-        "--label" "build.environment=devpod"
-    )
-
-    # Build using buildx
-    if docker buildx build "${build_args[@]}" "${context}"; then
-        log_success "Built ${image_tag}"
+    if gh run watch 2>/dev/null; then
+        echo ""
+        log_success "Build completed!"
     else
-        log_error "Failed to build ${image_tag}"
-        exit 1
-    fi
-
-    # Show image size
-    local image_size=$(docker images "${name}:latest" --format "{{.Size}}")
-    log_info "Image size: ${image_size}"
-}
-
-# Push a single image
-push_image() {
-    local name="$1"
-    local image_tag="${name}:${TAG}"
-
-    if [[ "$DRY_RUN" == "true" ]]; then
-        log_warning "Dry run mode: Skipping push of ${image_tag}"
-        return
-    fi
-
-    if [[ "$DO_PUSH" == "false" ]]; then
-        log_info "Push not requested: Skipping push of ${image_tag}"
-        return
-    fi
-
-    log_info "Pushing ${image_tag}..."
-
-    if docker push "${image_tag}"; then
-        log_success "Pushed ${image_tag}"
-    else
-        log_error "Failed to push ${image_tag}"
-        exit 1
-    fi
-
-    # Also push the 'latest' tag
-    log_info "Pushing ${name}:latest..."
-    if docker push "${name}:latest"; then
-        log_success "Pushed ${name}:latest"
-    else
-        log_error "Failed to push ${name}:latest"
-        exit 1
+        echo ""
+        log_warning "Watch command exited. Check status manually:"
+        log_info "  gh run list --workflow=build-push.yml"
     fi
 }
 
 # Main execution
 main() {
-    log_info "Moltbook Container Image Build (Devpod Edition)"
-    log_info "================================================"
-    log_info "Registry: ${REGISTRY}"
-    log_info "Tag: ${TAG}"
-    log_info "Builder: $BUILDER_NAME"
-    log_info "Dry run: ${DRY_RUN}"
-    log_info "Push: ${DO_PUSH}"
+    echo "========================================"
+    echo "Moltbook Image Build (via GitHub Actions)"
+    echo "========================================"
+    echo ""
+    log_info "Why GitHub Actions?"
+    log_info "  Docker builds in devpod fail due to nested overlay filesystem issues."
+    log_info "  GitHub Actions provides a clean build environment without this limitation."
     echo ""
 
     check_prerequisites
-    authenticate
     echo ""
 
-    # Build API
-    if [[ "$BUILD_API" == "true" ]]; then
-        build_image "${API_IMAGE_NAME}" "${PROJECT_ROOT}/api/Dockerfile" "${PROJECT_ROOT}/api"
-        push_image "${API_IMAGE_NAME}"
-        echo ""
-    fi
-
-    # Build Frontend
-    if [[ "$BUILD_FRONTEND" == "true" ]]; then
-        build_image "${FRONTEND_IMAGE_NAME}" "${PROJECT_ROOT}/moltbook-frontend/Dockerfile" "${PROJECT_ROOT}/moltbook-frontend"
-        push_image "${FRONTEND_IMAGE_NAME}"
-        echo ""
-    fi
-
-    log_success "Build process completed successfully!"
+    trigger_build
     echo ""
 
-    if [[ "$DRY_RUN" == "true" ]]; then
-        log_info "To push these images, run:"
-        log_info "  GITHUB_TOKEN=your_token $0 --push --tag ${TAG}"
+    if [[ "$DO_WATCH" == "true" ]]; then
+        watch_build
+    else
+        log_info "Build is running in GitHub Actions."
+        echo ""
+        log_info "To watch the build:"
+        echo "  gh run watch"
+        echo ""
+        log_info "To check status:"
+        echo "  gh run list --workflow=build-push.yml"
+        echo ""
+        log_info "To view logs:"
+        echo "  gh run view <run-id> --log"
     fi
 
-    if [[ "$DO_PUSH" == "true" ]]; then
-        log_info "Images pushed to ${REGISTRY}:"
-        if [[ "$BUILD_API" == "true" ]]; then
-            log_info "  - ${API_IMAGE_NAME}:${TAG}"
-        fi
-        if [[ "$BUILD_FRONTEND" == "true" ]]; then
-            log_info "  - ${FRONTEND_IMAGE_NAME}:${TAG}"
-        fi
-    fi
+    echo ""
+    echo "========================================"
+    log_info "Images will be available at:"
+    echo "  - ghcr.io/ardenone/moltbook-api:latest"
+    echo "  - ghcr.io/ardenone/moltbook-frontend:latest"
+    echo "========================================"
 }
 
 main "$@"
