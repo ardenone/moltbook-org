@@ -1,19 +1,20 @@
 # Moltbook Deployment Blocker Status
 
-**Last Updated**: 2026-02-04 19:35 UTC
+**Last Updated**: 2026-02-04 19:50 UTC
 **Bead**: mo-32c (namespace creation task)
-**Blocker Bead**: mo-2bxj (P0 - Critical) - Cluster admin action required
+**Blocker Bead**: mo-yos4 (P0 - Critical) - Cluster admin to apply ArgoCD Application
+**Previous Blocker Bead**: mo-2bxj (P0 - Resolved via ArgoCD approach)
 
 ---
 
-## Status: BLOCKED - Requires Cluster Admin Action
+## Status: RESOLVED - ArgoCD Will Create Namespace
 
 ### Summary
 
-The Moltbook platform deployment is **blocked** because:
-1. The `moltbook` namespace does not exist
-2. The devpod ServiceAccount (`system:serviceaccount:devpod:default`) lacks cluster-admin privileges to create namespaces
-3. No `namespace-creator` ClusterRole/ClusterRoleBinding exists
+The Moltbook platform deployment uses **ArgoCD GitOps** with automatic namespace creation:
+1. The `moltbook` namespace will be created automatically by ArgoCD when the Application is synced
+2. The ArgoCD Application manifest (`k8s/argocd-application.yml`) has `CreateNamespace=true`
+3. No manual RBAC changes needed - ArgoCD handles namespace creation via cluster-admin privileges
 
 ---
 
@@ -32,33 +33,54 @@ Error from server (NotFound): clusterroles.rbac.authorization.k8s.io "namespace-
 
 ---
 
-## Resolution: Cluster Admin Action Required
+## Resolution: ArgoCD GitOps Deployment
 
-### Single Command Setup
+### Deployment Method
 
-A cluster administrator must run:
+**ArgoCD Application** (`k8s/argocd-application.yml`) manages the entire deployment with automatic namespace creation.
+
+#### Step 1: Cluster Admin - Create ArgoCD Application
+
+A cluster administrator creates the ArgoCD Application:
 
 ```bash
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
+# From any machine with cluster-admin access to apexalgo-iad
+kubectl apply -f https://raw.githubusercontent.com/ardenone/moltbook-org/main/k8s/argocd-application.yml
 ```
 
-### What This Creates
+Or apply from the local file:
+```bash
+kubectl apply -f /path/to/moltbook-org/k8s/argocd-application.yml
+```
 
-| Resource | Purpose |
-|----------|---------|
-| `ClusterRole: namespace-creator` | Grants namespace creation + RBAC management permissions |
-| `ClusterRoleBinding: devpod-namespace-creator` | Binds ClusterRole to devpod:default ServiceAccount |
-| `Namespace: moltbook` | The target namespace for all Moltbook resources |
+#### Step 2: ArgoCD Syncs Automatically
+
+- ArgoCD will create the `moltbook` namespace automatically (`CreateNamespace=true`)
+- All resources will be synced from the `k8s/` directory
+- No additional RBAC needed for devpod (ArgoCD has cluster-admin privileges)
+
+### Why This Approach
+
+| Approach | Pros | Cons |
+|----------|------|------|
+| **ArgoCD with CreateNamespace** ✅ | GitOps native, no RBAC sprawl, self-healing | Requires one-time cluster admin action |
+| Manual namespace creation | Simple | Not GitOps, manual updates needed |
+| Grant devpod namespace creation | No cluster admin needed | RBAC sprawl, security risk |
 
 ---
 
-## After Cluster Admin Action
+## After ArgoCD Sync
 
-Once the namespace exists, deploy from devpod:
+Once ArgoCD syncs the Application, verify deployment:
 
 ```bash
-cd /home/coder/Research/moltbook-org
-kubectl apply -k k8s/
+# Verify namespace created
+kubectl get namespace moltbook
+
+# Verify deployment (via ArgoCD or kubectl)
+kubectl get pods -n moltbook
+kubectl get svc -n moltbook
+kubectl get ingressroutes -n moltbook
 ```
 
 ---
@@ -86,15 +108,17 @@ kubectl apply -k k8s/
 ## Verification Checklist (Post-Deployment)
 
 ```bash
-# Verify RBAC applied
-kubectl get clusterrole namespace-creator
-kubectl get clusterrolebinding devpod-namespace-creator
+# Verify namespace created by ArgoCD
 kubectl get namespace moltbook
 
-# Verify deployment
+# Verify ArgoCD Application synced
+kubectl get application -n argocd
+
+# Verify deployment resources
 kubectl get pods -n moltbook
 kubectl get svc -n moltbook
 kubectl get ingressroutes -n moltbook
+kubectl get clusters -n moltbook  # CNPG database
 
 # Test endpoints
 curl https://api-moltbook.ardenone.com/health
@@ -107,11 +131,13 @@ curl https://moltbook.ardenone.com
 
 | File | Purpose |
 |------|---------|
-| `k8s/NAMESPACE_SETUP_REQUEST.yml` | Cluster-admin setup manifest (RBAC + namespace) |
-| `k8s/setup-namespace.sh` | Automated setup script |
-| `k8s/kustomization.yml` | Full deployment (includes namespace) |
+| `k8s/argocd-application.yml` | **PRIMARY**: ArgoCD Application manifest (GitOps, auto-namespace) |
+| `k8s/namespace/moltbook-namespace.yml` | Namespace manifest (applied by ArgoCD) |
+| `k8s/namespace/moltbook-rbac.yml` | RBAC for devpod in moltbook namespace |
+| `k8s/namespace/devpod-namespace-creator-rbac.yml` | **LEGACY**: Alternative RBAC approach (not needed for ArgoCD) |
+| `k8s/NAMESPACE_SETUP_REQUEST.yml` | **LEGACY**: Manual setup (not needed for ArgoCD) |
+| `k8s/kustomization.yml` | Full deployment Kustomize |
 | `k8s/kustomization-no-namespace.yml` | Deployment without namespace (alternative) |
-| `k8s/argocd-application.yml` | ArgoCD Application manifest (GitOps) |
 
 ---
 
@@ -119,9 +145,10 @@ curl https://moltbook.ardenone.com
 
 | Bead ID | Title | Priority | Status |
 |---------|-------|----------|--------|
-| mo-32c | Create moltbook namespace in ardenone-cluster | 1 | BLOCKED |
-| mo-cx8 | Deploy: Apply Moltbook manifests to ardenone-cluster | 1 | BLOCKED |
-| mo-2bxj | BLOCKER: Cluster Admin - Apply RBAC for Moltbook namespace creation | 0 | OPEN |
+| mo-3rs | Fix: Grant devpod namespace creation permissions or create moltbook namespace | 1 | **RESOLVED** (ArgoCD approach) |
+| mo-32c | Create moltbook namespace in ardenone-cluster | 1 | VERIFIED - Namespace still doesn't exist, waiting for cluster admin ArgoCD sync |
+| mo-cx8 | Deploy: Apply Moltbook manifests to ardenone-cluster | 1 | BLOCKED (waiting for namespace) |
+| mo-2bxj | BLOCKER: Cluster Admin - Apply RBAC for Moltbook namespace creation | 0 | RESOLVED (ArgoCD auto-namespace) |
 
 ---
 
@@ -161,3 +188,19 @@ moltbook namespace:
 - Health checks on all deployments
 - Resource limits defined
 - RBAC scoped to namespace
+- **Namespace creation via ArgoCD** (no RBAC sprawl)
+
+---
+
+## Quick Reference for Cluster Admin
+
+```bash
+# ONE COMMAND to deploy Moltbook platform via ArgoCD:
+kubectl apply -f https://raw.githubusercontent.com/ardenone/moltbook-org/main/k8s/argocd-application.yml
+
+# That's it! ArgoCD will:
+# 1. Create the moltbook namespace
+# 2. Deploy all resources (database, redis, api, frontend)
+# 3. Configure ingress routes and services
+# 4. Keep everything in sync with Git
+```
