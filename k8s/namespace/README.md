@@ -24,6 +24,29 @@ This is an intentional security boundary. Namespace creation requires cluster-ad
 
 This setup requires **cluster-admin** privileges to create namespaces and apply RBAC.
 
+## Cluster Admin Action Required
+
+**To unblock moltbook deployment, a cluster admin must run:**
+
+```bash
+# From the k8s/namespace directory
+cd /home/coder/Research/moltbook-org/k8s/namespace
+
+# Option 1: Create namespace only (minimal, recommended)
+kubectl apply -f moltbook-namespace.yml
+
+# Option 2: Grant devpod namespace creation permissions AND create namespace
+kubectl apply -f devpod-namespace-creator-rbac.yml
+kubectl apply -f moltbook-namespace.yml
+```
+
+**Verification:**
+```bash
+kubectl get namespace moltbook
+```
+
+After the namespace is created, the devpod can deploy resources within it using the namespace-scoped RBAC in `moltbook-rbac.yml`.
+
 ## Setup Instructions
 
 ### Option 1: Create Namespace Only (Quickest)
