@@ -102,17 +102,18 @@ if ! command -v kustomize &> /dev/null && ! kubectl kustomize --help &> /dev/nul
 fi
 
 # Check cluster access
-if ! kubectl cluster-info &> /dev/null; then
+if ! kubectl version --output=json &> /dev/null; then
   print_error "Cannot connect to Kubernetes cluster"
   exit 1
 fi
 
-CLUSTER_NAME=$(kubectl config current-context)
+CLUSTER_NAME=$(kubectl config current-context 2>/dev/null || echo "unknown")
 echo -e "  Connected to cluster: ${BLUE}${CLUSTER_NAME}${NC}"
 
 # Check if dry-run mode
 if [ "$DRY_RUN" = true ]; then
   print_warning "Running in DRY-RUN mode - no changes will be applied"
+  print_warning "Dry-run may fail due to RBAC restrictions in client-side mode"
   APPLY_CMD="kubectl apply --dry-run=client"
 else
   APPLY_CMD="kubectl apply"
