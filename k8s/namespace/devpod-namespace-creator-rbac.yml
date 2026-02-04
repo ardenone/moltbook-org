@@ -1,40 +1,38 @@
 ---
-# ClusterRole to allow devpod ServiceAccount to create namespaces
-# This file should be applied by a cluster administrator
+# ClusterRole to allow namespace creation
+# This manifest must be applied by a cluster administrator
 #
-# To apply: kubectl apply -f devpod-namespace-creator-rbac.yml
+# Purpose: Grant the devpod ServiceAccount permission to create namespaces
+# Required for: Deploying applications that need new namespaces (like Moltbook)
 #
-# After applying, the devpod ServiceAccount will be able to create
-# namespaces, which is required for deploying the Moltbook platform.
-
+# To apply (requires cluster-admin permissions):
+#   kubectl apply -f devpod-namespace-creator-rbac.yml
+#
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: devpod-namespace-creator
+  name: namespace-creator
   labels:
     app.kubernetes.io/name: devpod
     app.kubernetes.io/component: rbac
-    app.kubernetes.io/managed-by: kubectl
 rules:
-  # Allow namespace creation at cluster scope
-  - apiGroups: [""]
-    resources: ["namespaces"]
-    verbs: ["get", "list", "watch", "create", "update", "patch"]
-
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["create", "get", "list", "watch"]
 ---
+# ClusterRoleBinding for devpod ServiceAccount
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: devpod-namespace-creator-binding
+  name: devpod-namespace-creator
   labels:
     app.kubernetes.io/name: devpod
     app.kubernetes.io/component: rbac
-    app.kubernetes.io/managed-by: kubectl
-subjects:
-  - kind: ServiceAccount
-    name: default
-    namespace: devpod
 roleRef:
-  kind: ClusterRole
-  name: devpod-namespace-creator
   apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: namespace-creator
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: devpod
