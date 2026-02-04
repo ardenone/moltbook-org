@@ -1,0 +1,40 @@
+---
+# ArgoCD Installation Manifest for ardenone-cluster
+#
+# This manifest installs ArgoCD GitOps operator in ardenone-cluster.
+# Requires cluster-admin privileges to apply.
+#
+# PREREQUISITES:
+#   - cluster-admin access to ardenone-cluster
+#   - kubectl configured with admin credentials
+#
+# INSTALLATION:
+#   kubectl apply -f k8s/argocd-install-manifest.yaml
+#
+# VERIFICATION:
+#   kubectl get pods -n argocd
+#   kubectl get application -n argocd
+#
+# POST-INSTALLATION:
+#   After ArgoCD is running, apply the Moltbook Application:
+#   kubectl apply -f k8s/argocd-application.yml
+#
+# ACCESSING ARGOCD UI:
+#   1. Port-forward to API server:
+#      kubectl port-forward svc/argocd-server -n argocd 8080:443
+#   2. Get initial admin password:
+#      kubectl -n argocd get secret argocd-initial-admin-secret \
+#        -o jsonpath="{.data.password}" | base64 -d
+#   3. Login at: https://localhost:8080
+#      Username: admin
+#      Password: <from step 2>
+#
+# MANIFEST SOURCE:
+#   This manifest is sourced from the official ArgoCD stable release:
+#   https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+#
+# LAST UPDATED: 2026-02-04
+# ARGOCD VERSION: v2.12.x (stable)
+---
+# Auto-generated manifest - DO NOT EDIT MANUALLY
+# To update ArgoCD, re-download from the official source
