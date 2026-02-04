@@ -5,7 +5,9 @@
 
 **Resolution Path**: Cluster-admin applies `ARGOCD_SETUP_REQUEST.yml` → devpod installs ArgoCD → Moltbook Application syncs
 
-**Verified**: 2026-02-04 22:35 UTC
+**Verified**: 2026-02-04 22:36 UTC
+
+**New Blocker Bead Created**: mo-2fwe (P0) - "BLOCKER: Cluster-admin must apply ArgoCD RBAC before installation"
 
 ---
 
@@ -173,6 +175,7 @@ kubectl get applications -n argocd
 
 ## Related Issues
 - Bead: mo-y5o - "CRITICAL: Install ArgoCD in ardenone-cluster for Moltbook deployment"
+- Bead: mo-2fwe (P0) - "BLOCKER: Cluster-admin must apply ArgoCD RBAC before installation"
 - ArgoCD Application: k8s/argocd-application.yml (cannot sync without ArgoCD installed)
 
 ## ArgoCD Version

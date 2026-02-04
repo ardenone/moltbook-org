@@ -14,6 +14,12 @@
 # - ArgoCD namespace: NOT FOUND
 # - RBAC permissions: NOT APPLIED (requires cluster-admin)
 # - Installation: BLOCKED until cluster-admin applies this manifest
+# - Current permissions: User "system:serviceaccount:devpod:default" lacks:
+#   - create namespace (Forbidden)
+#   - create clusterrole/clusterrolebinding (Forbidden)
+#   - create customresourcedefinitions (Forbidden - no create verb)
+# - ArgoCD CRDs: NOT INSTALLED (only Argo Rollouts CRDs present)
+# - BLOCKER: Installation REQUIRES cluster-admin to apply ARGOCD_SETUP_REQUEST.yml
 
 ---
 # Step 1: Grant devpod ServiceAccount permission to manage ArgoCD resources
