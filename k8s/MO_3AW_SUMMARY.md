@@ -92,9 +92,9 @@ metadata:
 
 ## Related Blocker Bead
 
-**Bead ID:** mo-zy5l
+**Bead ID:** mo-3rjs
 **Priority:** 0 (Critical)
-**Title:** Fix: Apply devpod-namespace-creator-rbac.yml for namespace creation
+**Title:** BLOCKER: Apply RBAC and create moltbook namespace - requires cluster-admin
 
 This bead tracks the RBAC blocker that must be resolved before namespace creation is possible.
 
@@ -147,7 +147,7 @@ Once ArgoCD is installed, the Application manifest at `k8s/argocd-application.ym
 
 4. **Close related beads**
    - mo-3aw (this bead) - after namespace creation
-   - mo-zy5l - after RBAC is applied
+   - mo-3rjs - after RBAC is applied and namespace exists
 
 ---
 
