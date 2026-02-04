@@ -2,7 +2,7 @@
 
 **Date:** 2026-02-04
 **Bead:** mo-23p
-**Status:** ❌ BLOCKED - Cannot verify sync due to missing RBAC permissions
+**Status:** ❌ BLOCKED - Cannot verify sync (ArgoCD not installed in ardenone-cluster)
 
 ---
 
@@ -21,7 +21,11 @@ Verify that the ArgoCD Application (argocd-application.yml) can sync the Moltboo
 
 ### ArgoCD Application Configuration ✅
 
-**File:** `k8s/argocd-application.yml`
+**File Location:**
+- moltbook-org repo: `/home/coder/Research/moltbook-org/k8s/argocd-application.yml`
+- cluster-config repo: `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/argocd-application.yml`
+
+**Manifest (cluster-config version):**
 
 ```yaml
 apiVersion: argoproj.io/v1alpha1
@@ -32,9 +36,13 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/ardenone/moltbook-org.git
+    repoURL: https://github.com/ardenone/ardenone-cluster.git
     targetRevision: main
-    path: k8s
+    path: cluster-configuration/ardenone-cluster/moltbook
+    kustomize:
+      images:
+        - ghcr.io/ardenone/moltbook-api:latest
+        - ghcr.io/ardenone/moltbook-frontend:latest
   destination:
     server: https://kubernetes.default.svc
     namespace: moltbook
@@ -42,9 +50,18 @@ spec:
     automated:
       prune: true
       selfHeal: true
+      allowEmpty: false
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
 ```
 
-**Status:** Configuration is valid ✅
+**Status:** Configuration is valid ✅ (correct repo URL, correct path)
 
 ### Kustomization Configuration ✅
 
@@ -63,73 +80,67 @@ All required resources are referenced:
 
 ---
 
-## Critical Blocker: RBAC Not Applied ❌
+## Critical Blocker: ArgoCD Not Installed ❌
 
 ### Investigation Results
 
-**Command:** `kubectl get clusterrole namespace-creator`
+**Command:** `kubectl get namespace argocd`
 ```
-Error from server (NotFound): clusterroles.rbac.authorization.k8s.io "namespace-creator" not found
-```
-
-**Command:** `kubectl get clusterrolebinding devpod-namespace-creator`
-```
-Error from server (NotFound): clusterrolebindings.rbac.authorization.k8s.io "devpod-namespace-creator" not found
+Error from server (NotFound): namespaces "argocd" not found
 ```
 
-**Command:** `kubectl get role -n moltbook moltbook-deployer`
+**Command:** `kubectl get applications -A`
 ```
-Error from server (Forbidden): roles.rbac.authorization.k8s.io "moltbook-deployer" is forbidden:
-User "system:serviceaccount:devpod:default" cannot get resource "roles"
-in API group "rbac.authorization.k8s.io" in the namespace "moltbook"
+error: the server doesn't have a resource type "applications"
+```
+
+**Command:** `kubectl get pods -A | grep -i argocd`
+```
+devpod  argocd-proxy-8686d5cb95-d5tvk  Running  (only proxy to apexalgo-iad, NOT local ArgoCD)
 ```
 
 ### Root Cause
 
-The RBAC manifests that grant the devpod ServiceAccount permissions to deploy Moltbook have **NOT been applied to the cluster**. This creates a deployment deadlock:
+**ArgoCD is NOT installed in ardenone-cluster.**
 
-1. ArgoCD needs RBAC permissions to sync resources to the moltbook namespace
-2. The moltbook-rbac.yml is a namespaced Role that can only be applied AFTER the namespace exists
-3. The namespace creation requires cluster-admin permissions (not available to devpod ServiceAccount)
-4. The devpod-namespace-creator ClusterRole/ClusterRoleBinding has not been applied
+The only ArgoCD-related component is `argocd-proxy` in the devpod namespace, which provides proxy access to ArgoCD in the **apexalgo-iad** cluster (remote), NOT ardenone-cluster (local).
 
-### Required RBAC Manifests
+Without ArgoCD installed:
+- The Application resource type doesn't exist
+- Cannot create ArgoCD Applications
+- Cannot perform GitOps deployment via ArgoCD
+- The ArgoCD Application manifest cannot be applied
 
-**ClusterRole (must be applied first):**
-- File: `k8s/namespace/devpod-namespace-creator-rbac.yml`
-- Grants: namespace creation, RoleBinding management
-- Target: ServiceAccount `system:serviceaccount:devpod:default`
-- Status: ❌ Not applied to cluster
+---
 
-**Namespace Role (applied after namespace exists):**
-- File: `k8s/namespace/moltbook-rbac.yml`
-- Grants: Full resource management in moltbook namespace
-- Target: ServiceAccount `system:serviceaccount:devpod:default`
-- Status: ❌ Not applied to cluster (included in kustomization but cannot sync without ClusterRole)
+## Secondary Blocker: Namespace Does Not Exist ❌
+
+**Command:** `kubectl get namespace moltbook`
+```
+Error from server (NotFound): namespaces "moltbook" not found
+```
+
+### Impact
+- No namespace to deploy resources into
+- Cannot verify RBAC (Role is namespaced)
+- All resource deployments are blocked
 
 ---
 
 ## Current Cluster State
 
 ### Namespace Status
+❌ **moltbook namespace does NOT exist**
 
-```bash
-kubectl get namespace moltbook
-```
-**Result:** Namespace exists ✅ (empty, no resources deployed)
-
-```bash
-kubectl get pods -n moltbook
-```
-**Result:** No resources found in moltbook namespace
+### ArgoCD Status
+❌ **ArgoCD is NOT installed in ardenone-cluster**
 
 ### Resource Verification
-
-**PostgreSQL:** ❌ Not deployed (no CNPG Cluster resources)
-**Redis:** ❌ Not deployed (no pods)
-**API Backend:** ❌ Not deployed (no deployment)
-**Frontend:** ❌ Not deployed (no deployment)
-**IngressRoutes:** Cannot verify (Forbidden to list ingressroutes)
+**PostgreSQL:** ❌ Not deployed (namespace doesn't exist)
+**Redis:** ❌ Not deployed (namespace doesn't exist)
+**API Backend:** ❌ Not deployed (namespace doesn't exist)
+**Frontend:** ❌ Not deployed (namespace doesn't exist)
+**IngressRoutes:** ❌ Cannot verify (namespace doesn't exist)
 
 ---
 
@@ -137,17 +148,19 @@ kubectl get pods -n moltbook
 
 ArgoCD cannot sync the application because:
 
-1. **ArgoCD is not deployed/operational** in the cluster
-   - `kubectl api-resources | grep application` returns empty
-   - ArgoCD Application CRD is not installed
+1. **ArgoCD is NOT installed** in ardenone-cluster
+   - No `argocd` namespace exists
+   - No ArgoCD Custom Resource Definitions (CRDs) registered
+   - No ArgoCD server components running
+   - Only `argocd-proxy` exists (for remote cluster access, NOT local ArgoCD)
 
-2. **Even if ArgoCD were running**, it would fail due to RBAC:
-   - ArgoCD's ServiceAccount would lack permissions to create resources in the moltbook namespace
-   - The required RoleBindings are not applied
+2. **The Application resource type doesn't exist**
+   - Cannot create ArgoCD Application manifests
+   - The sync verification is impossible without ArgoCD
 
-3. **Manual deployment is also blocked**:
-   - The devpod ServiceAccount cannot list/create most resources
-   - Attempting `kubectl apply -k k8s/` results in Forbidden errors
+3. **Namespace doesn't exist**
+   - No target namespace for deployment
+   - ArgoCD's `CreateNamespace=true` would help, but ArgoCD isn't installed
 
 ---
 
