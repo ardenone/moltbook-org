@@ -83,15 +83,45 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 
 ### Related Beads
 
-- **mo-3ax**: Original task (documenting and tracking the blocker)
-- **mo-138**: This task - verified RBAC blocker must be resolved before deployment
 - **mo-39sj**: Current cluster-admin action bead (P0) - Apply devpod-namespace-creator ClusterRoleBinding
-- **mo-1njh**: Original blocker (priority 0 - critical)
-- **mo-1c9d**: Follow-up blocker bead for cluster-admin action
+- **mo-3ax**: This task - Investigation and verification of RBAC blocker (current task)
+- **mo-138**: Previous verification of RBAC blocker
+
+**Note**: There are many duplicate beads tracking the same RBAC blocker. Consider consolidating:
+- mo-339m, mo-2j8b, mo-12ee, mo-3kcj, mo-1c9d, mo-2ym4, mo-1k2i, mo-nohd, mo-1njh, mo-20r2, mo-1u4t, mo-1gj4, mo-h6lv, mo-1z4t, mo-3b71, mo-2bxj, mo-33lq, mo-2hgx, mo-1s5e, mo-2hoz, mo-30b6, mo-yos4 (and possibly more)
+
+All track the same issue: Cluster admin must apply devpod-namespace-creator-rbac.yml
+
+### Investigation Summary (mo-3ax)
+
+**Current Context**: Working as `system:serviceaccount:devpod:default` (devpod ServiceAccount)
+
+**Findings**:
+1. ✅ devpod ServiceAccount confirmed - cannot create ClusterRole/ClusterRoleBinding (cluster-scoped resources)
+2. ✅ Existing devpod ClusterRoles found:
+   - `devpod-priority-user` - only PriorityClass access
+   - `devpod-rolebinding-controller` - namespace get/list/watch, RoleBinding CRUD, cannot create namespaces
+3. ✅ `rolebinding-controller` deployment exists in devpod namespace - manages RoleBindings only
+4. ❌ ClusterRole `namespace-creator` does NOT exist
+5. ❌ ClusterRoleBinding `devpod-namespace-creator` does NOT exist
+6. ❌ Namespace `moltbook` does NOT exist
+
+**Cluster Admin Access**: Only `system:masters` group has cluster-admin (no individual users with elevated access in devpod context)
+
+**Commands Used**:
+```bash
+kubectl auth can-i create namespace  # Result: no
+kubectl get clusterrolebinding devpod-namespace-creator  # Result: NotFound
+kubectl get clusterrole namespace-creator  # Result: NotFound
+kubectl get namespace moltbook  # Result: NotFound
+kubectl auth whoami  # Result: system:serviceaccount:devpod:default
+```
+
+**Conclusion**: This task CANNOT be completed autonomously. A cluster administrator with `system:masters` access must manually apply the RBAC manifest. The correct action bead is **mo-39sj** (P0 - Critical).
 
 ---
 
 **Last Updated**: 2026-02-04
-**Status**: Awaiting cluster administrator action
-**Verified by**: mo-3ax
+**Status**: CONFIRMED BLOCKER - Requires cluster administrator action
+**Verified by**: mo-3ax (current task), mo-138 (previous)
 **Current Action Bead**: mo-39sj (P0 - Critical)
