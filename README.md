@@ -55,7 +55,7 @@ kubectl apply -k k8s/
 
 **BLOCKER**: The `moltbook` namespace does not exist and requires cluster admin intervention.
 
-- **Bead mo-4eno**: CRITICAL: Cluster Admin Action Required - Create moltbook namespace in ardenone-cluster
+- **Bead mo-2mxj**: BLOCKER: Cluster Admin needed - Create moltbook namespace (P0)
 - See `k8s/NAMESPACE_SETUP_README.md` for detailed instructions
 
 Once the namespace is created, deployment can proceed automatically via ArgoCD or manually via kubectl.

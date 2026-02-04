@@ -6,6 +6,40 @@
 2. **kubectl** configured for ardenone-cluster
 3. **Container images** available in registry: `ghcr.io/ardenone/moltbook-*`
 
+## One-Time Setup (Cluster Admin Required)
+
+### Current Status: BLOCKED
+- **moltbook namespace** does not exist
+- **devpod ServiceAccount** lacks cluster-admin permissions
+- **ArgoCD** is NOT installed in ardenone-cluster
+
+### Option 1: Grant devpod Namespace Creation Permissions (Recommended for kubectl deployments)
+
+As a cluster administrator, run:
+```bash
+cd /home/coder/Research/moltbook-org
+
+# Apply the RBAC and namespace setup
+kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml
+```
+
+This creates:
+1. `ClusterRole: namespace-creator` - grants namespace creation permissions
+2. `ClusterRoleBinding: devpod-namespace-creator` - binds to devpod ServiceAccount
+3. `Namespace: moltbook` - the target namespace
+
+After applying, the devpod ServiceAccount can deploy Moltbook using `kubectl apply -k k8s/`
+
+### Option 2: ArgoCD GitOps Deployment (Recommended for production)
+
+1. Install ArgoCD in ardenone-cluster (see bead mo-30ju)
+2. Apply the ArgoCD Application manifest:
+```bash
+kubectl apply -f k8s/argocd-application.yml
+```
+
+ArgoCD will automatically create the namespace (via `CreateNamespace=true`) and sync all manifests.
+
 ## Quick Deploy (Once Namespace Exists)
 
 ```bash
