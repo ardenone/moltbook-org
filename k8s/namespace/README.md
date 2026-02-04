@@ -10,12 +10,12 @@ This directory contains manifests for setting up the Moltbook namespace in the a
 - RBAC `devpod-namespace-creator`: **NOT applied**
 - RBAC `namespace-creator` ClusterRole: **Does NOT exist**
 - RBAC `devpod-namespace-creator` ClusterRoleBinding: **Does NOT exist**
-- Current blocker bead: **mo-1agu** (BLOCKER: Cluster Admin needed - Create moltbook namespace)
-- Related beads: mo-3flx, mo-drj, mo-ddt3, mo-7k95, mo-2byg, mo-y1f5, mo-2e64, mo-2mxj (multiple duplicate blockers)
-- Task beads: mo-cx8, mo-32c (this bead)
-- Helper script: `../setup-namespace.sh` (run from k8s directory)
+- Current blocker beads: **mo-mu2k** (Fix: Create moltbook namespace), **mo-33lq** (BLOCKER: Apply namespace-creator RBAC)
+- Note: Many duplicate blocker beads exist for this same issue (20+ duplicates)
 
-**Note:** Multiple duplicate blocker beads exist for this same issue. The most recent is mo-1agu (created 2026-02-04 by mo-32c).
+**Resolution path:** A cluster admin must either:
+1. Create the namespace directly: `kubectl create namespace moltbook`
+2. Apply RBAC to grant devpod namespace creation: `kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml`
 
 ### Why This is Blocked
 
