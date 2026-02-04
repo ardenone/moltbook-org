@@ -6,30 +6,25 @@
 
 The Moltbook deployment is blocked by a missing ClusterRoleBinding that must be applied by a cluster administrator. The devpod ServiceAccount does not have permission to create ClusterRole/ClusterRoleBinding resources, which are required for namespace creation and RBAC management.
 
-### What's Ready
+### Current Status
 
-- ✅ All Moltbook manifests created (1062 lines of YAML)
-- ✅ 18 Kubernetes resources configured
-- ✅ SealedSecrets generated and committed
-- ✅ Kustomization configured
-- ✅ ArgoCD Application manifest ready
-- ✅ IngressRoute configurations for Traefik
-
-### What's Blocked
-
-- ❌ `devpod-namespace-creator` ClusterRole cannot be applied by devpod SA
-- ❌ `devpod-namespace-creator` ClusterRoleBinding cannot be applied by devpod SA
-- ❌ Moltbook namespace creation requires these RBAC resources
+- ❌ ClusterRole `namespace-creator` cannot be created by devpod SA
+- ❌ ClusterRoleBinding `devpod-namespace-creator` cannot be created by devpod SA
+- ❌ Namespace `moltbook` cannot be created by devpod SA
+- ✅ All Moltbook manifests are ready and waiting
 
 ### Required Action (Cluster Admin Only)
 
-Apply the RBAC manifest from a cluster-admin context:
+A cluster administrator must apply the RBAC manifest:
 
 ```bash
+# From the ardenone-cluster repository
 kubectl apply -f /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml
 ```
 
 ### What the Manifest Creates
+
+The `devpod-namespace-creator-rbac.yml` manifest creates two resources:
 
 1. **ClusterRole: namespace-creator**
    - `create`, `get`, `list`, `watch` on `namespaces`
@@ -39,32 +34,32 @@ kubectl apply -f /home/coder/ardenone-cluster/cluster-configuration/ardenone-clu
 2. **ClusterRoleBinding: devpod-namespace-creator**
    - Binds `namespace-creator` ClusterRole to `system:serviceaccount:devpod:default`
 
-### After RBAC is Applied
+3. **Namespace: moltbook**
+   - Creates the target namespace for deployment
 
-Once the ClusterRoleBinding is in place, the Moltbook deployment can proceed:
+### Why This Requires Cluster Admin
 
-```bash
-kubectl apply -k /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/
-```
-
-### Related Beads
-
-- **mo-1njh**: This blocker (priority 0 - critical)
-- **mo-432**: Original task attempting to apply RBAC
-- **mo-saz**: Moltbook deployment implementation
-
-### Technical Details
-
-The manifest is located at:
-```
-/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml
-```
-
-Why this requires cluster-admin:
 - `ClusterRole` and `ClusterRoleBinding` are cluster-scoped resources
 - Creating cluster-scoped RBAC requires `cluster-admin` privileges
 - The devpod ServiceAccount only has namespace-scoped permissions
 - This is a deliberate Kubernetes security boundary
+
+### After RBAC is Applied
+
+Once the ClusterRoleBinding is in place, the Moltbook deployment can proceed automatically:
+
+```bash
+# The devpod can then deploy everything
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/
+```
+
+This will deploy:
+- SealedSecrets (encrypted secrets)
+- PostgreSQL cluster (CloudNativePG)
+- Redis cache
+- moltbook-api deployment
+- moltbook-frontend deployment
+- Traefik IngressRoutes
 
 ### Verification
 
@@ -77,11 +72,26 @@ kubectl get clusterrole namespace-creator
 # Check ClusterRoleBinding exists
 kubectl get clusterrolebinding devpod-namespace-creator
 
+# Check namespace exists
+kubectl get namespace moltbook
+
 # Verify devpod SA can create namespaces
 kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 ```
 
+### Related Documentation
+
+- `k8s/NAMESPACE_SETUP_REQUEST.yml` - Consolidated RBAC + namespace manifest
+- `k8s/CLUSTER_ADMIN_README.md` - Detailed setup instructions
+- `k8s/namespace/README.md` - RBAC configuration details
+
+### Related Beads
+
+- **mo-3ax**: This task (documenting and tracking the blocker)
+- **mo-1njh**: Original blocker (priority 0 - critical)
+
 ---
 
-**Last Updated**: 2026-02-04  
+**Last Updated**: 2026-02-04
 **Status**: Awaiting cluster administrator action
+**Bead**: mo-3ax
