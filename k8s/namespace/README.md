@@ -14,9 +14,10 @@ This directory contains manifests for setting up the Moltbook namespace in the a
 - See: `k8s/CLUSTER_ADMIN_README.md` for quick cluster admin instructions
 
 **Resolution path:** A cluster admin must either:
-1. Deploy via ArgoCD (recommended for production): `kubectl apply -f k8s/argocd-application.yml` (GitOps, self-healing)
+1. Apply RBAC + namespace setup (recommended for development): `kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml` (grants devpod namespace creation permissions)
 2. Create the namespace directly: `kubectl create namespace moltbook` (quickest, for manual deploy)
-3. Apply RBAC to grant devpod namespace creation: `kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml` (recommended for development)
+
+Note: ArgoCD is NOT installed in ardenone-cluster. The ArgoCD application manifest (`k8s/argocd-application.yml`) is for a different cluster or requires ArgoCD installation first.
 
 ### Why This is Blocked
 
