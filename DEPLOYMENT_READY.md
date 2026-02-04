@@ -140,28 +140,20 @@ ArgoCD has cluster-admin permissions and can create namespaces automatically via
 **Issue**: Container images not yet built and pushed to ghcr.io registry.
 
 **Images Required**:
-- `ghcr.io/moltbook/api:latest`
-- `ghcr.io/moltbook/frontend:latest`
+- `ghcr.io/ardenone/moltbook-api:latest`
+- `ghcr.io/ardenone/moltbook-frontend:latest`
 
 **Resolution Options**:
 
 **Option A: GitHub Actions** (Recommended - Automated)
 1. GitHub Actions workflow already exists at `.github/workflows/build-push.yml`
-2. Push code to GitHub repositories:
-   - `https://github.com/moltbook/api.git`
-   - `https://github.com/moltbook/moltbook-frontend.git`
+2. Push code to GitHub repository: `https://github.com/ardenone/moltbook-org.git`
 3. Workflow automatically builds and pushes images on push to main branch
 
 **Option B: Manual Build** (If GitHub Actions unavailable)
+See `BUILD_IMAGES.md` for detailed manual build instructions, or use the provided script:
 ```bash
-# On a machine with docker/podman
-cd /home/coder/Research/moltbook-org/api
-podman build -t ghcr.io/moltbook/api:latest .
-podman push ghcr.io/moltbook/api:latest
-
-cd /home/coder/Research/moltbook-org/moltbook-frontend
-podman build -t ghcr.io/moltbook/frontend:latest .
-podman push ghcr.io/moltbook/frontend:latest
+./scripts/build-images.sh --push
 ```
 
 ## 📋 Deployment Procedure (Once Blockers Resolved)
