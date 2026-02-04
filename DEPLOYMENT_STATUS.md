@@ -357,8 +357,9 @@ The GitHub Actions workflow automatically builds and pushes images when:
 ## 🐛 Known Issues
 
 1. **Namespace Creation**: Devpod ServiceAccount lacks cluster-scoped permissions
-   - **Solution**: Request cluster admin to create namespace using `k8s/NAMESPACE_REQUEST.yml`
-   - **Bead**: `mo-3o6`
+   - **Solution 1**: Request cluster admin to create namespace using `k8s/NAMESPACE_REQUEST.yml`
+   - **Solution 2**: Apply `k8s/namespace/devpod-namespace-creator-rbac.yml` to grant namespace creation permissions
+   - **Bead**: `mo-2it`
    - **Impact**: Critical blocker for deployment
 
 2. **Docker Images**: Images not yet built/pushed to ghcr.io
