@@ -10,16 +10,22 @@
 # The argocd-install-manifest.yaml contains the official ArgoCD installation manifest from:
 # https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 #
-# VERIFICATION STATUS (2026-02-04):
-# - ArgoCD namespace: NOT FOUND
-# - RBAC permissions: NOT APPLIED (requires cluster-admin)
-# - Installation: BLOCKED until cluster-admin applies this manifest
-# - Current permissions: User "system:serviceaccount:devpod:default" lacks:
-#   - create namespace (Forbidden)
-#   - create clusterrole/clusterrolebinding (Forbidden)
-#   - create customresourcedefinitions (Forbidden - no create verb)
+# VERIFICATION STATUS (2026-02-04 22:35 UTC):
+# - ArgoCD namespace: NOT FOUND (confirmed via kubectl get namespace argocd)
+# - argocd-installer ClusterRole: NOT FOUND (requires creation)
+# - devpod ServiceAccount permissions: INSUFFICIENT
+#   - Cannot create namespaces (cluster-scoped resource)
+#   - Cannot create customresourcedefinitions (cluster-scoped resource)
+#   - Cannot create clusterroles (cluster-scoped resource)
+# - Existing argocd-manager-role: EXISTS but bound to kube-system:argocd-manager (not reusable)
 # - ArgoCD CRDs: NOT INSTALLED (only Argo Rollouts CRDs present)
 # - BLOCKER: Installation REQUIRES cluster-admin to apply ARGOCD_SETUP_REQUEST.yml
+#
+# INSTALLATION INSTRUCTIONS (for cluster-admin):
+#   kubectl apply -f cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml
+#
+# Then from devpod:
+#   kubectl apply -f k8s/argocd-install-manifest.yaml
 
 ---
 # Step 1: Grant devpod ServiceAccount permission to manage ArgoCD resources
