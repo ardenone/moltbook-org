@@ -2,8 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  // Use empty Turbopack config to silence warning about webpack config in Next.js 16
-  turbopack: {},
+  // Explicitly disable Turbopack to use webpack with custom config
+  turbopack: false,
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Add resolve alias to strip node: prefix during module resolution
