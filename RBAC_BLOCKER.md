@@ -83,7 +83,8 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 
 ### Related Beads
 
-- **mo-3ax**: This task (documenting and tracking the blocker)
+- **mo-3ax**: Original task (documenting and tracking the blocker)
+- **mo-138**: This task - verified RBAC blocker must be resolved before deployment
 - **mo-1njh**: Original blocker (priority 0 - critical)
 - **mo-1c9d**: Follow-up blocker bead for cluster-admin action
 
@@ -91,4 +92,4 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 
 **Last Updated**: 2026-02-04
 **Status**: Awaiting cluster administrator action
-**Bead**: mo-3ax
+**Verified by**: mo-138
