@@ -5,30 +5,21 @@ kind: Kustomization
 namespace: moltbook
 
 resources:
-  # Namespace
   - namespace/moltbook-namespace.yml
-
-  # Database (CNPG PostgreSQL)
   - database/cluster.yml
   - database/schema-configmap.yml
-
-  # Redis
+  - database/schema-init-job.yml
   - redis/deployment.yml
   - redis/service.yml
-
-  # API
   - api/configmap.yml
   - api/deployment.yml
   - api/service.yml
   - api/ingressroute.yml
-
-  # Frontend
   - frontend/configmap.yml
   - frontend/deployment.yml
   - frontend/service.yml
   - frontend/ingressroute.yml
 
-# Images to be replaced
 images:
   - name: ghcr.io/moltbook/api
     newName: ghcr.io/moltbook/api
@@ -37,38 +28,9 @@ images:
     newName: ghcr.io/moltbook/frontend
     newTag: latest
 
-# Common labels
 labels:
   - pairs:
       app.kubernetes.io/name: moltbook
       app.kubernetes.io/component: platform
       app.kubernetes.io/part-of: moltbook
       app.kubernetes.io/managed-by: argocd
-
-# Secret generator for development (REPLACE with SealedSecrets in production)
-# To create SealedSecrets from templates, use:
-# kubeseal --format yaml < secrets/moltbook-secrets-template.yml > secrets/moltbook-sealedsecret.yml
-secretGenerator:
-  - name: moltbook-db-credentials
-    type: Opaque
-    literals:
-      - username=moltbook
-      - password=changeme
-    options:
-      disableNameSuffixHash: true
-  - name: moltbook-postgres-superuser
-    type: kubernetes.io/basic-auth
-    literals:
-      - username=postgres
-      - password=changeme
-    options:
-      disableNameSuffixHash: true
-  - name: moltbook-api-secrets
-    type: Opaque
-    literals:
-      - DATABASE_URL=postgresql://moltbook:changeme@moltbook-postgres-rw.moltbook.svc.cluster.local:5432/moltbook
-      - JWT_SECRET=changeme
-      - TWITTER_CLIENT_ID=
-      - TWITTER_CLIENT_SECRET=
-    options:
-      disableNameSuffixHash: true
