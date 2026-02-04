@@ -3,6 +3,7 @@
 **Status:** BLOCKED - Namespace Creation Requires Cluster Admin
 **Date:** 2026-02-04
 **Beads:**
+- mo-2s1 (Fix: Create moltbook namespace in ardenone-cluster) - PRIMARY
 - mo-3tx (CRITICAL: Install ArgoCD in ardenone-cluster for Moltbook deployment)
 - mo-saz (Moltbook platform deployment)
 
@@ -338,8 +339,11 @@ moltbook namespace:
 
 ### Active Blocker Beads
 - **mo-2s1** (Priority 0): Fix: Create moltbook namespace in ardenone-cluster
-  - Created RBAC and namespace setup manifests
-  - Documentation updated with cluster admin action steps
+  - **VERIFIED**: Namespace does NOT exist (kubectl returns NotFound)
+  - **VERIFIED**: devpod SA lacks namespace creation permissions
+  - Cluster admin must apply: `kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace/NAMESPACE_SETUP_REQUEST.yml`
+  - All manifests ready in `cluster-configuration/ardenone-cluster/moltbook/namespace/`
+  - **BLOCKS**: mo-saz and all moltbook deployment beads
 - **mo-27cr** (Priority 0): CRITICAL: RBAC for ArgoCD installation - devpod SA needs cluster-admin
   - Created during mo-3tx execution
   - Documents required RBAC for ArgoCD installation
@@ -356,4 +360,4 @@ moltbook namespace:
 
 ---
 
-**Next Action:** Cluster administrator installs ArgoCD using `./k8s/install-argocd.sh`, then applies `k8s/argocd-application.yml`
+**Next Action:** Cluster administrator applies `cluster-configuration/ardenone-cluster/moltbook/namespace/NAMESPACE_SETUP_REQUEST.yml` to create the moltbook namespace.

@@ -4,5 +4,5 @@ metadata:
   name: moltbook
   labels:
     name: moltbook
-    app.kubernetes.io/name: moltbook
-    app.kubernetes.io/instance: moltbook-platform
+    # ArgoCD will manage this namespace
+    argocd.argoproj.io/managed-by: argocd

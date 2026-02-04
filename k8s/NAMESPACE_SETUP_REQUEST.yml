@@ -1,77 +1,45 @@
+# Moltbook Namespace Setup Request
+# This manifest combines the RBAC and namespace creation for cluster admin convenience
+# Apply with: kubectl apply -f NAMESPACE_SETUP_REQUEST.yml
+#
+# This will:
+# 1. Create RBAC to grant devpod namespace creation permissions
+# 2. Create the moltbook namespace
+#
+# After applying, the devpod ServiceAccount can manage the moltbook namespace for deployment.
+
 ---
-# ============================================================================
-# ONE-TIME NAMESPACE SETUP FOR MOLTBOOK PLATFORM
-# ============================================================================
-#
-# THIS IS THE RECOMMENDED APPROACH for ardenone-cluster deployment.
-#
-# IMPORTANT: ArgoCD is NOT installed in ardenone-cluster. The ArgoCD
-# application manifest (k8s/argocd-application.yml) is for a different cluster.
-#
-# To deploy (requires cluster-admin access):
-#   kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
-#
-# What this manifest does:
-# 1. Creates a ClusterRole that grants namespace creation permissions
-# 2. Binds this ClusterRole to the devpod ServiceAccount
-# 3. Creates the moltbook namespace
-#
-# After applying this manifest, the devpod ServiceAccount will be able to
-# manage the moltbook namespace and apply all deployment manifests.
-#
-# ============================================================================
-# Step 1: Create ClusterRole for namespace creation
-# ============================================================================
+# Step 1: Grant devpod ServiceAccount permission to create namespaces
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: namespace-creator
-  labels:
-    app.kubernetes.io/name: devpod
-    app.kubernetes.io/component: rbac
-    app.kubernetes.io/part-of: moltbook-platform
 rules:
 - apiGroups: [""]
   resources: ["namespaces"]
   verbs: ["create", "get", "list", "watch"]
-- apiGroups: ["rbac.authorization.k8s.io"]
-  resources: ["roles", "rolebindings"]
-  verbs: ["get", "create", "update", "patch"]
-- apiGroups: ["traefik.io"]
-  resources: ["middlewares"]
-  verbs: ["get", "create", "update", "patch", "delete"]
+
 ---
-# ============================================================================
-# Step 2: Bind ClusterRole to devpod ServiceAccount
-# ============================================================================
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   name: devpod-namespace-creator
-  labels:
-    app.kubernetes.io/name: devpod
-    app.kubernetes.io/component: rbac
-    app.kubernetes.io/part-of: moltbook-platform
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
-  name: namespace-creator
 subjects:
 - kind: ServiceAccount
   name: default
   namespace: devpod
+roleRef:
+  kind: ClusterRole
+  name: namespace-creator
+  apiGroup: rbac.authorization.k8s.io
+
 ---
-# ============================================================================
-# Step 3: Create the moltbook namespace
-# ============================================================================
+# Step 2: Create the moltbook namespace
 apiVersion: v1
 kind: Namespace
 metadata:
   name: moltbook
   labels:
     name: moltbook
-    app.kubernetes.io/name: moltbook
-    app.kubernetes.io/component: platform
-    app.kubernetes.io/part-of: moltbook
-    app.kubernetes.io/instance: moltbook-platform
-    app.kubernetes.io/managed-by: kubectl
+    # ArgoCD will manage this namespace once installed
+    argocd.argoproj.io/managed-by: argocd
