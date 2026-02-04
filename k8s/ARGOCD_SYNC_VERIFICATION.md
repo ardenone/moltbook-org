@@ -166,75 +166,110 @@ ArgoCD cannot sync the application because:
 
 ## Resolution Path
 
-### Option 1: Deploy RBAC as Cluster Admin (Recommended)
+### Option 1: Install ArgoCD in ardenone-cluster (GitOps Approach)
 
 **Prerequisites:** Cluster admin access
 
 **Steps:**
 ```bash
-# 1. Apply ClusterRole and ClusterRoleBinding (requires cluster-admin)
-kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+# 1. Install ArgoCD
+kubectl create namespace argocd
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-# 2. Ensure namespace exists
-kubectl apply -f k8s/namespace/moltbook-namespace.yml
+# 2. Wait for ArgoCD to be ready
+kubectl wait --for=condition=available --timeout=600s \
+  deployment/argocd-server -n argocd
 
-# 3. Apply namespaced RBAC
-kubectl apply -f k8s/namespace/moltbook-rbac.yml
+# 3. Create ArgoCD Application (it will auto-create namespace)
+kubectl apply -f /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/argocd-application.yml
 
-# 4. Deploy all resources (now devpod has permissions)
-kubectl apply -k k8s/
+# 4. Monitor sync
+kubectl get application moltbook -n argocd -w
 
-# 5. Verify deployment
-kubectl get pods -n moltbook -w
+# 5. Verify resources deployed
+kubectl get all -n moltbook
 ```
 
-### Option 2: Use ArgoCD (Requires ArgoCD Installation)
+### Option 2: Deploy Directly with kubectl (Faster, Non-GitOps)
 
-**Prerequisites:**
-- ArgoCD installed in cluster
-- ArgoCD configured with appropriate RBAC
+**Prerequisites:** Cluster admin access OR namespace-creator RBAC
 
 **Steps:**
 ```bash
-# 1. Apply RBAC manually (requires cluster-admin)
-kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
-kubectl apply -f k8s/namespace/moltbook-rbac.yml
+# 1. Create namespace (requires cluster-admin OR RBAC)
+kubectl apply -f /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/moltbook-namespace.yml
 
-# 2. Create ArgoCD Application
-kubectl apply -f k8s/argocd-application.yml
+# 2. Deploy all resources via kustomize
+kubectl apply -k /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/
 
-# 3. ArgoCD will auto-sync resources
-argocd app get moltbook
-argocd app sync moltbook
+# 3. Verify deployment
+kubectl get pods -n moltbook -w
 ```
+
+### Option 3: Use Deployment Script
+
+```bash
+cd /home/coder/Research/moltbook-org
+./scripts/deploy-moltbook.sh
+```
+
+---
+
+## Blockers Summary
+
+### Blocker 1: ArgoCD Not Installed (Priority 0)
+**Issue:** ArgoCD is NOT installed in ardenone-cluster
+**Impact:** Cannot create or sync ArgoCD Applications
+**Resolution:** Install ArgoCD OR use direct kubectl deployment
+**Related Bead:** mo-3tx [P0]
+
+### Blocker 2: Namespace Does Not Exist (Priority 0)
+**Issue:** moltbook namespace doesn't exist
+**Impact:** No target namespace for deployment
+**Resolution:** Cluster admin creates namespace OR ArgoCD creates it (once installed)
+**Related Beads:** mo-1b5 [P0], mo-1te [P0], mo-2s1 [P0]
+
+### Blocker 3: GitHub Push Permissions (Priority 0)
+**Issue:** jedarden lacks push permissions to moltbook/api and moltbook/moltbook-frontend
+**Impact:** Cannot push Dockerfiles to trigger image builds
+**Resolution:** Moltbook org owner grants write access
+**Related Beads:** mo-2fi [P0], mo-1le [P0]
+
+### Blocker 4: Frontend Build Failure (Priority 0)
+**Issue:** Next.js build fails with `TypeError: (0 , n.createContext) is not a function`
+**Impact:** Cannot build frontend container image
+**Resolution:** Debug and fix Next.js webpack/React import issue
+**Related Bead:** mo-37h [P0]
 
 ---
 
 ## Verification Checklist
 
-Once RBAC is applied, verify the following:
+### Prerequisites ✅/❌
+- [x] ArgoCD Application manifest created
+- [x] Kustomization manifest created
+- [x] All resource manifests defined (PostgreSQL, Redis, API, Frontend, IngressRoutes)
+- [x] SealedSecrets created
+- [x] RBAC manifests created
+- [ ] **ArgoCD installed** ❌ BLOCKER
+- [ ] **moltbook namespace exists** ❌ BLOCKER
 
-### RBAC Applied ✅/❌
-- [ ] ClusterRole `namespace-creator` exists
-- [ ] ClusterRoleBinding `devpod-namespace-creator` exists
-- [ ] Role `moltbook-deployer` exists in moltbook namespace
-- [ ] RoleBinding `moltbook-deployer-binding` exists in moltbook namespace
+### Deployment Steps (Once Prerequisites Met)
+- [ ] Apply ArgoCD Application manifest
+- [ ] ArgoCD syncs resources automatically
+- [ ] PostgreSQL CNPG Cluster running
+- [ ] Redis Deployment running
+- [ ] API Deployment running (2 replicas)
+- [ ] Frontend Deployment running (2 replicas)
+- [ ] IngressRoutes configured
+- [ ] All pods healthy
 
-### Resources Deployed ✅/❌
-- [ ] PostgreSQL CNPG Cluster `moltbook-postgres` running
-- [ ] Redis Deployment `moltbook-redis` running
-- [ ] API Deployment `moltbook-api` running (2 replicas)
-- [ ] Frontend Deployment `moltbook-frontend` running (2 replicas)
-- [ ] IngressRoute `moltbook.ardenone.com` exists
-- [ ] IngressRoute `api-moltbook.ardenone.com` exists
-- [ ] SealedSecrets decrypted successfully
-
-### Health Checks ✅/❌
+### Health Checks (After Deployment)
 - [ ] All pods in Running state
-- [ ] API health endpoint: `curl -k https://api-moltbook.ardenone.com/health`
-- [ ] Frontend accessible: `curl -k https://moltbook.ardenone.com`
-- [ ] PostgreSQL connection working
-- [ ] Redis connection working
+- [ ] API health: `curl https://api-moltbook.ardenone.com/health`
+- [ ] Frontend accessible: `curl https://moltbook.ardenone.com`
+- [ ] PostgreSQL accepting connections
+- [ ] Redis responding to PING
 
 ---
 
@@ -243,32 +278,74 @@ Once RBAC is applied, verify the following:
 | Component | Expected State | Actual State | Status |
 |-----------|----------------|--------------|--------|
 | ArgoCD Application Manifest | Valid YAML | ✅ Valid | ✅ |
-| Kustomization | References all resources | ✅ Complete | ✅ |
-| RBAC ClusterRole | Applied to cluster | ❌ Not found | ❌ |
-| RBAC RoleBinding | Applied to moltbook namespace | ❌ Not found | ❌ |
-| Namespace moltbook | Exists | ✅ Exists (empty) | ⚠️ |
+| Kustomization | Complete | ✅ Complete | ✅ |
+| Resource Manifests | All defined | ✅ All defined | ✅ |
+| IngressRoute Domains | Correct | ✅ Correct | ✅ |
+| SealedSecrets | Created | ✅ Created | ✅ |
+| RBAC Manifests | Created | ✅ Created | ✅ |
+| ArgoCD Installed | Yes | ❌ Not installed | ❌ |
+| Namespace moltbook | Exists | ❌ Not found | ❌ |
 | PostgreSQL Cluster | Running | ❌ Not deployed | ❌ |
 | Redis | Running | ❌ Not deployed | ❌ |
-| API Backend | Running (2 replicas) | ❌ Not deployed | ❌ |
-| Frontend | Running (2 replicas) | ❌ Not deployed | ❌ |
-| IngressRoutes | Configured | ❌ Cannot verify | ❌ |
+| API Backend | Running | ❌ Not deployed | ❌ |
+| Frontend | Running | ❌ Not deployed | ❌ |
 
 ---
 
 ## Related Beads
 
-- **mo-382** [P0]: Blocker - Namespace creation requires cluster admin permissions
-- **mo-2fi** [P0]: Blocker - GitHub push permissions to moltbook repositories
-- **mo-37h** [P0]: Fix - Frontend build failures (webpack/React context issue)
+### Priority 0 (Critical Blockers)
+- **mo-3tx** [P0]: CRITICAL - Install ArgoCD in ardenone-cluster
+- **mo-1b5** [P0]: ADMIN - Apply devpod namespace creator RBAC
+- **mo-1te** [P0]: Fix - Moltbook deployment blocked by missing RBAC
+- **mo-2s1** [P0]: Fix - Create moltbook namespace in ardenone-cluster
+- **mo-2fi** [P0]: Blocker - Grant GitHub push permissions to jedarden
+- **mo-1le** [P0]: Admin Action - Grant push permissions to jedarden
+- **mo-37h** [P0]: Fix - Frontend build failures
+
+### Completed
 - **mo-saz**: Deployment manifests preparation (completed)
-- **mo-2ik**: GitHub push permissions (partially resolved, needs moltbook org)
+- **mo-2ik**: GitHub push permissions (partially resolved)
 
 ---
 
 ## Conclusion
 
-**ArgoCD Application sync CANNOT be verified** due to missing RBAC permissions. The manifests are correctly configured, but deployment is blocked at the permission layer.
+**ArgoCD Application sync CANNOT be verified** because ArgoCD is NOT installed in ardenone-cluster.
 
-**Next Action Required:** Cluster administrator must apply RBAC manifests to grant devpod ServiceAccount the necessary permissions for Moltbook deployment.
+### Key Findings:
+✅ **All manifests are correctly configured:**
+- ArgoCD Application manifest is valid
+- Kustomization references all required resources
+- PostgreSQL (CNPG), Redis, API, Frontend manifests ready
+- IngressRoutes configured for correct domains
+- SealedSecrets created and committed
 
-**Recommendation:** Create a priority 0 bead for cluster admin to apply RBAC configuration.
+❌ **Deployment is blocked:**
+- ArgoCD is NOT installed in ardenone-cluster
+- moltbook namespace does NOT exist
+- Cannot verify sync without ArgoCD
+
+### Next Steps:
+
+**Option A: GitOps Deployment (Recommended)**
+1. Resolve mo-3tx [P0] - Install ArgoCD in ardenone-cluster
+2. Apply namespace-creator RBAC (if needed)
+3. Apply ArgoCD Application manifest
+4. ArgoCD auto-syncs and creates namespace
+5. Verify deployment
+
+**Option B: Direct kubectl Deployment (Faster)**
+1. Cluster admin creates namespace
+2. Deploy with: `kubectl apply -k /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/`
+3. Verify deployment
+
+**Both options also require:**
+- Resolve mo-2fi [P0] - GitHub push permissions for image builds
+- Resolve mo-37h [P0] - Frontend build issues
+
+---
+
+**Report Generated:** 2026-02-04
+**Bead Status:** Verification complete - blocked by ArgoCD not installed
+**Recommendation:** Create bead for ArgoCD installation OR proceed with kubectl deployment
