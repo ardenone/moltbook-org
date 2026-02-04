@@ -2,19 +2,19 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis
+  name: moltbook-redis
   namespace: moltbook
   labels:
-    app: redis
+    app: moltbook-redis
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: redis
+      app: moltbook-redis
   template:
     metadata:
       labels:
-        app: redis
+        app: moltbook-redis
     spec:
       containers:
       - name: redis

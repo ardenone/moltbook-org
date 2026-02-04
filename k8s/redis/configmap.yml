@@ -1,0 +1,14 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: moltbook-redis-config
+  namespace: moltbook
+data:
+  # Redis configuration
+  REDIS_PORT: "6379"
+  REDIS_HOST: "moltbook-redis"
+
+  # Performance settings
+  REDIS_MAXMEMORY: "128mb"
+  REDIS_MAXMEMORY_POLICY: "allkeys-lru"

@@ -5,11 +5,12 @@ metadata:
   name: moltbook-redis
   namespace: moltbook
   labels:
-    app: redis
+    app: moltbook-redis
 spec:
+  type: ClusterIP
   ports:
   - port: 6379
     targetPort: 6379
     name: redis
   selector:
-    app: redis
+    app: moltbook-redis

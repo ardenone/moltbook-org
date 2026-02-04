@@ -13,16 +13,17 @@ resources:
   - database/cluster.yml
   - database/schema-configmap.yml
   - database/schema-init-job.yml
+  - redis/configmap.yml
   - redis/deployment.yml
   - redis/service.yml
   - api/configmap.yml
   - api/deployment.yml
   - api/service.yml
+  - api/ingressroute.yml
   - frontend/configmap.yml
   - frontend/deployment.yml
   - frontend/service.yml
-  - ingress/api-ingressroute.yml
-  - ingress/frontend-ingressroute.yml
+  - frontend/ingressroute.yml
 
 images:
   - name: ghcr.io/moltbook/api
