@@ -43,7 +43,7 @@ All Kubernetes manifests for deploying the Moltbook platform to ardenone-cluster
 - [x] `k8s/database/cluster.yml` - CloudNativePG Cluster (1 instance, 10Gi storage)
 - [x] `k8s/database/service.yml` - Explicit service definition (CNPG auto-creates services)
 - [x] `k8s/database/schema-configmap.yml` - Database schema SQL
-- [x] `k8s/database/schema-init-job.yml` - Idempotent Deployment for schema initialization
+- [x] `k8s/database/schema-init-deployment.yml` - Idempotent Deployment for schema initialization
 
 ### 4. Cache (Redis)
 - [x] `k8s/redis/configmap.yml` - Redis configuration
@@ -200,4 +200,4 @@ Traefik (Let's Encrypt TLS)
 ## Related Beads
 
 - **mo-saz** (this bead): Implementation: Deploy Moltbook platform to ardenone-cluster ✅ COMPLETE
-- **mo-daw** (follow-up): Fix: Apply RBAC permissions for moltbook namespace deployment (admin action required)
+- **mo-2ei** (follow-up): Admin: Create moltbook namespace and RBAC on ardenone-cluster (admin action required - P0)
