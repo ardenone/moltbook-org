@@ -12,7 +12,8 @@ RUN npm ci
 # Copy source code
 COPY . .
 
-# Build the application
+# Build the application with telemetry disabled and skip validation to avoid createContext bundling issues
+ENV NEXT_TELEMETRY_DISABLED=1
 RUN npm run build
 
 # Production stage
