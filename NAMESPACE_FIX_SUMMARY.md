@@ -119,6 +119,27 @@ scripts/
 
 - **mo-3flx**: BLOCKER - Cluster Admin needed to create namespace (P0)
 - **mo-drj**: This bead - Fix: Create moltbook namespace in ardenone-cluster
+- **mo-cx8**: Deploy: Apply Moltbook manifests to ardenone-cluster
+- **mo-7k95**: BLOCKER - Cluster Admin required to create moltbook namespace (P0) - Created during mo-cx8 execution
+
+### Status Update (2026-02-04)
+
+**Verified by mo-cx8:**
+- ❌ Namespace `moltbook` does NOT exist (verified with `kubectl get namespace moltbook`)
+- ❌ Devpod ServiceAccount cannot create namespaces (`kubectl auth can-i create namespaces` returns "no")
+- ❌ Devpod ServiceAccount cannot create ClusterRole/ClusterRoleBinding
+- ✅ All manifests are ready and validated
+- ✅ Setup manifest `NAMESPACE_SETUP_REQUEST.yml` is ready for cluster admin
+
+**Cluster Admin Action Required:**
+Execute one of the following:
+```bash
+# Option 1: Automated setup (creates RBAC + namespace)
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
+
+# Option 2: Minimal namespace creation only
+kubectl create namespace moltbook
+```
 
 ### Security Considerations
 
