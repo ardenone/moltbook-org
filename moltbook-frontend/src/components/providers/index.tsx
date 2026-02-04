@@ -32,9 +32,9 @@ const swrConfig = {
 // Auth provider to initialize auth state
 function AuthProvider({ children }: { children: React.ReactNode }) {
   const { apiKey, refresh } = useAuthStore();
-  const [isInitialized, setIsInitialized] = React.useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const init = async () => {
       if (apiKey) {
         api.setApiKey(apiKey);

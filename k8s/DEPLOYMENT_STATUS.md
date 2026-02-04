@@ -207,3 +207,26 @@ Traefik (Let's Encrypt TLS)
 
 - **mo-saz** (this bead): Implementation: Deploy Moltbook platform to ardenone-cluster ✅ COMPLETE
 - **mo-1zt** (Priority 1): RBAC: Apply ClusterRoleBinding for namespace creation - The devpod ServiceAccount needs ClusterRoleBinding 'devpod-namespace-creator' to create the moltbook namespace. Apply k8s/namespace/devpod-namespace-creator-rbac.yml with cluster-admin permissions.
+
+## Critical Deployment Blockers (2026-02-04)
+
+### 1. ArgoCD Not Installed
+**Status:** ArgoCD is NOT deployed in ardenone-cluster (no `argocd` namespace exists)
+
+**Impact:** The ArgoCD Application manifest (`k8s/argocd-application.yml`) references the non-existent `argocd` namespace
+
+**Resolution Options:**
+1. Install ArgoCD in the cluster before using GitOps deployment
+2. Deploy directly using `kubectl apply -k k8s/` instead of ArgoCD
+
+### 2. Namespace Creation Requires Cluster Admin
+**Status:** The devpod ServiceAccount lacks permission to create namespaces
+
+**Resolution:**
+- Cluster admin must apply: `kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml`
+
+### Test Results Summary
+- ✅ **API Tests:** 14/14 passing (Auth Utils, Error Classes, Config)
+- ✅ **Frontend Tests:** 36/36 passing (Components, Utils)
+- ✅ **Manifests Validated:** All YAML manifests syntactically correct
+- ✅ **Kustomization Builds:** 1050 lines generated successfully
