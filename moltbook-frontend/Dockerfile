@@ -12,12 +12,12 @@ RUN npm install --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Build the application with telemetry disabled
+# Build the application with telemetry disabled and explicitly use webpack
 ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+RUN npx next build --webpack
 
 # Ensure public directory exists (even if empty) for the COPY instruction
-RUN mkdir -p /app/public
+RUN mkdir -p /app/public && touch /app/public/.gitkeep
 
 # Production stage
 FROM node:20-alpine
@@ -28,9 +28,12 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Copy built application from builder (standalone output includes all needed files)
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/public ./public
+# Note: Next.js standalone creates a nested directory structure
+COPY --from=builder /app/.next/standalone/moltbook-frontend/ ./
+# Copy static assets from build
 COPY --from=builder /app/.next/static ./.next/static
+# Copy public directory (ensured to exist in build stage)
+COPY --from=builder /app/public ./public
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
