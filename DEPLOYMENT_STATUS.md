@@ -75,43 +75,70 @@ Created comprehensive guides:
 - ✅ Submodules properly configured (api, moltbook-frontend)
 - ✅ .gitignore configured to prevent accidental secret commits
 
-## 🔨 Remaining Work
+## 🔨 Remaining Work & Blockers
 
 ### 1. RBAC Permissions
 
-**Follow-up Bead**: `mo-2qa` - "Setup RBAC for moltbook namespace deployment"
+**Blocker Bead**: `mo-3r7` - "Fix: ServiceAccount permissions for Moltbook deployment"
 
-The devpod ServiceAccount needs permissions to deploy resources to the moltbook namespace. Options:
+**Status**: 🔨 **BLOCKED**
 
-1. **Create Role/RoleBinding** for devpod ServiceAccount in moltbook namespace
-2. **Install ArgoCD** for GitOps-based deployment (recommended)
-3. **Use cluster-admin** ServiceAccount (not recommended for production)
+The `system:serviceaccount:devpod:default` ServiceAccount lacks permissions to:
+- Create namespaces
+- Create/manage ArgoCD applications
+
+**Attempted Action**: Applied namespace manifest but got permission denied error.
+
+**Solution Options**:
+1. **Grant ClusterRole** to devpod ServiceAccount for namespace and ArgoCD application management
+2. **Pre-create namespace** with cluster-admin and grant devpod RoleBinding in that namespace
+3. **Use ArgoCD** to manage the deployment (requires ArgoCD application permissions)
 
 Once RBAC is configured, deployment can proceed with:
 ```bash
-kubectl apply -k k8s/
+kubectl apply -f k8s/namespace/moltbook-namespace.yml
+kubectl apply -f k8s/argocd-application.yml
 ```
 
 ### 2. Docker Images
 
-**Follow-up Bead**: `mo-1k0` - "Build and push Moltbook Docker images to ghcr.io"
+**Blocker Bead**: `mo-jgo` - "Fix: Docker Hub rate limit blocking image builds"
+
+**Related Bead**: `mo-1k0` - "Build and push Moltbook Docker images to ghcr.io"
 
 The manifests reference these images:
 - `ghcr.io/moltbook/api:latest`
 - `ghcr.io/moltbook/frontend:latest`
 
-**Options**:
-1. **GitHub Actions** (Recommended): Create `.github/workflows/build-images.yml` in the moltbook-org repository
-2. **Manual Build**: Use podman/docker to build and push from api/ and moltbook-frontend/ directories
-3. **CI/CD Integration**: Integrate with existing CI/CD pipeline
+**Status**:
+- ✅ GitHub Actions workflow exists at `.github/workflows/build-push.yml`
+- ✅ Both subdirectories have production-ready Dockerfiles with multi-stage builds
+- 🔨 **BLOCKED**: Local image builds fail due to Docker Hub rate limits (anonymous pulls)
+- **Solution**: Push code changes to GitHub to trigger the workflow (GitHub Actions has no rate limits)
 
-Both subdirectories have production-ready Dockerfiles with multi-stage builds.
+**GitHub Actions Workflow**:
+The existing workflow automatically builds and pushes images when:
+- Changes are pushed to the `main` branch
+- Changes are made to `api/**` or `moltbook-frontend/**` directories
+- Workflow is manually triggered via `workflow_dispatch`
+
+**Workaround**: After resolving RBAC and committing changes, the push to main will trigger automatic image builds.
 
 ### 3. Deployment to Cluster
 
-After RBAC is configured and images are built/pushed:
+**Prerequisites**:
+1. ✅ All manifests validated and ready
+2. 🔨 RBAC permissions configured (Blocker: mo-3r7)
+3. 🔨 Docker images built and pushed to ghcr.io (Blocker: mo-jgo)
 
-1. **Apply ArgoCD Application**:
+**Deployment Steps** (once blockers resolved):
+
+1. **Apply Namespace**:
+   ```bash
+   kubectl apply -f k8s/namespace/moltbook-namespace.yml
+   ```
+
+2. **Apply ArgoCD Application**:
    ```bash
    kubectl apply -f k8s/argocd-application.yml
    ```
@@ -240,13 +267,15 @@ See `k8s/secrets/README.md` for complete instructions.
 - **ArgoCD Application**: `k8s/argocd-application.yml`
 - **Documentation**: `DEPLOYMENT_GUIDE.md`
 
-## Next Steps
+## Next Steps (Priority Order)
 
-1. **Immediate**: Complete bead `mo-1k0` - Build and push Docker images
-2. **Deploy**: Apply ArgoCD application to cluster
-3. **Verify**: Test all services and external access
-4. **Production**: Replace development secrets with proper secret management
-5. **Monitor**: Set up monitoring and alerting for the platform
+1. **CRITICAL** (`mo-3r7`): Fix RBAC permissions for devpod ServiceAccount
+2. **CRITICAL** (`mo-jgo`): Resolve Docker Hub rate limit issue
+3. **High**: Push code to trigger GitHub Actions workflow for image builds
+4. **High**: Apply namespace and ArgoCD application to cluster
+5. **Medium**: Verify deployment and test all services
+6. **Low**: Replace development secrets with SealedSecrets for production
+7. **Low**: Set up monitoring and alerting for the platform
 
 ## Notes
 
@@ -261,7 +290,10 @@ See `k8s/secrets/README.md` for complete instructions.
 ✅ Kustomization builds successfully
 ✅ ArgoCD application manifest ready
 ✅ Documentation complete
-✅ Git repository clean and committed
-🔨 Docker images (next step)
+✅ GitHub Actions workflow configured
+🔨 **BLOCKED**: RBAC permissions (mo-3r7)
+🔨 **BLOCKED**: Docker images (mo-jgo)
+⏳ Namespace creation
+⏳ ArgoCD application deployment
 ⏳ Deployment verification
 ⏳ Production secrets configuration
