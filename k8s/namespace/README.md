@@ -2,7 +2,7 @@
 
 This directory contains manifests for setting up the Moltbook namespace in the ardenone-cluster.
 
-## Current Status (2026-02-04 19:22 UTC)
+## Current Status (2026-02-04 19:25 UTC)
 
 **BLOCKED - Awaiting Cluster Admin Action**
 
@@ -10,12 +10,12 @@ This directory contains manifests for setting up the Moltbook namespace in the a
 - RBAC `devpod-namespace-creator`: **NOT applied**
 - RBAC `namespace-creator` ClusterRole: **Does NOT exist**
 - RBAC `devpod-namespace-creator` ClusterRoleBinding: **Does NOT exist**
-- Current blocker bead: **mo-2e64** (BLOCKER: Cluster Admin needed - Apply Moltbook namespace and RBAC)
+- Current blocker bead: **mo-2mxj** (BLOCKER: Cluster Admin needed - Create moltbook namespace)
 - Related beads: mo-3flx, mo-drj, mo-ddt3, mo-7k95, mo-2byg, mo-y1f5 (multiple duplicate blockers)
 - Helper script: `../setup-namespace.sh` (run from k8s directory)
 - Task bead: **mo-cx8** (Deploy: Apply Moltbook manifests to ardenone-cluster)
 
-**Note:** Multiple duplicate blocker beads exist for this same issue. The most recent is mo-2e64.
+**Note:** Multiple duplicate blocker beads exist for this same issue. The most recent is mo-2mxj (created 2026-02-04 by mo-cx8).
 
 ### Why This is Blocked
 
