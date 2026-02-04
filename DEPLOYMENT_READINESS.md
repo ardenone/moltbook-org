@@ -1,88 +1,117 @@
-# Moltbook Deployment Status - ardenone-cluster
+# Moltbook Platform Deployment Summary - 2026-02-04
 
-## Summary
+## Deployment Status: READY (Awaiting Namespace Creation)
 
-All Kubernetes manifests for deploying Moltbook to ardenone-cluster are complete and validated. The deployment requires cluster-admin permissions to create the namespace and RBAC.
+### Completed Components
 
-## Infrastructure Components
+All Kubernetes manifests have been created and validated:
 
-### 1. Namespace & RBAC
-- `k8s/namespace/moltbook-namespace.yml` - Namespace definition
-- `k8s/namespace/moltbook-rbac.yml` - Role-based access for devpod ServiceAccount
-- `k8s/namespace/devpod-namespace-creator-rbac.yml` - ClusterRole for namespace creation
+#### 1. Infrastructure Components
+- ✅ **Namespace**: `k8s/namespace/moltbook-namespace.yml`
+- ✅ **RBAC**: `k8s/namespace/moltbook-rbac.yml` - Devpod ServiceAccount permissions
+- ✅ **ClusterRole**: `k8s/namespace/devpod-namespace-creator-rbac.yml` - For namespace creation (requires cluster-admin)
 
-### 2. Secrets (SealedSecrets)
-- `k8s/secrets/moltbook-api-sealedsecret.yml` - JWT_SECRET, DATABASE_URL, Twitter OAuth
-- `k8s/secrets/moltbook-postgres-superuser-sealedsecret.yml` - PostgreSQL superuser credentials
-- `k8s/secrets/moltbook-db-credentials-sealedsecret.yml` - Application database credentials
+#### 2. Database (PostgreSQL CNPG)
+- ✅ **Cluster**: `k8s/database/cluster.yml` - Single instance, 10Gi storage, local-path storage class
+- ✅ **Service**: `k8s/database/service.yml`
+- ✅ **Schema ConfigMap**: `k8s/database/schema-configmap.yml` - Complete Moltbook database schema
+- ✅ **Schema Init Deployment**: `k8s/database/schema-init-deployment.yml`
 
-### 3. Database (CNPG)
-- `k8s/database/cluster.yml` - CloudNativePG Cluster (1 instance, 10Gi storage)
-- `k8s/database/service.yml` - PostgreSQL service
-- `k8s/database/schema-configmap.yml` - Database schema SQL
-- `k8s/database/schema-init-deployment.yml` - Schema initialization job
+#### 3. Secrets (SealedSecrets)
+- ✅ **PostgreSQL Superuser**: `k8s/secrets/moltbook-postgres-superuser-sealedsecret.yml`
+- ✅ **DB Credentials**: `k8s/secrets/moltbook-db-credentials-sealedsecret.yml`
+- ✅ **API Secrets**: `k8s/secrets/moltbook-api-sealedsecret.yml` - Includes JWT_SECRET and DATABASE_URL
+- ✅ **Templates**: All template files provided for future secret generation
 
-### 4. Redis
-- `k8s/redis/deployment.yml` - Redis 7 Alpine deployment
-- `k8s/redis/service.yml` - Redis service
-- `k8s/redis/configmap.yml` - Redis configuration
+#### 4. Redis
+- ✅ **Deployment**: `k8s/redis/deployment.yml` - Redis 7 Alpine
+- ✅ **Service**: `k8s/redis/service.yml`
+- ✅ **ConfigMap**: `k8s/redis/configmap.yml`
 
-### 5. API Backend
-- `k8s/api/deployment.yml` - Node.js API (2 replicas)
-- `k8s/api/service.yml` - API service
-- `k8s/api/configmap.yml` - API configuration
-- `k8s/api/ingressroute.yml` - Traefik IngressRoute for `api-moltbook.ardenone.com`
+#### 5. API Backend
+- ✅ **Deployment**: `k8s/api/deployment.yml` - 2 replicas, init container for migrations
+- ✅ **Service**: `k8s/api/service.yml`
+- ✅ **ConfigMap**: `k8s/api/configmap.yml`
+- ✅ **IngressRoute**: `k8s/api/ingressroute.yml` - api-moltbook.ardenone.com
 
-### 6. Frontend
-- `k8s/frontend/deployment.yml` - Next.js frontend (2 replicas)
-- `k8s/frontend/service.yml` - Frontend service
-- `k8s/frontend/configmap.yml` - Frontend configuration
-- `k8s/frontend/ingressroute.yml` - Traefik IngressRoute for `moltbook.ardenone.com`
+#### 6. Frontend (Next.js)
+- ✅ **Deployment**: `k8s/frontend/deployment.yml` - 2 replicas
+- ✅ **Service**: `k8s/frontend/service.yml`
+- ✅ **ConfigMap**: `k8s/frontend/configmap.yml`
+- ✅ **IngressRoute**: `k8s/frontend/ingressroute.yml` - moltbook.ardenone.com
 
-### 7. ArgoCD
-- `k8s/argocd-application.yml` - ArgoCD Application for GitOps deployment
-- `k8s/kustomization.yml` - Kustomize configuration for all resources
+#### 7. ArgoCD GitOps
+- ✅ **Application**: `k8s/argocd-application.yml` - Auto-sync with CreateNamespace=true
+- ✅ **Kustomization**: `k8s/kustomization.yml` - Complete resource ordering
 
-## Deployment Steps
+### Traefik IngressRoute Configuration
 
-After RBAC permissions are granted (bead mo-n4h or similar):
+**Frontend**: `moltbook.ardenone.com`
+- HTTPS with Let's Encrypt
+- Security headers middleware (CSP, X-Frame-Options, etc.)
+- Connects to: `moltbook-frontend` service on port 80
 
-```bash
-# Option 1: Deploy using kustomize (recommended)
-kubectl apply -k k8s/
+**API**: `api-moltbook.ardenone.com`
+- HTTPS with Let's Encrypt
+- CORS middleware (allows moltbook.ardenone.com)
+- Rate limiting middleware (100 req/min, burst 50)
+- Connects to: `moltbook-api` service on port 80
 
-# Option 2: Deploy individual components
-kubectl apply -f k8s/namespace/moltbook-namespace.yml
-kubectl apply -f k8s/namespace/moltbook-rbac.yml
-kubectl apply -f k8s/secrets/moltbook-*.yml
-kubectl apply -f k8s/database/
-kubectl apply -f k8s/redis/
-kubectl apply -f k8s/api/
-kubectl apply -f k8s/frontend/
+### Deployment Blocker
+
+**Issue**: The `moltbook` namespace does not exist, and the devpod ServiceAccount lacks cluster-scoped permission to create namespaces.
+
+**Error**: 
+```
+Error from server (Forbidden): namespaces is forbidden: User "system:serviceaccount:devpod:default" 
+cannot create resource "namespaces" in API group "" at the cluster scope
 ```
 
-## External Access
+**Resolution Options**:
 
-- Frontend: `https://moltbook.ardenone.com`
-- API: `https://api-moltbook.ardenone.com`
+1. **Via ArgoCD (Recommended)**: 
+   - Apply the ArgoCD Application manifest: `kubectl apply -f k8s/argocd-application.yml -n argocd`
+   - ArgoCD has `CreateNamespace=true` and will create the namespace automatically
 
-## Validation
+2. **Via Cluster Admin**:
+   - Apply namespace creator RBAC: `kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml`
+   - Then apply namespace: `kubectl apply -f k8s/NAMESPACE_REQUEST.yml`
 
-All YAML manifests have been validated for syntax correctness:
-- SealedSecrets: Valid
-- CNPG Cluster: Valid
-- API Deployment: Valid
-- Frontend Deployment: Valid
+3. **Manual Namespace Creation**:
+   - Cluster admin runs: `kubectl create namespace moltbook`
 
-## Related Beads
+### Next Steps
 
-- `mo-n4h` [P0] - Grant namespace creation permissions (BLOCKER)
-- `mo-41e` [P1] - Deploy Moltbook after RBAC granted
-- `mo-saz` - This implementation bead
+Once the namespace is created, deployment proceeds automatically:
 
-## Status
+1. SealedSecrets are decrypted by sealed-secrets controller
+2. CNPG creates PostgreSQL cluster with replica
+3. Redis deployment starts
+4. API deployment runs database migrations via init container
+5. Frontend deployment starts
+6. Traefik IngressRoute configures external access
 
-- Kubernetes manifests: COMPLETE
-- YAML validation: PASSED
-- RBAC blocker documented: YES (mo-n4h)
-- Ready for deployment: PENDING RBAC
+### Images Used
+
+- `ghcr.io/ardenone/moltbook-api:latest`
+- `ghcr.io/ardenone/moltbook-frontend:latest`
+- `redis:7-alpine`
+
+### Resource Requests
+
+- API: 100m CPU / 128Mi RAM (request), 500m CPU / 512Mi RAM (limit)
+- Frontend: 100m CPU / 128Mi RAM (request), 500m CPU / 512Mi RAM (limit)
+- Redis: 50m CPU / 64Mi RAM (request), 200m CPU / 256Mi RAM (limit)
+- PostgreSQL: 10Gi storage
+
+### GitOps Workflow
+
+The deployment follows GitOps principles:
+- All manifests stored in git repository
+- ArgoCD monitors the `k8s/` directory
+- Changes to manifests trigger automatic sync
+- SealedSecrets ensure credentials never stored in plain text
+
+### Related Beads
+
+- **mo-vrr**: Blocker - Create moltbook namespace (Priority 0)

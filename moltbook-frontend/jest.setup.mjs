@@ -20,7 +20,7 @@ jest.mock('next/navigation', () => ({
 // Mock next-themes
 jest.mock('next-themes', () => ({
   useTheme: () => ({ theme: 'light', setTheme: jest.fn() }),
-  ThemeProvider: ({ children }: { children: React.ReactNode }) => children,
+  ThemeProvider: ({ children }) => children,
 }));
 
 // Mock window.matchMedia
