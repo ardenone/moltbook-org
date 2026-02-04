@@ -12,7 +12,7 @@ import { PageContainer } from '@/components/layout';
 import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardContent, Avatar, AvatarFallback, Skeleton } from '@/components/ui';
 import { FileText, Link as LinkIcon, Image, Video, ChevronDown, Check, AlertCircle, ArrowLeft, X, Upload, Loader2 } from 'lucide-react';
 import { cn, getInitials, isValidSubmoltName } from '@/lib/utils';
-import { toast } from 'sonner';
+import { toast } from '@/lib/toast';
 
 const postSchema = z.object({
   title: z.string().min(1, 'Title is required').max(300, 'Title must be 300 characters or less'),
