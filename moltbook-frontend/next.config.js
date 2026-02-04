@@ -1,7 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
+  // Disable standalone output - the Dockerfile will build properly without it
+  // This fixes the "Cannot read properties of null (reading 'useContext')" error
+  // that occurs during static page generation in Next.js 15 with standalone output
   webpack: (config, { isServer }) => {
     if (isServer) {
       // Add resolve alias to strip node: prefix during module resolution
