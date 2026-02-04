@@ -297,9 +297,9 @@ The GitHub Actions workflow automatically builds and pushes images when:
 
 ## 📝 Next Steps (Priority Order)
 
-1. **CRITICAL** (`mo-3o6`): Resolve namespace creation permissions
+1. **CRITICAL** (`mo-2it`): Resolve namespace creation permissions
    - Request cluster admin to apply `k8s/NAMESPACE_REQUEST.yml`
-   - OR grant ClusterRole to devpod ServiceAccount
+   - OR apply `k8s/namespace/devpod-namespace-creator-rbac.yml` to grant namespace creation to devpod SA
    - OR install ArgoCD for automated GitOps deployment
 
 2. **High**: Deploy Moltbook platform
