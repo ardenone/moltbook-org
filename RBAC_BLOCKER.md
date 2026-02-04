@@ -83,7 +83,8 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 
 ### Related Beads
 
-- **mo-3e6j**: Current cluster-admin action bead (P0) - BLOCKER: Cluster-admin must apply devpod RBAC for namespace creation
+- **mo-eypj**: Current cluster-admin action bead (P0) - Blocker: Apply devpod-namespace-creator ClusterRoleBinding (created by mo-138)
+- **mo-3e6j**: Previous cluster-admin action bead (P0) - BLOCKER: Cluster-admin must apply devpod RBAC for namespace creation
 - **mo-39sj**: Previous cluster-admin action bead (P0) - Apply devpod-namespace-creator ClusterRoleBinding
 - **mo-138**: This task - Document RBAC blocker verification for Moltbook deployment (current task)
 - **mo-3ax**: Original task - Investigation and verification of RBAC blocker
@@ -135,7 +136,7 @@ kubectl auth whoami  # Result: system:serviceaccount:devpod:default
 
 ---
 
-**Last Updated**: 2026-02-04
+**Last Updated**: 2026-02-04 21:10 UTC
 **Status**: CONFIRMED BLOCKER - Requires cluster administrator action
 **Verified by**: mo-3ax, mo-138
-**Current Action Bead**: mo-3e6j (P0 - Critical)
+**Current Action Bead**: mo-eypj (P0 - Critical) - Apply devpod-namespace-creator ClusterRoleBinding
