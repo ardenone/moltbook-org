@@ -2,13 +2,15 @@
 
 **Date:** 2026-02-04 18:30 UTC
 **Bead:** mo-saz
-**Status:** Manifests Complete - All changes committed, awaiting cluster admin for namespace creation
+**Status:** Manifests Complete - All changes committed, awaiting cluster admin for namespace creation and moltbook org for GitHub push permissions
 
 ---
 
 ## Summary
 
-The Moltbook platform Kubernetes deployment manifests are **fully prepared, validated, and deployed to cluster-configuration**. All required manifests have been committed to the cluster-configuration repository at `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/`. The deployment is ready but blocked by namespace creation permissions that require cluster administrator intervention.
+The Moltbook platform Kubernetes deployment manifests are **fully prepared, validated, and deployed to cluster-configuration**. All required manifests have been committed to the cluster-configuration repository at `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/`. The deployment is ready but blocked by:
+1. Namespace creation permissions that require cluster administrator intervention
+2. GitHub push permissions to moltbook organization repositories that require org owner intervention
 
 ---
 
@@ -63,7 +65,8 @@ ardenone-cluster (local)
 | Deploy Script | ✅ Complete | scripts/deploy-moltbook.sh |
 | Cluster-Config Deployment | ✅ Complete | All manifests in /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/ |
 | Namespace | ⚠️ Pending | Requires cluster admin to create (see mo-382) |
-| Container Images | ⚠️ Pending | Requires frontend build fix |
+| GitHub Push Access | ⚠️ Pending | Requires moltbook org owner to grant permissions (see mo-2fi) |
+| Container Images | ⚠️ Pending | Blocked by GitHub permissions and frontend build |
 
 ---
 
@@ -89,7 +92,33 @@ Or use the deploy script:
 ./scripts/deploy-moltbook.sh
 ```
 
-### Blocker 2: Frontend Build (Priority 0)
+### Blocker 2: GitHub Push Permissions (Priority 0)
+
+**Issue**: User `jedarden` lacks push permissions to `moltbook/api` and `moltbook/moltbook-frontend` repositories.
+
+**Error**:
+```
+remote: Permission to moltbook/api.git denied to jedarden.
+fatal: unable to access 'https://github.com/moltbook/api.git/': The requested URL returned error: 403
+```
+
+**Impact**:
+- Dockerfiles cannot be pushed to trigger GitHub Actions for image builds
+- Container images for `ghcr.io/moltbook/api:latest` and `ghcr.io/moltbook/moltbook-frontend:latest` cannot be built automatically
+- Deployment is blocked until images are available
+
+**Resolution**: Moltbook organization owner needs to grant `jedarden` write access to:
+- https://github.com/moltbook/api
+- https://github.com/moltbook/moltbook-frontend
+
+Once permissions are granted, the Dockerfiles are ready at:
+- `/tmp/moltbook-api-test/Dockerfile` (commit: b4dbc8d)
+- `/tmp/moltbook-frontend-test/Dockerfile` (commit: ceeda92)
+
+**Related Beads**:
+- mo-2fi [P0] - Blocker: Grant GitHub push permissions to jedarden for moltbook organization
+
+### Blocker 3: Frontend Build (Priority 0)
 
 **Issue**: Next.js build fails with `TypeError: (0 , n.createContext) is not a function`
 
@@ -249,6 +278,15 @@ spec:
 ### For Cluster Admin
 1. **Create namespace**: `kubectl apply -f k8s/namespace/moltbook-namespace.yml`
 2. **Or run deploy script**: `./scripts/deploy-moltbook.sh`
+
+### For Moltbook Organization Owner
+1. Grant `jedarden` write access to https://github.com/moltbook/api
+2. Grant `jedarden` write access to https://github.com/moltbook/moltbook-frontend
+3. Once permissions granted, push Dockerfiles:
+   ```bash
+   cd /tmp/moltbook-api-test && git push origin main
+   cd /tmp/moltbook-frontend-test && git push origin main
+   ```
 
 ### For Frontend Build Issue
 1. Investigate Next.js version compatibility
