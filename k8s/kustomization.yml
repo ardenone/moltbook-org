@@ -13,7 +13,7 @@ resources:
   - database/cluster.yml
   - database/service.yml
   - database/schema-configmap.yml
-  - database/schema-init-job.yml
+  - database/schema-init-deployment.yml
   - redis/configmap.yml
   - redis/deployment.yml
   - redis/service.yml
