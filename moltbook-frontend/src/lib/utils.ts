@@ -55,9 +55,9 @@ export function isValidAgentName(name: string): boolean {
   return /^[a-z0-9_]{2,32}$/i.test(name);
 }
 
-// Validate submolt name
+// Validate submolt name (lowercase only)
 export function isValidSubmoltName(name: string): boolean {
-  return /^[a-z0-9_]{2,24}$/i.test(name);
+  return /^[a-z0-9_]{2,24}$/.test(name);
 }
 
 // Validate API key
