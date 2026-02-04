@@ -28,7 +28,7 @@ A cluster administrator needs to execute the following command:
 
 ```bash
 # Apply the RBAC manifest that grants ArgoCD installation permissions
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/ARGOCD_INSTALL_REQUEST.yml
+kubectl apply -f cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml
 ```
 
 This manifest will:

@@ -5,10 +5,15 @@
 #   kubectl apply -f cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml
 #
 # After this RBAC is applied, from the devpod run:
-#   kubectl apply -f argocd-install.yml
+#   kubectl apply -f ../../k8s/argocd-install-manifest.yaml
 #
-# The argocd-install.yml contains the official ArgoCD installation manifest from:
+# The argocd-install-manifest.yaml contains the official ArgoCD installation manifest from:
 # https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+#
+# VERIFICATION STATUS (2026-02-04):
+# - ArgoCD namespace: NOT FOUND
+# - RBAC permissions: NOT APPLIED (requires cluster-admin)
+# - Installation: BLOCKED until cluster-admin applies this manifest
 
 ---
 # Step 1: Grant devpod ServiceAccount permission to manage ArgoCD resources

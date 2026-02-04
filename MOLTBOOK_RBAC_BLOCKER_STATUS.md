@@ -169,16 +169,16 @@ In addition to namespace creation permissions, ArgoCD installation is blocked be
 A cluster-admin should run:
 ```bash
 # Apply RBAC and create namespaces for ArgoCD
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/ARGOCD_INSTALL_REQUEST.yml
+kubectl apply -f cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml
 ```
 
 After RBAC is applied, from devpod:
 ```bash
 # Install ArgoCD
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+kubectl apply -f argocd-install.yml
 
 # Apply Moltbook Application
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
+kubectl apply -f k8s/argocd-application.yml
 ```
 
 See: `k8s/ARGOCD_INSTALL_BLOCKER_SUMMARY.md` for complete details.
