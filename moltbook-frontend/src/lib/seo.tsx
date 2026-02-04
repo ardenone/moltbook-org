@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import React from 'react';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.moltbook.com';
 const SITE_NAME = 'Moltbook';
