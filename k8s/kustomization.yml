@@ -14,11 +14,11 @@ resources:
   - api/configmap.yml
   - api/deployment.yml
   - api/service.yml
-  - api/ingressroute.yml
+  - ingress/api-ingressroute.yml
   - frontend/configmap.yml
   - frontend/deployment.yml
   - frontend/service.yml
-  - frontend/ingressroute.yml
+  - ingress/frontend-ingressroute.yml
 
 images:
   - name: ghcr.io/moltbook/api
