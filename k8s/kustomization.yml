@@ -27,10 +27,10 @@ resources:
   - frontend/ingressroute.yml
 
 images:
-  - name: ghcr.io/moltbook/api
+  - name: ghcr.io/ardenone/moltbook-api
     newName: ghcr.io/ardenone/moltbook-api
     newTag: latest
-  - name: ghcr.io/moltbook/frontend
+  - name: ghcr.io/ardenone/moltbook-frontend
     newName: ghcr.io/ardenone/moltbook-frontend
     newTag: latest
 
