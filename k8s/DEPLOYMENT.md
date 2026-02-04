@@ -2,6 +2,19 @@
 
 This guide covers deploying Moltbook to ardenone-cluster.
 
+## Deployment Status
+
+✅ **DEPLOYED** - 2026-02-04
+
+Moltbook has been successfully deployed to ardenone-cluster via GitOps. All manifests are stored in the ardenone-cluster repository and managed by ArgoCD.
+
+- **Manifests Repository:** https://github.com/ardenone/ardenone-cluster.git
+- **Manifests Path:** `cluster-configuration/ardenone-cluster/moltbook/`
+- **ArgoCD Application:** `moltbook` (in `argocd` namespace)
+- **Deployment Method:** GitOps via ArgoCD automatic sync
+
+To make changes to the deployment, modify manifests in the ardenone-cluster repository, commit, and push. ArgoCD will automatically sync.
+
 ## Quick Start
 
 1. **Generate Secrets**
