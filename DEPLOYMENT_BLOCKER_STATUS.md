@@ -1,7 +1,7 @@
 # Moltbook Deployment Blocker Status
 
-**Last Updated**: 2026-02-04 19:50 UTC
-**Bead**: mo-32c (namespace creation task)
+**Last Updated**: 2026-02-04 19:51 UTC
+**Bead**: mo-32c (Create moltbook namespace in ardenone-cluster)
 **Blocker Bead**: mo-yos4 (P0 - Critical) - Cluster admin to apply ArgoCD Application
 **Previous Blocker Bead**: mo-2bxj (P0 - Resolved via ArgoCD approach)
 
@@ -21,6 +21,7 @@ The Moltbook platform deployment uses **ArgoCD GitOps** with automatic namespace
 ## Verification
 
 ```bash
+# Latest verification (mo-32c, 2026-02-04 19:50 UTC):
 $ kubectl auth can-i create namespace
 no
 
@@ -29,6 +30,9 @@ Error from server (NotFound): namespaces "moltbook" not found
 
 $ kubectl get clusterrole namespace-creator
 Error from server (NotFound): clusterroles.rbac.authorization.k8s.io "namespace-creator" not found
+
+$ kubectl get application -n argocd
+Error from server (Forbidden): Cannot access ArgoCD applications from devpod
 ```
 
 ---
