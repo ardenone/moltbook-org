@@ -12,8 +12,8 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_API: ghcr.io/moltbook/api
-  IMAGE_FRONTEND: ghcr.io/moltbook/frontend
+  IMAGE_API: ghcr.io/ardenone/moltbook-api
+  IMAGE_FRONTEND: ghcr.io/ardenone/moltbook-frontend
 
 jobs:
   build-api:
