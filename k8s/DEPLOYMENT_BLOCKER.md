@@ -3,7 +3,7 @@
 **Status:** BLOCKED - Namespace Creation Requires Cluster Admin
 **Date:** 2026-02-04
 **Bead:** mo-saz (Implementation: Deploy Moltbook platform to ardenone-cluster)
-**New Blocker Bead:** mo-382
+**Current Fix Bead:** mo-3rs (Fix: Grant devpod namespace creation permissions or create moltbook namespace)
 
 ---
 
@@ -112,13 +112,19 @@ curl https://moltbook.ardenone.com
 
 ## Related Beads
 
-### New Consolidated Blocker
-- **mo-382** (Priority 0): Fix: Apply RBAC for Moltbook deployment - namespace creation blocked
+### Active Fix Bead
+- **mo-3rs** (Priority 1): Fix: Grant devpod namespace creation permissions or create moltbook namespace
+  - Documentation updated to clarify cluster admin requirements
+  - Three solution approaches documented (ArgoCD, manual, RBAC)
+  - RBAC manifest corrected (Role cannot grant namespace creation)
 
-### Duplicate P0 Beads to Close
-The following beads are now superseded by mo-382 and can be closed:
+### Blocked Bead
+- **mo-saz** (Priority 2): Implementation: Deploy Moltbook platform to ardenone-cluster
+  - Waiting for cluster admin to create namespace or grant permissions
+
+### Related Beads to Close
+The following beads may be superseded by mo-3rs:
 - mo-hfs: Fix: Create moltbook namespace - requires cluster-admin
-- mo-3rs: Fix: Grant devpod namespace creation permissions or create moltbook namespace
 - mo-3uo: Blocker: Apply RBAC for Moltbook namespace creation
 - mo-32c: Create moltbook namespace in ardenone-cluster
 - mo-drj: Fix: Create moltbook namespace in ardenone-cluster

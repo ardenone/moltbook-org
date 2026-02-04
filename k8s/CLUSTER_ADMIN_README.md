@@ -10,17 +10,17 @@
 
 A cluster admin needs to run **one** of these commands:
 
-### Option 1: ArgoCD GitOps Deployment (Recommended for Production)
+### Option 1: Grant Namespace Creation Permissions + Create Namespace (Recommended for Development)
 
 ```bash
-# One-time setup - ArgoCD manages everything automatically
-kubectl apply -f k8s/argocd-application.yml
-
-# ArgoCD will automatically:
-# - Create the moltbook namespace (CreateNamespace=true)
-# - Deploy all resources (database, redis, api, frontend)
-# - Keep everything in sync with Git
+# From the moltbook-org directory
+kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml
 ```
+
+**Why this approach:**
+- ArgoCD is NOT installed in ardenone-cluster
+- Devpod needs namespace management permissions for future deployments
+- One-time cluster admin action enables full deployment automation
 
 ### Option 2: Create Namespace Only (Quickest, for manual deployment)
 
@@ -28,11 +28,12 @@ kubectl apply -f k8s/argocd-application.yml
 kubectl create namespace moltbook
 ```
 
-### Option 3: Grant Namespace Creation Permissions + Create Namespace (Recommended for Development)
+### Option 3: ArgoCD GitOps Deployment (NOT AVAILABLE - requires ArgoCD installation)
 
 ```bash
-# From the moltbook-org directory
-kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml
+# NOTE: ArgoCD is NOT installed in ardenone-cluster
+# This option only works if ArgoCD is first installed
+kubectl apply -f k8s/argocd-application.yml
 ```
 
 ## Verification
@@ -77,10 +78,10 @@ This is an intentional security boundary. Namespace creation requires cluster-ad
 
 | Option | Namespace Created | RBAC Granted | Future Management | Best For |
 |--------|------------------|--------------|-------------------|----------|
-| 1 (ArgoCD) | ✅ (auto) | ❌ (not needed) | ✅ Full GitOps sync | Production |
+| 1 (RBAC + namespace) | ✅ | ✅ | ✅ Full namespace management | **Development** (ardenone-cluster) |
 | 2 (create only) | ✅ | ❌ | ⚠️ Limited (can't recreate if deleted) | Quick testing |
-| 3 (RBAC + namespace) | ✅ | ✅ | ✅ Full namespace management | Development |
+| 3 (ArgoCD) | ✅ (auto) | ❌ (not needed) | ✅ Full GitOps sync | Production (requires ArgoCD installed) |
 
 **Recommendation:**
-- For production: Use Option 1 (ArgoCD GitOps)
-- For development: Use Option 3 (RBAC + namespace) to allow future namespace creation
+- For ardenone-cluster (where devpods run): Use **Option 1** (RBAC + namespace) - ArgoCD is NOT installed
+- For production clusters with ArgoCD: Use Option 3 (ArgoCD GitOps)
