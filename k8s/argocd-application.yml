@@ -1,4 +1,17 @@
 ---
+# ArgoCD Application for Moltbook Platform
+#
+# This manifest deploys the entire Moltbook platform via GitOps.
+# The namespace will be created automatically by ArgoCD when synced.
+#
+# To deploy (requires cluster-admin access):
+#   kubectl apply -f k8s/argocd-application.yml
+#
+# ArgoCD will automatically:
+#   - Create the moltbook namespace (CreateNamespace=true)
+#   - Deploy all resources from the k8s/ directory
+#   - Keep everything in sync with the Git repository
+---
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -25,7 +38,7 @@ spec:
       selfHeal: true
       allowEmpty: false
     syncOptions:
-      - CreateNamespace=true
+      - CreateNamespace=true  # Auto-create namespace on first sync
     retry:
       limit: 5
       backoff:

@@ -2,20 +2,20 @@
 
 This directory contains manifests for setting up the Moltbook namespace in the ardenone-cluster.
 
-## Current Status (2026-02-04 19:30 UTC)
+## Current Status (2026-02-04 19:31 UTC)
 
 **BLOCKED - Awaiting Cluster Admin Action**
 
-- Namespace `moltbook`: **Does NOT exist** (verified at 2026-02-04 19:30 UTC by mo-32c)
+- Namespace `moltbook`: **Does NOT exist** (verified at 2026-02-04 19:31 UTC by mo-3rs)
 - RBAC `devpod-namespace-creator`: **NOT applied**
 - RBAC `namespace-creator` ClusterRole: **Does NOT exist**
 - RBAC `devpod-namespace-creator` ClusterRoleBinding: **Does NOT exist**
-- Current blocker beads: **mo-mu2k** (Fix: Create moltbook namespace), **mo-33lq** (BLOCKER: Apply namespace-creator RBAC)
-- Note: Many duplicate blocker beads exist for this same issue (20+ duplicates)
+- Current blocker bead: **mo-3rs** (Fix: Grant devpod namespace creation permissions or create moltbook namespace)
+- See: `k8s/CLUSTER_ADMIN_README.md` for quick cluster admin instructions
 
 **Resolution path:** A cluster admin must either:
-1. Create the namespace directly: `kubectl create namespace moltbook`
-2. Apply RBAC to grant devpod namespace creation: `kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml`
+1. Create the namespace directly: `kubectl create namespace moltbook` (quickest)
+2. Apply RBAC to grant devpod namespace creation: `kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml` (recommended for development)
 
 ### Why This is Blocked
 

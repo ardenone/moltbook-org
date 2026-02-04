@@ -8,10 +8,10 @@ The Moltbook platform deployment cannot proceed because the `moltbook` namespace
 
 ## Blocker Bead
 
-- **Bead ID**: mo-1e6t
+- **Bead ID**: mo-3rs (current task) - Fix: Grant devpod namespace creation permissions or create moltbook namespace
+- **Bead ID**: mo-1h0s (2026-02-04) - BLOCKER: Cluster Admin - Create moltbook namespace in ardenone-cluster
 - **Priority**: 0 (Critical)
-- **Title**: Blocker: Apply namespace-creator ClusterRole for Moltbook deployment
-- **Description**: Moltbook deployment (mo-cx8) is blocked because the devpod ServiceAccount lacks cluster-admin permissions to create the namespace-creator ClusterRole, bind it to the devpod ServiceAccount via ClusterRoleBinding, and create the moltbook namespace.
+- **Description**: The devpod ServiceAccount lacks permissions to create namespaces. The moltbook namespace needs to be created before deploying Moltbook platform.
 
 ## What Was Verified
 
@@ -90,7 +90,8 @@ This will deploy:
 
 ## Files Reference
 
+- `k8s/CLUSTER_ADMIN_README.md` - **Quick start guide for cluster admins** (START HERE)
 - `k8s/NAMESPACE_SETUP_REQUEST.yml` - Consolidated RBAC + namespace manifest
 - `k8s/setup-namespace.sh` - Automated setup script
-- `k8s/NAMESPACE_SETUP_README.md` - Detailed setup instructions
+- `k8s/namespace/README.md` - Detailed setup instructions
 - `k8s/kustomization.yml` - Main deployment manifest
