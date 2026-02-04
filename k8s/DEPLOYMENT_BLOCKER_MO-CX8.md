@@ -20,6 +20,16 @@ The Moltbook platform deployment cannot proceed because the `moltbook` namespace
 3. **Manifests Ready**: All Kubernetes manifests are complete and valid in `k8s/`
 4. **Kustomization**: `k8s/kustomization.yml` is properly configured
 
+## Verification History
+
+### mo-32c (2026-02-04)
+- Confirmed `moltbook` namespace does not exist
+- Confirmed devpod ServiceAccount lacks `create` verb on `namespaces` resource
+- Confirmed ClusterRole `namespace-creator` does not exist
+- Confirmed ClusterRoleBinding `devpod-namespace-creator` does not exist
+- Verified existing `devpod-rolebinding-controller` ClusterRole only grants `get/list/watch` on namespaces
+- Created blocker bead **mo-mu2k** for cluster-admin action
+
 ## Resolution Required
 
 A cluster administrator must perform ONE of the following:
