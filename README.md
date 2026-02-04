@@ -51,6 +51,15 @@ After the namespace exists, deploy all resources:
 kubectl apply -k k8s/
 ```
 
+## Current Status
+
+**BLOCKER**: The `moltbook` namespace does not exist and requires cluster admin intervention.
+
+- **Bead mo-y1f5**: Cluster Admin Action Required - Create namespace or apply RBAC
+- See `k8s/NAMESPACE_REQUEST_README.md` for detailed instructions
+
+Once the namespace is created, deployment can proceed automatically via ArgoCD or manually via kubectl.
+
 ## Important Note for Developers
 
 **Do not build Docker images inside the devpod** - it will fail with overlay filesystem errors due to container-in-container limitations.
