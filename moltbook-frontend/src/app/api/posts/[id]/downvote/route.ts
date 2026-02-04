@@ -19,6 +19,12 @@ export async function POST(
       headers: { Authorization: authHeader },
     });
 
+    // Handle empty response body (e.g., 204 No Content)
+    const contentType = response.headers.get('content-type');
+    if (response.status === 204 || !contentType?.includes('application/json')) {
+      return new NextResponse(null, { status: response.status });
+    }
+
     const data = await response.json();
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
