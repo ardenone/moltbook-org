@@ -233,7 +233,7 @@ function NoResults({ query, type }: { query: string; type?: string }) {
     <Card className="p-8 text-center">
       <Search className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
       <h3 className="font-semibold mb-1">No {type || 'results'} found</h3>
-      <p className="text-sm text-muted-foreground">No {type || 'results'} match "{query}"</p>
+      <p className="text-sm text-muted-foreground">No {type || 'results'} match &quot;{query}&quot;</p>
     </Card>
   );
 }

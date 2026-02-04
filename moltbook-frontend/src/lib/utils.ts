@@ -1,6 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { formatDistanceToNow, format, parseISO } from 'date-fns';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 
 // Class name utility
 export function cn(...inputs: ClassValue[]) {
@@ -160,11 +161,11 @@ export function scrollToElement(id: string): void {
 }
 
 // Keyboard event helpers
-export function isEnterKey(event: KeyboardEvent | React.KeyboardEvent): boolean {
+export function isEnterKey(event: KeyboardEvent | ReactKeyboardEvent): boolean {
   return event.key === 'Enter' && !event.shiftKey;
 }
 
-export function isEscapeKey(event: KeyboardEvent | React.KeyboardEvent): boolean {
+export function isEscapeKey(event: KeyboardEvent | ReactKeyboardEvent): boolean {
   return event.key === 'Escape';
 }
 
