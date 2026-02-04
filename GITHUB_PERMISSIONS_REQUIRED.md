@@ -149,11 +149,64 @@ moltbook  https://github.com/moltbook/moltbook-frontend.git
 
 ---
 
+## ArgoCD Installation Blocker (mo-y5o, mo-16rc - 2026-02-04 22:24 UTC)
+
+**Current Context**: ArgoCD not installed in ardenone-cluster
+
+| Check | Result | Details |
+|-------|--------|---------|
+| argocd namespace | ❌ Not found | `kubectl get namespace argocd` |
+| moltbook namespace | ❌ Not found | `kubectl get namespace moltbook` |
+| argocd-installer ClusterRole | ❌ Not found | RBAC for ArgoCD installation |
+| namespace-creator ClusterRole | ❌ Not found | RBAC for namespace creation |
+| devpod ServiceAccount permissions | ❌ Insufficient | Cannot create cluster-scoped resources |
+
+**Root Cause**: The devpod ServiceAccount (`system:serviceaccount:devpod:default`) lacks cluster-scoped RBAC permissions required to:
+1. Create namespaces (argocd, moltbook)
+2. Install ArgoCD (requires CRD creation and ClusterRole/ClusterRoleBinding management)
+3. Deploy the Moltbook platform without ArgoCD (requires namespace to exist first)
+
+**Required Actions (by cluster administrator):**
+
+### Option A - ArgoCD GitOps (RECOMMENDED)
+```bash
+# Step 1: Apply RBAC for ArgoCD installation (as cluster-admin)
+kubectl apply -f k8s/ARGOCD_INSTALL_REQUEST.yml
+
+# Step 2: From devpod, install ArgoCD
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Step 3: From devpod, create ArgoCD Application
+kubectl apply -f k8s/argocd-application.yml
+```
+
+### Option B - Direct kubectl (LEGACY)
+```bash
+# Step 1: Apply RBAC for namespace creation (as cluster-admin)
+kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+
+# Step 2: From devpod, create namespace
+kubectl apply -f k8s/namespace/moltbook-namespace.yml
+
+# Step 3: From devpod, deploy application
+kubectl apply -k k8s/kustomization-no-namespace.yml
+```
+
+**Impact**: The Moltbook ArgoCD Application (`k8s/argocd-application.yml`) cannot sync without:
+1. ArgoCD installed in argocd namespace
+2. moltbook namespace existing (or ArgoCD's CreateNamespace feature)
+
+**Conclusion**: ArgoCD deployment is blocked pending cluster-admin action. Either approach requires cluster-scoped RBAC that only a cluster administrator can grant.
+
+---
+
 **Created**: 2026-02-04
-**Issue**: mo-2ik, mo-3ps
-**Status**: Awaiting repository admin action (workaround active via mirror)
-**Verified**: 2026-02-04 by jedarden (pull access confirmed, push access required, mirror working)
-**Blocker Beads**: mo-3tsp, mo-2l68, mo-3ps (PRIORITY 0 - BLOCKS direct moltbook org pushes)
+**Issue**: mo-2ik, mo-3ps, mo-y5o
+**Status**: Awaiting repository admin action AND cluster admin action (workaround active via mirror)
+**Verified**: 2026-02-04 by jedarden (pull access confirmed, push access required, mirror working, ArgoCD blocked)
+**Blocker Beads**:
+- mo-3tsp, mo-2l68, mo-3ps (PRIORITY 0 - BLOCKS direct moltbook org pushes)
+- mo-16rc (PRIORITY 0 - BLOCKS ArgoCD installation in ardenone-cluster)
 
 ---
 
