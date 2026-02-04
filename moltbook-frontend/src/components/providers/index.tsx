@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback, createContext, useContext, createContext as createContextOriginal, useContext as useContextOriginal } from 'react';
+import { useState, useEffect, useRef, useCallback, createContext, useContext, type ReactNode } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { SWRConfig } from 'swr';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -30,7 +30,7 @@ const swrConfig = {
 };
 
 // Auth provider to initialize auth state
-function AuthProvider({ children }: { children: React.ReactNode }) {
+function AuthProvider({ children }: { children: ReactNode }) {
   const { apiKey, refresh } = useAuthStore();
   const [isInitialized, setIsInitialized] = useState(false);
 
@@ -57,11 +57,11 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 // Analytics provider (placeholder)
-function AnalyticsProvider({ children }: { children: React.ReactNode }) {
+function AnalyticsProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Track page views
     const url = pathname + (searchParams?.toString() ? `?${searchParams.toString()}` : '');
     // console.log('Page view:', url);
@@ -77,26 +77,26 @@ interface ShortcutContextType {
   unregisterShortcut: (key: string) => void;
 }
 
-const ShortcutContext = React.createContext<ShortcutContextType | null>(null);
+const ShortcutContext = createContext<ShortcutContextType | null>(null);
 
 export function useShortcuts() {
-  const context = React.useContext(ShortcutContext);
+  const context = useContext(ShortcutContext);
   if (!context) throw new Error('useShortcuts must be used within ShortcutProvider');
   return context;
 }
 
-function ShortcutProvider({ children }: { children: React.ReactNode }) {
-  const shortcutsRef = React.useRef<Map<string, { handler: () => void; options: any }>>(new Map());
+function ShortcutProvider({ children }: { children: ReactNode }) {
+  const shortcutsRef = useRef<Map<string, { handler: () => void; options: any }>>(new Map());
 
-  const registerShortcut = React.useCallback((key: string, handler: () => void, options = {}) => {
+  const registerShortcut = useCallback((key: string, handler: () => void, options = {}) => {
     shortcutsRef.current.set(key, { handler, options });
   }, []);
 
-  const unregisterShortcut = React.useCallback((key: string) => {
+  const unregisterShortcut = useCallback((key: string) => {
     shortcutsRef.current.delete(key);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Don't trigger in input fields
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes((e.target as HTMLElement).tagName)) return;
@@ -105,7 +105,7 @@ function ShortcutProvider({ children }: { children: React.ReactNode }) {
         const ctrlMatch = !options.ctrl || (e.ctrlKey || e.metaKey);
         const shiftMatch = !options.shift || e.shiftKey;
         const altMatch = !options.alt || e.altKey;
-        
+
         if (e.key.toLowerCase() === key.toLowerCase() && ctrlMatch && shiftMatch && altMatch) {
           e.preventDefault();
           handler();
@@ -129,16 +129,16 @@ interface OnlineContextType {
   isOnline: boolean;
 }
 
-const OnlineContext = React.createContext<OnlineContextType>({ isOnline: true });
+const OnlineContext = createContext<OnlineContextType>({ isOnline: true });
 
 export function useOnlineStatus() {
-  return React.useContext(OnlineContext);
+  return useContext(OnlineContext);
 }
 
-function OnlineProvider({ children }: { children: React.ReactNode }) {
-  const [isOnline, setIsOnline] = React.useState(true);
+function OnlineProvider({ children }: { children: ReactNode }) {
+  const [isOnline, setIsOnline] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
@@ -171,27 +171,27 @@ interface ModalContextType {
   modal: { name: string; props?: any } | null;
 }
 
-const ModalContext = React.createContext<ModalContextType | null>(null);
+const ModalContext = createContext<ModalContextType | null>(null);
 
 export function useModal() {
-  const context = React.useContext(ModalContext);
+  const context = useContext(ModalContext);
   if (!context) throw new Error('useModal must be used within ModalProvider');
   return context;
 }
 
-function ModalProvider({ children }: { children: React.ReactNode }) {
-  const [modal, setModal] = React.useState<{ name: string; props?: any } | null>(null);
+function ModalProvider({ children }: { children: ReactNode }) {
+  const [modal, setModal] = useState<{ name: string; props?: any } | null>(null);
 
-  const openModal = React.useCallback((name: string, props?: any) => {
+  const openModal = useCallback((name: string, props?: any) => {
     setModal({ name, props });
   }, []);
 
-  const closeModal = React.useCallback(() => {
+  const closeModal = useCallback(() => {
     setModal(null);
   }, []);
 
   // Close on escape
-  React.useEffect(() => {
+  useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && modal) closeModal();
     };
@@ -207,11 +207,11 @@ function ModalProvider({ children }: { children: React.ReactNode }) {
 }
 
 // Scroll restoration
-function ScrollRestoration({ children }: { children: React.ReactNode }) {
+function ScrollRestoration({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const scrollPositions = React.useRef<Map<string, number>>(new Map());
+  const scrollPositions = useRef<Map<string, number>>(new Map());
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Save scroll position before navigation
     const saveScroll = () => {
       scrollPositions.current.set(pathname, window.scrollY);
@@ -233,7 +233,7 @@ function ScrollRestoration({ children }: { children: React.ReactNode }) {
 }
 
 // Main providers wrapper
-export function Providers({ children }: { children: React.ReactNode }) {
+export function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <SWRConfig value={swrConfig}>
