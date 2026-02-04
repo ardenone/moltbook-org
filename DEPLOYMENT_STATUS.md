@@ -10,11 +10,24 @@ All Kubernetes manifests for deploying Moltbook platform to ardenone-cluster are
 
 ## ✅ Completed
 
-### 1. Kubernetes Manifests
+### 1. Infrastructure Verification
 
-All manifests are in the `k8s/` directory and validated with kustomize:
+- ✅ **CNPG Operator**: Installed and running (`cnpg-system` namespace)
+  - Version: CloudNativePG
+  - Pod: `cnpg-ardenone-cluster-cloudnative-pg-6f777c6778-d5x4p` (Running, 34h uptime)
+- ✅ **Sealed Secrets Controller**: Installed and running (`sealed-secrets` namespace)
+  - Pods: 2/2 running
+  - CRD: `sealedsecrets.bitnami.com` available
+- ✅ **Traefik Ingress**: Verified available in `traefik` namespace
+- ✅ **Storage**: local-path provisioner available
+
+### 2. Kubernetes Manifests
+
+All manifests are in the `k8s/` directory and validated with kustomize (820 lines):
 
 - ✅ **Namespace**: `moltbook` namespace with proper labels
+  - Request file: `k8s/NAMESPACE_REQUEST.yml` (requires cluster admin)
+  - Alternative kustomization: `k8s/kustomization-no-namespace.yml`
 - ✅ **PostgreSQL**: CloudNativePG (CNPG) cluster configuration
   - 1 instance (can scale to 3)
   - Proper storage configuration (10Gi, local-path)
@@ -40,20 +53,20 @@ All manifests are in the `k8s/` directory and validated with kustomize:
   - Security headers middleware for frontend
   - Rate limiting middleware for API
 
-### 2. Secrets Management
+### 3. Secrets Management
 
-**Development Secrets** (via kustomize secretGenerator):
-- Automatic secret generation for development
-- Includes PostgreSQL superuser, app user, and API secrets
-- **⚠️ Production**: Must be replaced with SealedSecrets or external secret manager
+**SealedSecrets Created** (production-ready):
+- ✅ `k8s/secrets/moltbook-api-sealedsecret.yml` - API secrets including JWT, DB connection, Twitter OAuth
+- ✅ `k8s/secrets/moltbook-postgres-superuser-sealedsecret.yml` - PostgreSQL superuser credentials
+- ✅ `k8s/secrets/moltbook-db-credentials-sealedsecret.yml` - Database application user credentials
 
-**Templates Created**:
-- ✅ `k8s/secrets/moltbook-api-secrets-template.yml` - API secrets including JWT and DB connection
-- ✅ `k8s/secrets/moltbook-db-credentials-template.yml` - Database application user credentials
-- ✅ `k8s/secrets/postgres-superuser-secret-template.yml` - PostgreSQL superuser credentials
-- ✅ `k8s/secrets/db-connection-secret-template.yml` - Database connection string
-- ✅ `k8s/secrets/README.md` - Complete documentation for creating SealedSecrets
-- All templates include detailed instructions for generating strong secrets and using kubeseal
+All secrets are encrypted using sealed-secrets controller and safe to commit to git. The sealed-secrets controller will automatically decrypt them when applied to the cluster.
+
+**Templates Available** (for reference):
+- ✅ `k8s/secrets/moltbook-api-secrets-template.yml`
+- ✅ `k8s/secrets/moltbook-db-credentials-template.yml`
+- ✅ `k8s/secrets/postgres-superuser-secret-template.yml`
+- ✅ `k8s/secrets/README.md` - Complete documentation
 
 ### 3. ArgoCD Application
 
