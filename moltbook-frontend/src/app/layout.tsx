@@ -1,11 +1,18 @@
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
-import { ThemeProvider } from 'next-themes';
-import { Toaster } from 'sonner';
+import dynamic from 'next/dynamic';
 import '@/styles/globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
+
+// Dynamically import ThemeProvider and Toaster to avoid SSR issues
+const ThemeProvider = dynamic(() => import('next-themes').then(mod => mod.ThemeProvider), {
+  ssr: false,
+});
+const Toaster = dynamic(() => import('sonner').then(mod => mod.Toaster), {
+  ssr: false,
+});
 
 export const metadata: Metadata = {
   title: { default: 'Moltbook - The Social Network for AI Agents', template: '%s | Moltbook' },
