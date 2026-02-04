@@ -1,8 +1,11 @@
 # Moltbook Deployment Readiness Report
 
-**Date:** 2026-02-04 18:30 UTC
-**Bead:** mo-saz
-**Status:** Manifests Complete - All changes committed, awaiting cluster admin for namespace creation and moltbook org for GitHub push permissions
+**Date:** 2026-02-04 17:15 UTC
+**Bead:** mo-23p (Verification)
+**Previous:** mo-saz (Manifests Creation)
+**Status:** ❌ BLOCKED - ArgoCD sync cannot proceed without RBAC permissions
+
+**CRITICAL:** Cluster administrator must apply RBAC manifests before deployment can proceed. See `ARGOCD_SYNC_VERIFICATION.md` for full details.
 
 ---
 
@@ -70,29 +73,59 @@ ardenone-cluster (local)
 
 ---
 
+## ArgoCD Sync Verification Results
+
+**Bead mo-23p** attempted to verify ArgoCD Application sync for Moltbook deployment.
+
+**Result:** ❌ **VERIFICATION FAILED - RBAC NOT APPLIED**
+
+### Findings:
+1. ✅ ArgoCD Application manifest is valid (k8s/argocd-application.yml)
+2. ✅ Kustomization includes all required resources
+3. ❌ ClusterRole `namespace-creator` NOT FOUND in cluster
+4. ❌ ClusterRoleBinding `devpod-namespace-creator` NOT FOUND in cluster
+5. ❌ Role `moltbook-deployer` NOT FOUND in moltbook namespace
+6. ⚠️ Namespace `moltbook` exists but is empty (no resources deployed)
+7. ❌ Cannot verify resource deployment - Forbidden by RBAC
+
+**See full verification report:** `k8s/ARGOCD_SYNC_VERIFICATION.md`
+
+**Related Bead:** mo-sim [P0] - Blocker: Apply RBAC manifests for Moltbook deployment
+
+---
+
 ## Blockers
 
-### Blocker 1: Namespace Creation (Priority 0)
+### Blocker 1: RBAC Configuration Not Applied (Priority 0) 🔥
 
-**Issue**: ServiceAccount lacks permissions to create namespaces.
+**Bead:** mo-sim [P0]
 
-**Error**:
-```
-Error from server (Forbidden): namespaces is forbidden:
-User "system:serviceaccount:devpod:default" cannot create resource "namespaces"
-```
+**Issue**: The RBAC manifests required for devpod ServiceAccount to deploy Moltbook have NOT been applied to the cluster.
 
-**Resolution**: Cluster admin needs to run:
+**Missing Resources:**
+- ClusterRole: `namespace-creator`
+- ClusterRoleBinding: `devpod-namespace-creator`
+- Role: `moltbook-deployer` (in moltbook namespace)
+- RoleBinding: `moltbook-deployer-binding` (in moltbook namespace)
+
+**Files:**
+- `k8s/namespace/devpod-namespace-creator-rbac.yml`
+- `k8s/namespace/moltbook-rbac.yml`
+
+**Impact:**
+- ArgoCD cannot sync the Moltbook application
+- Manual deployment via kubectl fails with Forbidden errors
+- No resources can be deployed to moltbook namespace
+- Complete deployment deadlock
+
+**Resolution:** Cluster administrator must apply RBAC manifests:
 ```bash
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/namespace/moltbook-namespace.yml
+# Requires cluster-admin permissions
+kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+kubectl apply -f k8s/namespace/moltbook-rbac.yml
 ```
 
-Or use the deploy script:
-```bash
-./scripts/deploy-moltbook.sh
-```
-
-### Blocker 2: GitHub Push Permissions (Priority 0)
+### Blocker 2: GitHub Push Permissions (Priority 1)
 
 **Issue**: User `jedarden` lacks push permissions to `moltbook/api` and `moltbook/moltbook-frontend` repositories.
 
@@ -118,7 +151,7 @@ Once permissions are granted, the Dockerfiles are ready at:
 **Related Beads**:
 - mo-2fi [P0] - Blocker: Grant GitHub push permissions to jedarden for moltbook organization
 
-### Blocker 3: Frontend Build (Priority 0)
+### Blocker 3: Frontend Build (Priority 1)
 
 **Issue**: Next.js build fails with `TypeError: (0 , n.createContext) is not a function`
 
@@ -275,9 +308,25 @@ spec:
 
 ## Next Steps
 
-### For Cluster Admin
-1. **Create namespace**: `kubectl apply -f k8s/namespace/moltbook-namespace.yml`
-2. **Or run deploy script**: `./scripts/deploy-moltbook.sh`
+### CRITICAL: For Cluster Admin (MUST DO FIRST) 🔥
+1. **Apply RBAC manifests** (requires cluster-admin):
+   ```bash
+   kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+   kubectl apply -f k8s/namespace/moltbook-rbac.yml
+   ```
+2. **Verify RBAC applied**:
+   ```bash
+   kubectl get clusterrole namespace-creator
+   kubectl get clusterrolebinding devpod-namespace-creator
+   kubectl get role -n moltbook moltbook-deployer
+   kubectl get rolebinding -n moltbook moltbook-deployer-binding
+   ```
+3. **Deploy resources**:
+   ```bash
+   kubectl apply -k k8s/
+   # OR use deploy script:
+   ./scripts/deploy-moltbook.sh
+   ```
 
 ### For Moltbook Organization Owner
 1. Grant `jedarden` write access to https://github.com/moltbook/api
