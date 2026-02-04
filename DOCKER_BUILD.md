@@ -9,9 +9,37 @@ mount source: overlay... err: invalid argument
 
 **Root Cause**: The devpod runs as a container inside Kubernetes (container-in-container). The host filesystem uses overlayfs, and Docker inside the container also tries to use overlayfs, causing nested overlay mounts which are not supported by the Linux kernel.
 
-## Solution: Use GitHub Actions for Building Images
+## Solutions
 
-**DO NOT build Docker images inside the devpod.** Instead, use the automated GitHub Actions workflow that builds images externally.
+You have TWO options for building Docker images:
+
+### Option 1: Build Locally in Devpod (NEW!)
+
+With the new Docker Buildx configuration, you can now build images directly in the devpod:
+
+```bash
+# One-time setup
+./scripts/setup-docker-buildx.sh
+
+# Build images (dry run - no push)
+./scripts/build-images-devpod.sh --dry-run
+
+# Build and push to GHCR
+GITHUB_TOKEN=your_token ./scripts/build-images-devpod.sh --push
+
+# Build only API
+./scripts/build-images-devpod.sh --dry-run --api-only
+```
+
+**How it works**:
+- Creates a custom Docker Buildx builder named `devpod-builder`
+- Uses `docker-container` driver to bypass overlay filesystem limitations
+- Loads images into Docker after building for local testing
+- Can push to GHCR when `--push` flag is used
+
+### Option 2: Use GitHub Actions (Recommended for Production)
+
+For production deployments, use the automated GitHub Actions workflow:
 
 ## How It Works
 
@@ -93,35 +121,44 @@ To use a specific image version:
 2. Update `newTag` in `k8s/kustomization.yml`
 3. Commit and push (ArgoCD will deploy)
 
-## Alternative Solutions (Not Recommended)
+## Comparison
 
-### Option 1: Fix Docker Buildkit Configuration
-Configure Docker to use `vfs` storage driver instead of `overlay`:
-```json
-{
-  "storage-driver": "vfs"
-}
-```
-**Drawback**: VFS is significantly slower and uses more disk space.
+| Method | Best For | Local Testing | Automation |
+|--------|----------|---------------|------------|
+| Devpod Buildx | Development, testing | ✅ Yes | Manual |
+| GitHub Actions | Production deployments | ❌ No | ✅ Fully automatic |
 
-### Option 2: Build on Different System
-Build images on your local machine or a VM:
+## Quick Reference: Build Commands
+
+### Local Devpod Build
 ```bash
-docker build -t ghcr.io/ardenone/moltbook-api:local ./api
-docker push ghcr.io/ardenone/moltbook-api:local
-```
-**Drawback**: Requires manual steps, no automation.
+# Setup (one-time)
+./scripts/setup-docker-buildx.sh
 
-### Option 3: Use Kaniko or Buildah
-These tools can build images without Docker daemon:
+# Build API only (no push)
+./scripts/build-images-devpod.sh --dry-run --api-only
+
+# Build and push API
+GITHUB_TOKEN=ghp_xxx ./scripts/build-images-devpod.sh --push --api-only
+
+# Build both and push
+GITHUB_TOKEN=ghp_xxx ./scripts/build-images-devpod.sh --push
+
+# Build with custom tag
+./scripts/build-images-devpod.sh --dry-run --tag v1.0.0
+```
+
+### GitHub Actions
 ```bash
-kaniko --context ./api --dockerfile ./api/Dockerfile --destination ghcr.io/ardenone/moltbook-api:local
+# Trigger manually
+gh workflow run build-push.yml
+
+# Watch the build
+gh run watch
+
+# Check status
+gh run list --workflow=build-push.yml
 ```
-**Drawback**: Additional complexity, different build tool.
-
-## Recommendation
-
-**Always use GitHub Actions** for production builds. It provides:
 - ✅ Consistent build environment
 - ✅ Automated image tagging
 - ✅ Build caching for speed
