@@ -276,12 +276,40 @@ podman run --rm -p 3000:3000 ghcr.io/ardenone/moltbook-frontend:latest
 
 ## Deployment
 
-Once images are built and pushed, deploy to Kubernetes:
+### BLOCKER: Cluster-Admin Required for Namespace Creation
+
+**The devpod ServiceAccount lacks cluster-admin permissions to create namespaces.**
+
+**Current Status**: The moltbook namespace does not exist in ardenone-cluster. Creating it requires cluster-admin privileges that the devpod ServiceAccount does not have.
+
+**Resolution Options** (requires cluster-admin):
+
+1. **Option 1: Create moltbook namespace directly**
+   ```bash
+   # Run as cluster-admin
+   kubectl create namespace moltbook
+   ```
+
+2. **Option 2: Apply RBAC to grant namespace creation permissions to devpod**
+   ```bash
+   # Run as cluster-admin - apply the RBAC manifest
+   kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+
+   # Then the devpod can create namespaces:
+   kubectl apply -f k8s/namespace/moltbook-namespace.yml
+   ```
+
+**RBAC Manifest Location**: `k8s/namespace/devpod-namespace-creator-rbac.yml`
+
+This manifest creates:
+- `ClusterRole: namespace-creator` - Grants permission to create namespaces, roles, and rolebindings
+- `ClusterRoleBinding: devpod-namespace-creator` - Binds the ClusterRole to the devpod ServiceAccount
+
+### Deployment Steps (After Namespace Creation)
+
+Once the namespace exists (via cluster-admin action):
 
 ```bash
-# Ensure namespace exists
-kubectl get namespace moltbook || kubectl create namespace moltbook
-
 # Deploy all resources
 kubectl apply -k k8s/
 
