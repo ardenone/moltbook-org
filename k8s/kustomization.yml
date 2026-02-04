@@ -21,13 +21,15 @@ resources:
   - api/configmap.yml
   - api/deployment.yml
   - api/service.yml
-  - api/ingressroute.yml
 
   # Frontend
   - frontend/configmap.yml
   - frontend/deployment.yml
   - frontend/service.yml
-  - frontend/ingressroute.yml
+
+  # Ingress
+  - ingress/api-ingressroute.yml
+  - ingress/frontend-ingressroute.yml
 
 # Images to be replaced
 images:
