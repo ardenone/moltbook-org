@@ -30,6 +30,13 @@ The Moltbook platform deployment cannot proceed because the `moltbook` namespace
 - Verified existing `devpod-rolebinding-controller` ClusterRole only grants `get/list/watch` on namespaces
 - Created blocker bead **mo-mu2k** for cluster-admin action
 
+### mo-33lq (2026-02-04)
+- Re-verified `moltbook` namespace still does not exist
+- Re-verified ClusterRole `namespace-creator` still does not exist
+- Re-verified ClusterRoleBinding `devpod-namespace-creator` still does not exist
+- Confirmed blocker persists - RBAC must be applied by cluster admin
+- Created new blocker bead **mo-33lq** tracking the RBAC application requirement
+
 ## Resolution Required
 
 A cluster administrator must perform ONE of the following:
