@@ -151,7 +151,51 @@ For questions or issues:
 
 ---
 
-**Last Updated**: 2026-02-04
+**Last Updated**: 2026-02-04 22:25 UTC
 **Status**: 🔴 BLOCKER - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
 **Estimated Time**: 2 minutes (one-time setup)
+
+---
+
+## ArgoCD Installation Blocker (mo-y5o, mo-e9cb)
+
+In addition to namespace creation permissions, ArgoCD installation is blocked because:
+1. ArgoCD is NOT installed in ardenone-cluster
+2. Installing ArgoCD requires cluster-admin permissions (CRD creation, ClusterRoleBindings)
+
+### Resolution: ArgoCD Installation
+
+A cluster-admin should run:
+```bash
+# Apply RBAC and create namespaces for ArgoCD
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/ARGOCD_INSTALL_REQUEST.yml
+```
+
+After RBAC is applied, from devpod:
+```bash
+# Install ArgoCD
+kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Apply Moltbook Application
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
+```
+
+See: `k8s/ARGOCD_INSTALL_BLOCKER_SUMMARY.md` for complete details.
+
+---
+
+## Verification Log (mo-1te - 2026-02-04 22:21 UTC, Updated mo-y5o - 2026-02-04 22:25 UTC)
+
+| Check | Result | Command |
+|-------|--------|---------|
+| ClusterRole `namespace-creator` exists | ❌ NotFound | `kubectl get clusterrole namespace-creator` |
+| ClusterRoleBinding `devpod-namespace-creator` exists | ❌ NotFound | `kubectl get clusterrolebinding devpod-namespace-creator` |
+| Namespace `moltbook` exists | ❌ NotFound | `kubectl get namespace moltbook` |
+| devpod SA can create namespaces | ❌ Forbidden | `kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default` |
+
+**Conclusion from mo-1te**: RBAC has NOT been applied. The blocker status is CONFIRMED. Cluster administrator action is still required. This bead (mo-1te) consolidates the technical verification and provides the resolution path.
+
+**Note**: This blocker has been documented in 40+ duplicate beads which have been consolidated into mo-xoy0 (P0 - ADMIN: Cluster Admin Action).
+
+**Additional Blocker (mo-y5o)**: ArgoCD is NOT installed. Cluster admin needs to apply `k8s/ARGOCD_INSTALL_REQUEST.yml` to enable ArgoCD installation. See mo-e9cb for the action bead.
