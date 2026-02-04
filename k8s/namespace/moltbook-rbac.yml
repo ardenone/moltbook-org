@@ -48,6 +48,11 @@ rules:
     resources: ["ingressroutes"]
     verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 
+  # Middlewares (Traefik)
+  - apiGroups: ["traefik.io"]
+    resources: ["middlewares"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
   # Pods (for debugging)
   - apiGroups: [""]
     resources: ["pods", "pods/log"]
