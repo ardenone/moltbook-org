@@ -5,15 +5,25 @@
 ## Problem
 ArgoCD is NOT installed in ardenone-cluster. The namespace `argocd` does not exist, preventing the Moltbook ArgoCD Application from syncing.
 
-## Current State
-- ✅ ArgoCD installation manifest prepared: `argocd-install.yml` (33,375 lines)
+## Current State (Verified 2026-02-04)
+- ✅ ArgoCD installation manifest prepared: `argocd-install.yml` (1,883,461 bytes, official ArgoCD v2.13+)
 - ✅ RBAC request manifest prepared: `ARGOCD_SETUP_REQUEST.yml`
 - ❌ `argocd` namespace does NOT exist
-- ❌ devpod ServiceAccount lacks permission to:
-  - Create namespaces
-  - Create CustomResourceDefinitions (CRDs)
+- ❌ ArgoCD Application CRDs exist (from Argo Rollouts), but NOT ArgoCD-specific CRDs:
+  - Missing: `applications.argoproj.io` (ArgoCD Application)
+  - Missing: `appprojects.argoproj.io` (ArgoCD AppProject)
+  - Existing: `rollouts.argoproj.io` (from Argo Rollouts, different product)
+- ❌ devpod ServiceAccount (`system:serviceaccount:devpod:default`) lacks permission to:
+  - Create namespaces (verified: `kubectl auth can-i create namespaces --all-namespaces` = no)
+  - Create CustomResourceDefinitions (CRDs) (verified: `kubectl auth can-i create customresourcedefinitions --all-namespaces` = no)
   - Create cluster-level RBAC (ClusterRoles/ClusterRoleBindings)
   - Deploy ArgoCD components
+
+## Existing ArgoCD-Related Infrastructure (Not Usable)
+- ✅ `argocd-manager-role` ClusterRole exists (cluster-admin level permissions)
+- ✅ `argocd-manager-role-binding` ClusterRoleBinding exists
+- ❌ BUT: Bound to `argocd-manager` SA in `kube-system` namespace (NOT devpod's default SA)
+- ❌ devpod SA cannot use this existing binding
 
 ## Root Cause
 The current devpod ServiceAccount only has namespace-scoped permissions via `devpod-rolebinding-controller` ClusterRole, which allows:

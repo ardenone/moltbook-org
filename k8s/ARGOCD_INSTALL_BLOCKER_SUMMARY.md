@@ -120,7 +120,44 @@ kubectl apply -f k8s/argocd-application.yml
 
 ---
 
-**Last Updated**: 2026-02-04 22:27 UTC
-**Verified by**: mo-y5o (zai-bravo worker - re-verified)
+**Last Updated**: 2026-02-04 22:40 UTC
+**Verified by**: mo-y5o (claude-glm-charlie worker)
 **Status**: BLOCKED - Awaiting cluster-admin action
 **Verification Attempted**: Yes - RBAC request manifest application failed due to insufficient permissions
+
+## Additional Findings (2026-02-04 22:40 UTC)
+
+### Existing Infrastructure Discovered
+
+1. **argocd-manager ClusterRole exists**: A powerful ClusterRole `argocd-manager-role` exists with `*` permissions on all resources
+2. **External ArgoCD**: There's an external ArgoCD instance at `argocd-manager.ardenone.com` that the devpod proxies to
+3. **Proxy Service**: An `argocd-proxy` deployment exists in the `devpod` namespace
+
+### Why This Doesn't Solve the Problem
+
+The external ArgoCD at `argocd-manager.ardenone.com` cannot manage Applications within ardenone-cluster because:
+- ArgoCD Applications are cluster-scoped resources that must be managed by an in-cluster ArgoCD instance
+- The Moltbook Application at `k8s/argocd-application.yml` references an in-cluster ArgoCD server: `https://kubernetes.default.svc`
+- GitOps requires the ArgoCD controller to be running inside the cluster to monitor and reconcile resources
+
+### Confirmed Permission Gaps
+
+| Permission | Status | Command Result |
+|------------|--------|----------------|
+| Create CustomResourceDefinitions | ❌ Denied | `no` (cluster-scoped) |
+| Create Namespaces | ❌ Denied | `no` (cluster-scoped) |
+| Create ClusterRole | ❌ Denied | `no` (cluster-scoped) |
+| Create ClusterRoleBinding | ❌ Denied | `no` (cluster-scoped) |
+| List services across namespaces | ❌ Denied | `Forbidden` |
+
+### Required Cluster Admin Command
+
+The simplest solution is for a cluster admin to run:
+
+```bash
+kubectl create clusterrolebinding devpod-cluster-admin \
+  --clusterrole=cluster-admin \
+  --serviceaccount=devpod:default
+```
+
+This single command grants the devpod ServiceAccount full cluster-admin privileges, enabling ArgoCD installation and all future GitOps operations.
