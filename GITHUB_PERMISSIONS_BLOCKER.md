@@ -73,16 +73,16 @@ gh api repos/moltbook/moltbook-frontend --jq '.permissions'
 Expected output should include `"push": true`
 
 ## Related Beads
-- **mo-2l68** - This blocker bead (PRIORITY 0)
-- **mo-2xz2** - Docker build blocker caused by missing permissions
-- **mo-1le** - Admin action task requesting permissions (this task)
+- **mo-1le** - This task: Admin action request for push permissions (current bead)
+- **mo-2xz2** - Docker build blocker caused by missing permissions (PRIORITY 0)
+- **mo-2ik** - Original permission investigation and documentation
 
 ## Task Completion Status
-The task mo-1le is **complete** in the sense that all documentation is in place. The actual permission grant requires:
+The task mo-1le is **complete** - documentation is verified and comprehensive. The actual permission grant requires:
 1. A human with admin access to the `moltbook` GitHub organization
 2. Manual action via GitHub UI or CLI (see "Action Required" section above)
 
-This is an **external dependency** that cannot be automated.
+This is an **external dependency** that cannot be automated by the worker system.
 
 ## Technical Details
 
