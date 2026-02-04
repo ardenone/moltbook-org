@@ -172,6 +172,16 @@ spec:
 
 ## Blocker Summary
 
+### CRITICAL: ArgoCD Not Installed (2026-02-04)
+
+**Issue:** ArgoCD is NOT deployed in ardenone-cluster. The `argocd` namespace does not exist.
+
+**Impact:** The ArgoCD Application manifest (`k8s/argocd-application.yml`) references the `argocd` namespace which doesn't exist.
+
+**Options:**
+1. **Deploy ArgoCD first** - Install ArgoCD in the cluster before creating the Application
+2. **Deploy directly via kubectl** - Use `kubectl apply -k k8s/` instead of ArgoCD GitOps
+
 ### Bead mo-n4h (Priority 0): "Fix: Grant namespace creation permissions for moltbook deployment"
 
 The devpod ServiceAccount lacks cluster-level permissions to create namespaces and apply RBAC. A cluster administrator must apply the RBAC manifest before deployment can proceed.

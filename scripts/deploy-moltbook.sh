@@ -94,7 +94,12 @@ check_command() {
 # Verify prerequisites
 print_step "0" "Verifying prerequisites..."
 check_command kubectl
-check_command kustomize
+
+# Check for kustomize (built-in or standalone)
+if ! command -v kustomize &> /dev/null && ! kubectl kustomize --help &> /dev/null; then
+  print_error "kustomize is not available (neither standalone nor kubectl built-in)"
+  exit 1
+fi
 
 # Check cluster access
 if ! kubectl cluster-info &> /dev/null; then
