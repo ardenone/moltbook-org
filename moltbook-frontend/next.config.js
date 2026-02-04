@@ -25,9 +25,9 @@ const nextConfig = {
       config.externals = [
         ...originalExternals.filter(e => typeof e !== 'function'),
         function({ request }, callback) {
-          // Mark node: prefixed modules as external
+          // Mark node: prefixed modules as external (strip the node: prefix)
           if (typeof request === 'string' && request.startsWith('node:')) {
-            return callback(null, 'commonjs ' + request);
+            return callback(null, 'commonjs ' + request.slice(5));
           }
           // For non-function externals in the array, call them
           if (originalExternals.length > 0) {
@@ -40,6 +40,14 @@ const nextConfig = {
         },
       ];
     }
+
+    // Disable warnings about problematic Next.js experimental testmode modules
+    config.ignoreWarnings = [
+      {
+        module: /node_modules[\\/]next[\\/]dist[\\/]experimental[\\/]testmode/,
+      },
+    ];
+
     return config;
   },
 };
