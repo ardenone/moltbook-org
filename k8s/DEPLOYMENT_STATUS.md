@@ -1,9 +1,9 @@
 # Moltbook Deployment Status - ardenone-cluster
 
-**Last Updated**: 2026-02-04 19:22 UTC
+**Last Updated**: 2026-02-04 (verified: namespace does not exist, RBAC not applied)
 **Bead**: mo-cx8
 **Task**: Deploy: Apply Moltbook manifests to ardenone-cluster
-**Status**: 🟡 BLOCKED - Awaiting Cluster Admin Action
+**Status**: 🔴 BLOCKED - Awaiting Cluster Admin Action
 
 ---
 
@@ -131,7 +131,10 @@ curl https://moltbook.ardenone.com
 
 ## Blocker Bead
 
-- **mo-1e6t** [P0]: Blocker: Apply namespace-creator ClusterRole for Moltbook deployment
+- **mo-35ap** [P0]: BLOCKER: Cluster Admin needed - Apply RBAC for Moltbook namespace creation
+- **mo-2z9l** [P0]: Blocker: Apply namespace-creator RBAC for Moltbook deployment
+
+**Note**: Multiple duplicate blocker beads exist (mo-30b6, mo-2bxj, mo-1agu, mo-3cyt, mo-1e6t, mo-2e64, mo-2mxj, mo-3roj, mo-2itu, mo-4eno, mo-1ywd, mo-2156, mo-ddt3, mo-7k95, mo-3flx, mo-2byg, mo-y1f5, mo-3c3c). These should be consolidated.
 
 ---
 

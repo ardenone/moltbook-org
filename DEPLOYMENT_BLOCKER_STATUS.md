@@ -1,8 +1,8 @@
 # Moltbook Deployment Blocker Status
 
-**Last Updated**: 2026-02-04 19:25 UTC
-**Bead**: mo-cx8 (deployment task)
-**Blocker Bead**: mo-2bxj (P0 - Critical)
+**Last Updated**: 2026-02-04 19:35 UTC
+**Bead**: mo-32c (namespace creation task)
+**Blocker Bead**: mo-2bxj (P0 - Critical) - Cluster admin action required
 
 ---
 
@@ -119,6 +119,7 @@ curl https://moltbook.ardenone.com
 
 | Bead ID | Title | Priority | Status |
 |---------|-------|----------|--------|
+| mo-32c | Create moltbook namespace in ardenone-cluster | 1 | BLOCKED |
 | mo-cx8 | Deploy: Apply Moltbook manifests to ardenone-cluster | 1 | BLOCKED |
 | mo-2bxj | BLOCKER: Cluster Admin - Apply RBAC for Moltbook namespace creation | 0 | OPEN |
 
