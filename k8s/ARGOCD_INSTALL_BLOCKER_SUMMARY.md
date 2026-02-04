@@ -80,7 +80,7 @@ kubectl create namespace moltbook
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 # Install Moltbook Application
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
+kubectl apply -f k8s/argocd-application.yml
 ```
 
 ## Related Documentation
