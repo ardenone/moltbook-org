@@ -3,7 +3,11 @@
 
 # Secrets - NEVER commit real secrets
 *-secret.yml
+*-secrets.yml
+*-credentials.yml
+*-superuser.yml
 !*-secret-template.yml
+!*-secrets-template.yml
 !*sealedsecret.yml
 
 # Node
