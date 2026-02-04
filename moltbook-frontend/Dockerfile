@@ -28,7 +28,8 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 # Copy built application from builder (standalone output includes all needed files)
-COPY --from=builder /app/.next/standalone ./
+# Next.js standalone output is at .next/standalone/<package-name>/
+COPY --from=builder /app/.next/standalone/moltbook-web/ ./
 # Copy static assets from build
 COPY --from=builder /app/.next/static ./.next/static
 # Copy public directory (ensured to exist in build stage)
