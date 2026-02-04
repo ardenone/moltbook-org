@@ -8,7 +8,7 @@ resources:
   - namespace/moltbook-namespace.yml
   - namespace/moltbook-rbac.yml
   - secrets/moltbook-api-sealedsecret.yml
-  - secrets/postgres-superuser-sealedsecret.yml
+  - secrets/moltbook-postgres-superuser-sealedsecret.yml
   - secrets/moltbook-db-credentials-sealedsecret.yml
   - database/cluster.yml
   - database/schema-configmap.yml
@@ -42,5 +42,5 @@ labels:
 # RBAC is included for devpod ServiceAccount to manage moltbook resources
 # Apply sealed secrets before applying this kustomization:
 #   kubectl apply -f secrets/moltbook-api-sealedsecret.yml
-#   kubectl apply -f secrets/postgres-superuser-sealedsecret.yml
+#   kubectl apply -f secrets/moltbook-postgres-superuser-sealedsecret.yml
 #   kubectl apply -f secrets/moltbook-db-credentials-sealedsecret.yml
