@@ -1,6 +1,10 @@
 # Moltbook Platform Deployment Summary - 2026-02-04
 
-## Deployment Status: READY (Awaiting Namespace Creation)
+## Deployment Status: READY - BLOCKER: Namespace Creation Required
+
+**Updated**: 2026-02-04 16:44 UTC
+**Bead ID**: mo-saz
+**Blocker Bead**: mo-2gg [P0] - CRITICAL: Create moltbook namespace in ardenone-cluster
 
 ### Completed Components
 
@@ -67,18 +71,21 @@ Error from server (Forbidden): namespaces is forbidden: User "system:serviceacco
 cannot create resource "namespaces" in API group "" at the cluster scope
 ```
 
+**Cluster Status**: ardenone-cluster does NOT have ArgoCD deployed. ArgoCD CRDs exist but no argocd namespace.
+
 **Resolution Options**:
 
-1. **Via ArgoCD (Recommended)**: 
-   - Apply the ArgoCD Application manifest: `kubectl apply -f k8s/argocd-application.yml -n argocd`
-   - ArgoCD has `CreateNamespace=true` and will create the namespace automatically
-
-2. **Via Cluster Admin**:
-   - Apply namespace creator RBAC: `kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml`
-   - Then apply namespace: `kubectl apply -f k8s/NAMESPACE_REQUEST.yml`
-
-3. **Manual Namespace Creation**:
+1. **Direct Namespace Creation (Fastest)**:
    - Cluster admin runs: `kubectl create namespace moltbook`
+   - Then apply manifests: `kubectl apply -k k8s/`
+
+2. **Via Cluster Admin RBAC Grant**:
+   - Apply namespace creator RBAC: `kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml`
+   - Then apply full kustomization: `kubectl apply -k k8s/`
+
+3. **Via ArgoCD (NOT AVAILABLE)**:
+   - ArgoCD is not deployed in ardenone-cluster (no argocd namespace exists)
+   - Would require ArgoCD deployment first
 
 ### Next Steps
 
@@ -114,4 +121,12 @@ The deployment follows GitOps principles:
 
 ### Related Beads
 
-- **mo-vrr**: Blocker - Create moltbook namespace (Priority 0)
+- **mo-2gg**: [P0] CRITICAL: Create moltbook namespace in ardenone-cluster
+- **mo-saz**: [P1] Implementation: Deploy Moltbook platform to ardenone-cluster (current bead)
+
+### Deployment Notes
+
+- **SealedSecret Controller**: Required for decrypting sealed secrets. Verify it's running before deployment.
+- **CNPG Operator**: Already installed in cluster (cnpg-system namespace exists).
+- **Traefik**: Already installed and configured with Let's Encrypt certResolver.
+- **DNS Records**: Required but not yet configured (moltbook.ardenone.com, api-moltbook.ardenone.com).

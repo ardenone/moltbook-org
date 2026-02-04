@@ -95,7 +95,7 @@ describe('Utility Functions', () => {
 
     it('rejects invalid names', () => {
       expect(isValidSubmoltName('x')).toBe(false); // too short
-      expect(isValidSubmoltName('Invalid')).toBe(false); // uppercase
+      expect(isValidSubmoltName('Invalid')).toBe(false); // uppercase not allowed for submolts
     });
   });
 

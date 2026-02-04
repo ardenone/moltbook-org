@@ -172,9 +172,21 @@ spec:
 
 ## Blocker Summary
 
-**Bead mo-udc:** "Fix: Grant devpod SA namespace creation permissions"
+### Bead mo-n4h (Priority 0): "Fix: Grant namespace creation permissions for moltbook deployment"
 
 The devpod ServiceAccount lacks cluster-level permissions to create namespaces and apply RBAC. A cluster administrator must apply the RBAC manifest before deployment can proceed.
+
+**Resolution options:**
+1. Quick fix: `kubectl apply -f k8s/NAMESPACE_REQUEST.yml`
+2. Permanent fix: `kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml`
+
+### Bead mo-7vy (Priority 1): "Build: Container images for moltbook-api and moltbook-frontend"
+
+Container images need to be built and pushed to GHCR before deployment:
+- ghcr.io/ardenone/moltbook-api:latest
+- ghcr.io/ardenone/moltbook-frontend:latest
+
+**Build command:** `./scripts/build-images.sh --push`
 
 ---
 
