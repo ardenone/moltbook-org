@@ -1,0 +1,30 @@
+# RBAC manifest to grant devpod ServiceAccount permission to create namespaces
+# This MUST be applied by a cluster-admin:
+#   kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml
+#
+# After applying this, the devpod ServiceAccount can create namespaces like:
+#   kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace/moltbook-namespace.yml
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: namespace-creator
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["create", "get", "list", "watch"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: devpod-namespace-creator
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: devpod
+roleRef:
+  kind: ClusterRole
+  name: namespace-creator
+  apiGroup: rbac.authorization.k8s.io
