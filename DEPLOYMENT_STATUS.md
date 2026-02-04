@@ -1,12 +1,12 @@
 # Moltbook Deployment Status
 
-**Last Updated**: 2026-02-04 15:30 UTC
+**Last Updated**: 2026-02-04 15:40 UTC
 **Bead**: mo-saz
-**Status**: ✅ All Manifests Validated & Fixed - Ready for Deployment (Awaiting Namespace Creation)
+**Status**: ✅ All Manifests Validated - Ready for Deployment (Awaiting Namespace Creation)
 
 ## Summary
 
-All Kubernetes manifests for deploying Moltbook platform to ardenone-cluster are complete, validated, and ready for deployment. Infrastructure verification confirms CNPG and Sealed-secrets operators are running. Kustomization.yml syntax errors have been fixed and manifests build successfully (849 lines). The deployment is fully validated and ready - only awaiting namespace creation by cluster administrator.
+All Kubernetes manifests for deploying Moltbook platform to ardenone-cluster are complete, validated, and ready for deployment. Infrastructure verification confirms CNPG and Sealed-secrets operators are running. A ClusterRole manifest (`k8s/namespace/devpod-namespace-creator-rbac.yml`) has been created for cluster admin approval to grant namespace creation permissions. The deployment is fully validated and ready.
 
 ## ✅ Completed
 
@@ -23,14 +23,18 @@ All Kubernetes manifests for deploying Moltbook platform to ardenone-cluster are
 
 ### 2. Kubernetes Manifests
 
-All manifests are deployed to `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/` and validated with kustomize (849 lines):
+All manifests are located in `/home/coder/Research/moltbook-org/k8s/` and validated with kustomize (820+ lines):
 
-**Recent Fixes** (2026-02-04 15:30):
-- ✅ Fixed kustomization.yml YAML syntax errors
-- ✅ Corrected IngressRoute resource paths (ingress/ directory)
-- ✅ Fixed empty literal values in secretGenerator
-- ✅ Fixed indentation of options block
-- ✅ Kustomize build validated successfully
+**All Manifests Validated**:
+- ✅ Namespace: `k8s/namespace/moltbook-namespace.yml`
+- ✅ RBAC: `k8s/namespace/moltbook-rbac.yml` (devpod deployer role)
+- ✅ PostgreSQL: `k8s/database/cluster.yml` (CNPG cluster)
+- ✅ Schema: `k8s/database/schema-configmap.yml` (database schema)
+- ✅ Redis: `k8s/redis/deployment.yml` + `k8s/redis/service.yml`
+- ✅ API: `k8s/api/deployment.yml` + `k8s/api/service.yml` + `k8s/api/configmap.yml`
+- ✅ Frontend: `k8s/frontend/deployment.yml` + `k8s/frontend/service.yml` + `k8s/frontend/configmap.yml`
+- ✅ Ingress: `k8s/ingress/api-ingressroute.yml` + `k8s/ingress/frontend-ingressroute.yml`
+- ✅ Secrets: 3 SealedSecrets for API and database credentials
 
 - ✅ **Namespace**: `moltbook` namespace with proper labels
   - Request file: `k8s/NAMESPACE_REQUEST.yml` (requires cluster admin)

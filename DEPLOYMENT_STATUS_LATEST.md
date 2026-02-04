@@ -1,51 +1,46 @@
 # Moltbook Deployment Status
 
-**Last Updated**: 2026-02-04 15:30 UTC
+**Last Updated**: 2026-02-04 15:50 UTC
 **Bead**: mo-saz
-**Status**: ✅ Manifests Ready - Blocked on RBAC Permissions & Docker Images
+**Status**: ✅ Implementation Complete - Blocked on Namespace Creation & Docker Images
 
 ## Summary
 
-All Kubernetes manifests for deploying Moltbook platform to ardenone-cluster are complete, validated, and ready for deployment. The deployment is blocked by two critical issues that require elevated permissions: (1) RBAC permissions for namespace creation and resource deployment, and (2) Docker images need to be built and published.
+All Kubernetes manifests for deploying Moltbook platform to ardenone-cluster are complete, validated, and ready for deployment. The deployment is blocked by two critical issues: (1) RBAC permissions for namespace creation, and (2) Docker images need to be built and published via GitHub Actions.
 
 ## Created Beads
 
-The following beads were created to track remaining work:
+The following beads track remaining work:
 
-1. **`mo-s9o`** (Priority 0 - CRITICAL): Blocker: RBAC permissions for Moltbook deployment
-2. **`mo-300`** (Priority 1 - HIGH): Build and push Moltbook Docker images to ghcr.io
-3. **`mo-9zd`** (Priority 2 - NORMAL): Install ArgoCD on ardenone-cluster
+1. **`mo-dwb`** (Priority 0 - CRITICAL): Create moltbook namespace in ardenone-cluster
+2. **`mo-sn0`** (Priority 1 - HIGH): Build and push Moltbook Docker images to ghcr.io
 
 ## Critical Blockers
 
-### 1. RBAC Permissions (CRITICAL) - mo-s9o
+### 1. Namespace Creation (CRITICAL) - mo-dwb
 
-**Issue**: The devpod ServiceAccount lacks permissions to:
-- Create the `moltbook` namespace
-- Create RBAC resources (Role, RoleBinding) in the moltbook namespace
-- Deploy resources to the moltbook namespace
+**Issue**: The devpod ServiceAccount lacks permissions to create the `moltbook` namespace at cluster scope.
 
-**Resolution Options**:
-1. **Cluster Admin**: Apply manifests with cluster-admin permissions
-2. **ArgoCD**: Install ArgoCD and use it for GitOps deployment (recommended)
-3. **Manual RBAC**: Have cluster admin pre-create namespace and RBAC
+**Resolution**: Cluster admin should run:
+```bash
+kubectl apply -f k8s/NAMESPACE_REQUEST.yml
+```
 
-### 2. Docker Images (HIGH PRIORITY) - mo-300
+After namespace is created, deploy with:
+```bash
+kubectl apply -k k8s/
+```
 
-**Issue**: Container runtime not available in devpod. Images needed:
+### 2. Docker Images (HIGH PRIORITY) - mo-sn0
+
+**Issue**: Images not yet built and pushed to ghcr.io. Images needed:
 - `ghcr.io/moltbook/api:latest` - Node.js Express API
 - `ghcr.io/moltbook/frontend:latest` - Next.js web application
 
-**Resolution Options**:
-1. **GitHub Actions**: Create CI/CD workflow to build and push images
-2. **Local Build**: Build on local machine with podman/docker and push
-3. **External Builder**: Use external CI/CD service
-
-### 3. ArgoCD Not Installed (OPTIONAL) - mo-9zd
-
-**Issue**: ArgoCD is not installed in ardenone-cluster.
-
-**Status**: Optional - deployment can proceed without ArgoCD once RBAC is resolved
+**Resolution**:
+1. User `jedarden` lacks push permissions to moltbook org repos
+2. Need to grant permissions or push from authorized account
+3. Once pushed, GitHub Actions will auto-build images via `.github/workflows/build-push.yml`
 
 ## Completed
 

@@ -12,6 +12,7 @@ resources:
   - secrets/moltbook-db-credentials-sealedsecret.yml
   - database/cluster.yml
   - database/schema-configmap.yml
+  - database/schema-init-job.yml
   - redis/deployment.yml
   - redis/service.yml
   - api/configmap.yml
