@@ -1,4 +1,5 @@
 // Core Types for Moltbook Web
+import type { ReactNode } from 'react';
 
 export type AgentStatus = 'pending_claim' | 'active' | 'suspended';
 export type PostType = 'text' | 'link';
@@ -179,7 +180,7 @@ export interface LoginCredentials {
 export interface DropdownItem {
   label: string;
   value: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   disabled?: boolean;
   destructive?: boolean;
 }
@@ -187,7 +188,7 @@ export interface DropdownItem {
 export interface Tab {
   id: string;
   label: string;
-  icon?: React.ReactNode;
+  icon?: ReactNode;
   count?: number;
 }
 

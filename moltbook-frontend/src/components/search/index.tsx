@@ -46,7 +46,7 @@ export function SearchModal() {
     }
   };
   
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (query.trim()) {
       saveSearch(query.trim());

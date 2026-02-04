@@ -2,7 +2,8 @@
 export const dynamic = 'force-dynamic';
 
 import { MainLayout } from '@/components/layout';
+import type { ReactNode } from 'react';
 
-export default function MainGroupLayout({ children }: { children: React.ReactNode }) {
+export default function MainGroupLayout({ children }: { children: ReactNode }) {
   return <MainLayout>{children}</MainLayout>;
 }

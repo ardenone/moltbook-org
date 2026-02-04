@@ -2,36 +2,50 @@
 
 **Bead ID:** mo-2iqc
 **Priority:** 0 (Critical)
-**Status:** BLOCKED - Requires external action
+**Status:** PARTIALLY RESOLVED - Using monorepo approach
 **Date:** 2026-02-04
+**Last Updated:** 2026-02-04
 
 ## Summary
 
-User `jedarden` lacks push permissions to Moltbook organization repositories, preventing automated container image builds via GitHub Actions. This blocks the deployment pipeline for Moltbook.
+User `jedarden` lacks push permissions to Moltbook organization repositories (`moltbook/api` and `moltbook/moltbook-frontend`). However, this is **partially resolved** by using the monorepo approach with `ardenone/moltbook-org`, where push access is available.
 
-## Affected Repositories
+## Affected Repositories (Blocked Access)
 
-- https://github.com/moltbook/api
-- https://github.com/moltbook/moltbook-frontend
+- https://github.com/moltbook/api (Cannot push)
+- https://github.com/moltbook/moltbook-frontend (Cannot push)
 
 ## Error Details
 
 ```
-remote: Permission to moltbook/api.git denied to jedarden.
-fatal: unable to access 'https://github.com/moltbook/api.git/': The requested URL returned error: 403
+remote: Permission to moltbook/moltbook-frontend.git denied to jedarden.
+fatal: unable to access 'https://github.com/moltbook/moltbook-frontend.git/': The requested URL returned error: 403
 ```
 
-## Impact
+## Current Resolution: Monorepo Approach
 
-**Cannot push Dockerfiles to trigger GitHub Actions for automated container image builds.**
+**The container image builds are working via `ardenone/moltbook-org` monorepo.**
 
-The following container images must be available for deployment:
-- `ghcr.io/ardenone/moltbook-api:latest`
-- `ghcr.io/ardenone/moltbook-frontend:latest`
+### Git Remote Configuration
+
+```
+origin	https://github.com/ardenone/moltbook-org.git (fetch/push)  # WORKS
+moltbook	https://github.com/moltbook/moltbook-frontend.git (fetch/push)  # 403 ERROR
+fork	https://github.com/jedarden/moltbook-frontend.git (fetch/push)  # Fork
+```
+
+### GitHub Actions Workflow
+
+**Location:** `.github/workflows/build-push.yml`
+**Triggers:** Push to `main` branch in `ardenone/moltbook-org`
+
+**Image Destinations:**
+- `ghcr.io/ardenone/moltbook-api:latest` (NOT ghcr.io/moltbook/*)
+- `ghcr.io/ardenone/moltbook-frontend:latest` (NOT ghcr.io/moltbook/*)
 
 ## Dockerfiles Ready
 
-Both Dockerfiles are prepared and present in the moltbook-org repository:
+Both Dockerfiles are present in the moltbook-org repository:
 
 ### API Dockerfile
 - **Location:** `/home/coder/Research/moltbook-org/api/Dockerfile`
@@ -53,69 +67,76 @@ Both Dockerfiles are prepared and present in the moltbook-org repository:
   - Health check on root path
   - Next.js production server (`npm start`)
 
-## Required Action
+## Remaining Issues
 
-**Moltbook organization owner must grant write access to `jedarden` for both repositories.**
+### 1. Image Repository Naming
+Images are published to `ghcr.io/ardenone/*` instead of `ghcr.io/moltbook/*`. This may cause:
+- Confusion about image ownership
+- Potential naming conflicts
+- Inconsistency with expected image locations
+
+### 2. Upstream Sync
+Cannot push changes back to `moltbook/moltbook-frontend` upstream repository. This blocks:
+- Contributing changes back to the upstream project
+- Maintaining fork synchronization
+- Collaborative development via moltbook organization
+
+## Optional: Granting Access to Upstream
+
+If the Moltbook organization owner wants to grant `jedarden` push access:
 
 ### Steps for Organization Owner
 
-1. Navigate to https://github.com/moltbook/api/settings/access
+1. Navigate to https://github.com/moltbook/moltbook-frontend/settings/access
 2. Click "Collaborators and teams"
 3. Invite `jedarden` with **Write** permission
-4. Repeat for https://github.com/moltbook/moltbook-frontend/settings/access
+4. Repeat for https://github.com/moltbook/api/settings/access (if it exists)
 
 ### Verification Steps
 
-After permissions are granted, verify:
-
 ```bash
-# Verify API repo access
-cd /home/coder/Research/moltbook-org/api
-git remote -v | grep moltbook
-git push moltbook main  # Should succeed without 403 error
-
-# Verify frontend repo access
-cd /home/coder/Research/moltbook-org/moltbook-frontend
-git remote -v | grep moltbook
-git push moltbook main  # Should succeed without 403 error
+# Verify upstream repo access
+cd /home/coder/Research/moltbook-org
+git push --dry-run moltbook main  # Should succeed without 403 error
 ```
 
-## Current Git Remote Configuration
+## Alternative: Maintain Current Monorepo Approach
 
-### moltbook-frontend
-```
-fork	https://github.com/jedarden/moltbook-frontend.git (fetch)
-fork	https://github.com/jedarden/moltbook-frontend.git (push)
-moltbook	https://github.com/moltbook/moltbook-frontend.git (fetch)
-moltbook	https://github.com/moltbook/moltbook-frontend.git (push)
-origin	https://github.com/ardenone/moltbook-org.git (fetch)
-origin	https://github.com/ardenone/moltbook-org.git (push)
-```
+**Recommendation:** Continue using the monorepo approach with `ardenone/moltbook-org`.
 
-## Alternative Workaround (if permissions cannot be granted)
+**Advantages:**
+- Already working
+- Control over image naming and publishing
+- No dependency on external organization permissions
+- Consolidated build pipeline
 
-If organization permissions cannot be granted, consider:
+**Considerations:**
+- Update any references from `ghcr.io/moltbook/*` to `ghcr.io/ardenone/*`
+- Document the image repository locations clearly
+- Ensure Kubernetes manifests use correct image references
 
-1. **Create GitHub Actions workflows in the fork** (`jedarden/moltbook-*` repos)
-2. **Push to ardenone/moltbook-org** and trigger builds from there
-3. **Manual image builds** using local Docker or CI/CD from other sources
+## Current Status
+
+- [x] Dockerfiles created and committed
+- [x] GitHub Actions workflow configured in `ardenone/moltbook-org`
+- [x] Push access to `ardenone/moltbook-org` verified
+- [ ] (Optional) Push access to `moltbook/moltbook-frontend` upstream
+- [ ] Images published to GHCR (will happen on next push to main)
 
 ## Related Documentation
 
-- BUILD_IMAGES.md - Container image build process
-- DOCKER_BUILD.md - Docker build procedures
-- GITHUB_PERMISSIONS_REQUIRED.md - Detailed GitHub permissions requirements
-- GITHUB_PERMISSIONS_BLOCKER.md - Related permission blocker
-- GITHUB_ADMIN_ACTION_REQUIRED.md - Admin action summary
+- `.github/workflows/build-push.yml` - Container image build workflow
+- `k8s/kustomization.yml` - Kubernetes manifests with image references
 
-## Next Steps (Once Unblocked)
+## Next Steps
 
-1. Push Dockerfiles to moltbook/api and moltbook/moltbook-frontend
-2. Verify GitHub Actions workflows are triggered
-3. Confirm images are pushed to `ghcr.io/ardenone/*`
-4. Update Kubernetes manifests to reference new image locations
-5. Deploy to apexalgo-iad cluster
+1. **Verify images build and publish correctly** on next push to `ardenone/moltbook-org`
+2. **Update Kubernetes manifests** to use `ghcr.io/ardenone/*` image references
+3. **(Optional) Request upstream access** if collaboration via moltbook organization is desired
 
 ---
 
-**Resolution:** This bead will be marked complete when `jedarden` has verified successful push access to both moltbook organization repositories.
+**Resolution Status:** PARTIALLY RESOLVED
+- Container images can be built via `ardenone/moltbook-org`
+- Upstream `moltbook/*` repositories remain inaccessible
+- No action required unless upstream collaboration is needed

@@ -261,12 +261,12 @@ export function Footer() {
 }
 
 // Page Container
-export function PageContainer({ children, className }: { children: React.ReactNode; className?: string }) {
+export function PageContainer({ children, className }: { children: ReactNode; className?: string }) {
   return <div className={cn('flex-1 py-6', className)}>{children}</div>;
 }
 
 // Main Layout
-export function MainLayout({ children }: { children: React.ReactNode }) {
+export function MainLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
