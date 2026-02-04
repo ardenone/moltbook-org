@@ -3,7 +3,7 @@
 **Task**: mo-y5o - CRITICAL: Install ArgoCD in ardenone-cluster for Moltbook deployment
 **Date**: 2026-02-04 22:26 UTC
 **Status**: BLOCKED - Requires cluster-admin privileges
-**Action Bead**: mo-1xks (Priority 0 - Critical)
+**Action Bead**: mo-21sg (Priority 0 - Critical) - CRITICAL: Grant cluster-admin to devpod ServiceAccount for ArgoCD installation
 
 ## Summary
 

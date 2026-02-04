@@ -74,9 +74,20 @@ Expected output should include `"push": true`
 
 ## Related Beads
 - **mo-3ps** - This task: Re-verify GitHub permissions blocker status and document findings (current bead)
+- **mo-2uzu** - Blocker: Admin action required for direct push permissions
 - **mo-1le** - Admin action request for push permissions
 - **mo-2xz2** - Docker build blocker caused by missing permissions (PRIORITY 0)
 - **mo-2ik** - Original permission investigation and documentation
+
+## Workaround Implemented (mo-3ps - 2026-02-04 22:25 UTC)
+
+Fork-based PRs have been created to unblock Docker image builds:
+- **API PR**: https://github.com/moltbook/api/pull/103
+- **Frontend PR**: https://github.com/moltbook/moltbook-frontend/pull/8
+
+Once these PRs are merged by a moltbook organization maintainer, GitHub Actions will automatically build and push Docker images to ghcr.io.
+
+**Status**: 🟡 WORKAROUND IN PLACE - PRs created, awaiting review
 
 ## Task Completion Status
 The task mo-1le is **complete** - documentation is verified and comprehensive. The actual permission grant requires:
