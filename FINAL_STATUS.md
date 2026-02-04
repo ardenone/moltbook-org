@@ -64,7 +64,7 @@ All manifests created, validated, and tested:
 ✅ **GitHub Actions workflow exists:**
 - File: `.github/workflows/build-push.yml`
 - Builds API and Frontend images
-- Pushes to `ghcr.io/moltbook/api:latest` and `ghcr.io/moltbook/frontend:latest`
+- Pushes to `ghcr.io/ardenone/moltbook-api:latest` and `ghcr.io/ardenone/moltbook-frontend:latest`
 - Triggers on push to main branch (paths: api/**, moltbook-frontend/**)
 
 ## 🚨 Current Blockers
@@ -106,8 +106,8 @@ Install ArgoCD which has cluster-admin permissions and can create namespaces aut
 **Tracked in**: 15+ duplicate beads (mo-300, mo-sn0, mo-ez4, mo-8xp, etc.)
 
 **Images Needed**:
-- `ghcr.io/moltbook/api:latest`
-- `ghcr.io/moltbook/frontend:latest`
+- `ghcr.io/ardenone/moltbook-api:latest`
+- `ghcr.io/ardenone/moltbook-frontend:latest`
 
 **Resolution Options**:
 
@@ -121,8 +121,8 @@ Install ArgoCD which has cluster-admin permissions and can create namespaces aut
 **Option B: Local Build**
 ```bash
 # On a machine with podman/docker
-cd api && podman build -t ghcr.io/moltbook/api:latest . && podman push ghcr.io/moltbook/api:latest
-cd moltbook-frontend && podman build -t ghcr.io/moltbook/frontend:latest . && podman push ghcr.io/moltbook/frontend:latest
+cd api && podman build -t ghcr.io/ardenone/moltbook-api:latest . && podman push ghcr.io/ardenone/moltbook-api:latest
+cd moltbook-frontend && podman build -t ghcr.io/ardenone/moltbook-frontend:latest . && podman push ghcr.io/ardenone/moltbook-frontend:latest
 ```
 
 ## 📋 Deployment Steps (Once Blockers Resolved)

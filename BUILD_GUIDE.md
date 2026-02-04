@@ -358,8 +358,8 @@ moltbook/
 - ✅ Kustomization builds successfully (1050 lines)
 
 **Image References**:
-- API: `ghcr.io/moltbook/api:latest`
-- Frontend: `ghcr.io/moltbook/frontend:latest`
+- API: `ghcr.io/ardenone/moltbook-api:latest`
+- Frontend: `ghcr.io/ardenone/moltbook-frontend:latest`
 
 **Validation**:
 ```bash
