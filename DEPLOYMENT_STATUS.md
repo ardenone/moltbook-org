@@ -68,73 +68,119 @@ All secrets are encrypted using sealed-secrets controller and safe to commit to 
 - ✅ `k8s/secrets/postgres-superuser-secret-template.yml`
 - ✅ `k8s/secrets/README.md` - Complete documentation
 
-### 3. ArgoCD Application
+### 4. Deployment Files
 
-- ✅ Application manifest: `k8s/argocd-application.yml`
-- Automated sync enabled
-- Prune and self-heal enabled
-- Targets the main branch of moltbook-org repository
+- ✅ `k8s/kustomization.yml` - Main kustomization file (standard deployment)
+- ✅ `k8s/kustomization-no-namespace.yml` - Alternative without namespace resource (for use after namespace is pre-created)
+- ✅ `k8s/NAMESPACE_REQUEST.yml` - Namespace creation request for cluster admin
+- ✅ `k8s/argocd-application.yml` - ArgoCD application manifest (for future use when ArgoCD is installed)
 
-### 4. Documentation
+### 5. Documentation
 
 Created comprehensive guides:
 - ✅ `DEPLOYMENT_GUIDE.md` - Complete step-by-step deployment guide
 - ✅ `DEPLOYMENT.md` - Original technical documentation
 - ✅ `DEPLOYMENT_SUMMARY.md` - High-level overview
 
-### 5. Git Repository
+### 6. Git Repository
 
-- ✅ All changes committed to git (commit 452b094)
+- ✅ All changes committed to git
 - ✅ Submodules properly configured (api, moltbook-frontend)
 - ✅ .gitignore configured to prevent accidental secret commits
 
-## 🔨 Remaining Work & Blockers
+## 🚨 Current Blocker
 
-### 1. ArgoCD Installation (CRITICAL)
+### Namespace Creation Permissions
 
-**Blocker Bead**: `mo-3ca` - "CRITICAL: Install ArgoCD in ardenone-cluster"
+**Blocker Bead**: `mo-3o6` - "Fix: Grant devpod ServiceAccount namespace creation permissions"
 
 **Status**: 🚨 **CRITICAL BLOCKER**
 
-ArgoCD is not installed in ardenone-cluster. The manifests are designed for GitOps deployment via ArgoCD.
-
-**Verification**:
-```bash
-$ kubectl get pods -n argocd
-No resources found in argocd namespace.
-```
-
-**Required Actions**:
-1. Install ArgoCD operator/controller in ardenone-cluster
-2. Configure ArgoCD to access Git repositories
-3. Apply ArgoCD Application manifest
-
-**Without ArgoCD**, alternative deployment requires cluster-admin permissions.
-
-### 1.1 RBAC Permissions
-
-**Blocker Bead**: `mo-3rp` - "CRITICAL: Grant namespace creation permissions to devpod ServiceAccount or pre-create moltbook namespace"
-
-**Status**: 🔨 **BLOCKED**
-
 The `system:serviceaccount:devpod:default` ServiceAccount lacks cluster-scoped permissions to create namespaces.
 
-**Attempted Action**: Applied namespace manifest but got permission denied error.
+**Error**:
+```
+Error from server (Forbidden): namespaces is forbidden:
+User "system:serviceaccount:devpod:default" cannot create resource "namespaces"
+in API group "" at the cluster scope
+```
 
-**Solution Options**:
-1. **Install ArgoCD** (recommended) - ArgoCD has cluster-admin permissions
-2. **Grant ClusterRole** to devpod ServiceAccount for namespace creation
-3. **Pre-create namespace** manually with cluster-admin
+**Solutions**:
 
-**RBAC Created**:
-- ✅ `k8s/namespace/moltbook-rbac.yml` - Role and RoleBinding for devpod in moltbook namespace
-- ⚠️ Does NOT include cluster-scoped namespace creation permissions
+1. **Option A: Cluster Admin Creates Namespace** (Recommended)
+   ```bash
+   kubectl apply -f k8s/NAMESPACE_REQUEST.yml
+   ```
+   After namespace is created, deploy with:
+   ```bash
+   kubectl apply -k k8s/
+   ```
 
-### 2. Docker Images
+2. **Option B: Grant ClusterRole to devpod ServiceAccount**
+   Create ClusterRole with namespace creation permissions and bind to devpod SA.
 
-**Blocker Bead**: `mo-jgo` - "Fix: Docker Hub rate limit blocking image builds"
+3. **Option C: Use ArgoCD** (Future)
+   Install ArgoCD which has cluster-admin permissions and can create namespaces automatically.
 
-**Related Bead**: `mo-1k0` - "Build and push Moltbook Docker images to ghcr.io"
+## 📋 Deployment Steps (Post-Blocker Resolution)
+
+Once the `moltbook` namespace is created by cluster admin:
+
+### Step 1: Apply All Resources
+```bash
+kubectl apply -k k8s/
+```
+
+This will deploy:
+1. Namespace (if using standard kustomization.yml)
+2. RBAC roles and bindings
+3. SealedSecrets (auto-decrypted by sealed-secrets controller)
+4. PostgreSQL cluster (CNPG)
+5. Redis deployment
+6. API backend with init container for migrations
+7. Frontend application
+8. Ingress routes for external access
+
+### Step 2: Monitor Deployment
+```bash
+# Watch pod status
+kubectl get pods -n moltbook -w
+
+# Check CNPG cluster
+kubectl get cluster -n moltbook
+
+# Check secrets (should be auto-decrypted)
+kubectl get secrets -n moltbook
+```
+
+### Step 3: Verify PostgreSQL
+```bash
+# Wait for PostgreSQL cluster to be ready
+kubectl wait --for=condition=Ready cluster/moltbook-postgres -n moltbook --timeout=300s
+
+# Check cluster status
+kubectl get cluster -n moltbook -o wide
+```
+
+### Step 4: Verify Services
+```bash
+# Check all services
+kubectl get svc -n moltbook
+
+# Check ingress routes
+kubectl get ingressroute -n moltbook
+```
+
+### Step 5: Test External Access
+```bash
+# Test frontend (after DNS propagates)
+curl -I https://moltbook.ardenone.com
+
+# Test API
+curl https://api-moltbook.ardenone.com/health
+```
+
+## 📦 Docker Images
 
 The manifests reference these images:
 - `ghcr.io/moltbook/api:latest`
