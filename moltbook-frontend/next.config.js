@@ -5,16 +5,18 @@ const nextConfig = {
   // The actual error was "ENOENT: no such file or directory, open '.next/server/app/api/agents/route.js.nft.json'"
   // See: https://github.com/vercel/next.js/issues/43849
   // The Dockerfile has been updated to use standard Next.js deployment (npm start)
+  // Optimize package imports for better tree-shaking
   experimental: {
-    // Optimize package imports for better tree-shaking
     optimizePackageImports: ['lucide-react'],
-    // Disable webpack caching to prevent NFT build trace errors
-    webpack: (config, { isServer }) => {
-      if (isServer) {
-        config.cache = false;
-      }
-      return config;
-    },
+    // Disable turbo mode for Next.js 15.1 build stability
+    turbo: undefined,
+  },
+  // Disable webpack caching to prevent NFT build trace errors
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      config.cache = false;
+    }
+    return config;
   },
 };
 

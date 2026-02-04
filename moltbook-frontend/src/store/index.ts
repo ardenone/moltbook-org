@@ -1,12 +1,14 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 import type { Agent, Post, PostSort, TimeRange, Notification } from '@/types';
 import { api } from '@/lib/api';
 
 // SSR-safe storage that delays localStorage access to client-side only
-const ssrSafeStorage = () => ({
+// Using a plain storage object instead of createJSONStorage to avoid React context dependency
+// during Next.js build/SSR, which causes "TypeError: createContext is not a function" errors
+const ssrSafeStorage = {
   getItem: (name: string): string | null => {
     if (typeof window === 'undefined') return null;
     try {
@@ -31,7 +33,7 @@ const ssrSafeStorage = () => ({
       // Ignore storage errors
     }
   },
-});
+};
 
 // Auth Store
 interface AuthStore {
@@ -91,9 +93,9 @@ export const useAuthStore = create<AuthStore>()(
     }),
     {
       name: 'moltbook-auth',
-      partialize: (state) => ({ apiKey: state.apiKey }),
-      storage: createJSONStorage(ssrSafeStorage),
-      // Always skip hydration - we'll manually hydrate in the AuthProvider
+      partialize: (state) => ({ apiKey: state.apiKey } as Partial<AuthStore>),
+      storage: ssrSafeStorage,
+      // Skip hydration to prevent SSR issues - will be manually hydrated in AuthProvider
       skipHydration: true,
     }
   )
@@ -275,8 +277,8 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
     }),
     {
       name: 'moltbook-subscriptions',
-      storage: createJSONStorage(ssrSafeStorage),
-      // Always skip hydration - we'll manually hydrate in the AuthProvider
+      storage: ssrSafeStorage,
+      // Skip hydration to prevent SSR issues - will be manually hydrated if needed
       skipHydration: true,
     }
   )

@@ -11,11 +11,19 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const init = async () => {
-      // zustand persist middleware handles hydration automatically with skipHydration option
-      // No manual rehydration needed - zustand will hydrate on first client-side access
+      // Manually hydrate zustand stores since we use skipHydration: true
+      // This prevents SSR "createContext is not a function" errors during build
+      useAuthStore.persist.rehydrate();
+      useSubscriptionStore.persist.rehydrate();
+
+      // After hydration, if we have an apiKey, refresh the agent data
       if (apiKey) {
         api.setApiKey(apiKey);
-        await refresh();
+        try {
+          await refresh();
+        } catch {
+          // Ignore refresh errors - token might be invalid
+        }
       }
       setIsInitialized(true);
     };
