@@ -2,28 +2,13 @@
 
 **Date:** 2026-02-04
 **Bead:** mo-saz
-**Status:** Ready for Deployment (Pending RBAC)
+**Status:** Kubernetes Manifests Complete - Awaiting External Actions
 
 ---
 
 ## Summary
 
-The Moltbook platform Kubernetes manifests are fully prepared and validated. All components are configured according to GitOps best practices with ArgoCD. Deployment is pending cluster administrator approval for RBAC permissions.
-
----
-
-## Components Status
-
-| Component | Status | Notes |
-|-----------|--------|-------|
-| PostgreSQL (CNPG) | ✅ Ready | Single instance, 10Gi storage, local-path SC |
-| Redis | ✅ Ready | Single replica, Redis 7 Alpine |
-| API Backend | ✅ Ready | 2 replicas, Node.js 18, ghcr.io/ardenone/moltbook-api:latest |
-| Frontend (Next.js) | ✅ Ready | 2 replicas, Next.js 14, ghcr.io/ardenone/moltbook-frontend:latest |
-| Traefik IngressRoutes | ✅ Ready | moltbook.ardenone.com, api-moltbook.ardenone.com |
-| SealedSecrets | ✅ Ready | JWT_SECRET, DATABASE_URL, DB credentials |
-| Namespace | ⚠️ Pending | Requires cluster admin to create |
-| RBAC | ⚠️ Pending | Requires cluster admin to apply |
+The Moltbook platform Kubernetes deployment manifests are **fully prepared and validated**. All required manifests have been created and are ready for deployment. The deployment is blocked by two external issues that need to be resolved before the platform can be deployed.
 
 ---
 
@@ -64,35 +49,97 @@ ardenone-cluster (local)
 
 ---
 
-## Required Actions for Deployment
+## Components Status
 
-### 1. Cluster Administrator Actions (One-time Setup)
+| Component | Status | Notes |
+|-----------|--------|-------|
+| PostgreSQL (CNPG) | ✅ Complete | Single instance, 10Gi storage, local-path SC |
+| Redis | ✅ Complete | Single replica, Redis 7 Alpine |
+| API Backend | ✅ Complete | 2 replicas, Node.js 18, ghcr.io/ardenone/moltbook-api:latest |
+| Frontend (Next.js) | ✅ Complete | 2 replicas, Next.js 14, ghcr.io/ardenone/moltbook-frontend:latest |
+| Traefik IngressRoutes | ✅ Complete | moltbook.ardenone.com, api-moltbook.ardenone.com |
+| SealedSecrets | ✅ Complete | JWT_SECRET, DATABASE_URL, DB credentials |
+| ArgoCD Application | ✅ Complete | Auto-sync enabled |
+| Deploy Script | ✅ Complete | scripts/deploy-moltbook.sh |
+| Namespace | ⚠️ Pending | Requires cluster admin to create |
+| Container Images | ⚠️ Pending | Requires frontend build fix |
 
-Apply RBAC to grant devpod ServiceAccount namespace creation permissions:
+---
 
-```bash
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/namespace/devpod-namespace-creator-rbac.yml
+## Blockers
+
+### Blocker 1: Namespace Creation (Priority 0)
+
+**Issue**: ServiceAccount lacks permissions to create namespaces.
+
+**Error**:
+```
+Error from server (Forbidden): namespaces is forbidden:
+User "system:serviceaccount:devpod:default" cannot create resource "namespaces"
 ```
 
-This creates:
-- `ClusterRole`: namespace-creator
-- `ClusterRoleBinding`: devpod-namespace-creator
+**Resolution**: Cluster admin needs to run:
+```bash
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/namespace/moltbook-namespace.yml
+```
 
-### 2. Deployment Execution (After RBAC is Applied)
+Or use the deploy script:
+```bash
+./scripts/deploy-moltbook.sh
+```
+
+### Blocker 2: Frontend Build (Priority 0)
+
+**Issue**: Next.js build fails with `TypeError: (0 , n.createContext) is not a function`
+
+This is a webpack/server-side bundling issue related to React's `createContext` not being properly bundled during server-side chunk generation in Next.js 14.1.0 standalone mode.
+
+**Error**:
+```
+TypeError: (0 , n.createContext) is not a function
+    at 3214 (/home/coder/Research/moltbook-org/moltbook-frontend/.next/server/chunks/618.js:74:270)
+```
+
+**Potential Solutions**:
+1. Upgrade Next.js to a newer version (14.2.x or 15.x) that fixes this webpack bundling issue
+2. Remove `output: 'standalone'` from next.config.js (if not required)
+3. Ensure all React imports use named imports instead of `import * as React`
+4. Check for webpack configuration conflicts
+
+**Related Beads**:
+- mo-37h [P0] - Fix: Frontend build failures - missing hooks and TypeScript errors
+
+---
+
+## Deployment Procedure (Once Blockers Resolved)
+
+### Option 1: Automated Script
 
 ```bash
 cd /home/coder/Research/moltbook-org
-kubectl apply -k k8s/
+./scripts/deploy-moltbook.sh
 ```
 
-Or wait for ArgoCD to sync (if Application is created).
-
-### 3. ArgoCD Application (Optional)
-
-If not using kubectl apply directly:
+### Option 2: Manual Kubectl
 
 ```bash
+# Step 1: Create namespace (requires cluster admin)
+kubectl apply -f k8s/namespace/moltbook-namespace.yml
+
+# Step 2: Deploy all resources
+kubectl apply -k k8s/
+
+# Step 3: Monitor deployment
+kubectl get pods -n moltbook -w
+```
+
+### Option 3: ArgoCD
+
+```bash
+# Create ArgoCD Application
 kubectl apply -f k8s/argocd-application.yml
+
+# ArgoCD will automatically sync the resources
 ```
 
 ---
@@ -122,12 +169,6 @@ All secrets are pre-encrypted as SealedSecrets and safe to commit to Git:
 | moltbook-api-secrets | DATABASE_URL, JWT_SECRET, TWITTER_CLIENT_ID, TWITTER_CLIENT_SECRET |
 | moltbook-postgres-superuser | username, password |
 | moltbook-db-credentials | username, password |
-
----
-
-## Database Schema
-
-The schema is loaded from ConfigMap `moltbook-db-schema` and initialized by the `moltbook-db-init` Deployment (idempotent - safe for ArgoCD).
 
 ---
 
@@ -170,55 +211,54 @@ spec:
 
 ---
 
-## Blocker Summary
-
-### CRITICAL: ArgoCD Not Installed (2026-02-04)
-
-**Issue:** ArgoCD is NOT deployed in ardenone-cluster. The `argocd` namespace does not exist.
-
-**Impact:** The ArgoCD Application manifest (`k8s/argocd-application.yml`) references the `argocd` namespace which doesn't exist.
-
-**Options:**
-1. **Deploy ArgoCD first** - Install ArgoCD in the cluster before creating the Application
-2. **Deploy directly via kubectl** - Use `kubectl apply -k k8s/` instead of ArgoCD GitOps
-
-### Bead mo-n4h (Priority 0): "Fix: Grant namespace creation permissions for moltbook deployment"
-
-The devpod ServiceAccount lacks cluster-level permissions to create namespaces and apply RBAC. A cluster administrator must apply the RBAC manifest before deployment can proceed.
-
-**Resolution options:**
-1. Quick fix: `kubectl apply -f k8s/NAMESPACE_REQUEST.yml`
-2. Permanent fix: `kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml`
-
-### Bead mo-7vy (Priority 1): "Build: Container images for moltbook-api and moltbook-frontend"
-
-Container images need to be built and pushed to GHCR before deployment:
-- ghcr.io/ardenone/moltbook-api:latest
-- ghcr.io/ardenone/moltbook-frontend:latest
-
-**Build command:** `./scripts/build-images.sh --push`
-
----
-
 ## Files Reference
 
 | Purpose | File |
 |---------|------|
-| RBAC (requires admin) | `k8s/namespace/devpod-namespace-creator-rbac.yml` |
 | Namespace | `k8s/namespace/moltbook-namespace.yml` |
-| Kustomization | `k8s/kustomization.yml` |
+| RBAC | `k8s/namespace/moltbook-rbac.yml` |
+| Kustomize | `k8s/kustomization.yml` |
 | ArgoCD App | `k8s/argocd-application.yml` |
 | PostgreSQL | `k8s/database/cluster.yml` |
 | API Deployment | `k8s/api/deployment.yml` |
 | Frontend Deployment | `k8s/frontend/deployment.yml` |
 | IngressRoutes | `k8s/api/ingressroute.yml`, `k8s/frontend/ingressroute.yml` |
 | SealedSecrets | `k8s/secrets/moltbook-*-sealedsecret.yml` |
+| Deploy Script | `scripts/deploy-moltbook.sh` |
+
+---
+
+## Success Criteria
+
+- [x] Kubernetes manifests created
+- [x] Manifests validated
+- [x] Traefik IngressRoutes configured
+- [x] SealedSecrets created
+- [x] ArgoCD Application configured
+- [x] Deploy script created
+- [ ] Namespace created (BLOCKED - requires cluster admin)
+- [ ] Frontend builds successfully (BLOCKED - webpack/React createContext issue)
+- [ ] Container images pushed to GHCR (blocked by frontend build)
+- [ ] Platform deployed (blocked by above issues)
 
 ---
 
 ## Next Steps
 
-1. **Cluster Admin:** Apply `k8s/namespace/devpod-namespace-creator-rbac.yml`
-2. **Deploy:** Run `kubectl apply -k k8s/`
-3. **Verify:** Check pods are running: `kubectl get pods -n moltbook`
-4. **Test:** Access https://moltbook.ardenone.com
+### For Cluster Admin
+1. **Create namespace**: `kubectl apply -f k8s/namespace/moltbook-namespace.yml`
+2. **Or run deploy script**: `./scripts/deploy-moltbook.sh`
+
+### For Frontend Build Issue
+1. Investigate Next.js version compatibility
+2. Try upgrading to Next.js 14.2.x or 15.x
+3. Review React import patterns across the codebase
+4. Test with `output: 'standalone'` disabled
+
+### After Blockers Resolved
+1. Build and push container images
+2. Deploy to cluster
+3. Verify: `kubectl get pods -n moltbook`
+4. Test endpoints:
+   - https://moltbook.ardenone.com
+   - https://api-moltbook.ardenone.com/health

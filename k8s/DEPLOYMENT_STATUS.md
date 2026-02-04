@@ -1,6 +1,6 @@
 # Moltbook Deployment Status - ardenone-cluster
 
-**Status:** ✅ MANIFESTS COMPLETE - AWAITING ARGOCD INSTALLATION & RBAC SETUP
+**Status:** BLOCKED - Namespace Creation Requires Cluster Admin (See mo-382)
 
 **Date:** 2026-02-04
 
@@ -205,25 +205,35 @@ Traefik (Let's Encrypt TLS)
 
 ## Related Beads
 
-- **mo-saz** (this bead): Implementation: Deploy Moltbook platform to ardenone-cluster ✅ COMPLETE
-- **mo-1zt** (Priority 1): RBAC: Apply ClusterRoleBinding for namespace creation - The devpod ServiceAccount needs ClusterRoleBinding 'devpod-namespace-creator' to create the moltbook namespace. Apply k8s/namespace/devpod-namespace-creator-rbac.yml with cluster-admin permissions.
+### Active Beads
+- **mo-saz** (this bead): Implementation: Deploy Moltbook platform to ardenone-cluster ⏳ IN PROGRESS
+- **mo-382** (Priority 0): Fix: Apply RBAC for Moltbook deployment - namespace creation blocked 🆕 CONSOLIDATED BLOCKER
+
+### Superseded Beads (Close after mo-382 is resolved)
+The following P0 beads are now superseded by mo-382:
+- mo-hfs, mo-3rs, mo-3uo, mo-32c, mo-drj, mo-hv4, mo-3iz, mo-2fr, mo-bai, mo-272
 
 ## Critical Deployment Blockers (2026-02-04)
 
-### 1. ArgoCD Not Installed
+### 1. Namespace Creation Requires Cluster Admin (BLOCKER)
+**Status:** The devpod ServiceAccount lacks permission to create namespaces
+
+**Error:** `namespaces is forbidden: User "system:serviceaccount:devpod:default" cannot create resource "namespaces"`
+
+**Resolution:**
+- Cluster admin must apply: `kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml`
+- See `k8s/DEPLOYMENT_BLOCKER.md` for complete details
+
+**New Blocker Bead:** mo-382 consolidates all namespace creation blocker beads
+
+### 2. ArgoCD Not Installed (INFO)
 **Status:** ArgoCD is NOT deployed in ardenone-cluster (no `argocd` namespace exists)
 
 **Impact:** The ArgoCD Application manifest (`k8s/argocd-application.yml`) references the non-existent `argocd` namespace
 
 **Resolution Options:**
 1. Install ArgoCD in the cluster before using GitOps deployment
-2. Deploy directly using `kubectl apply -k k8s/` instead of ArgoCD
-
-### 2. Namespace Creation Requires Cluster Admin
-**Status:** The devpod ServiceAccount lacks permission to create namespaces
-
-**Resolution:**
-- Cluster admin must apply: `kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml`
+2. Deploy directly using `kubectl apply -k k8s/` instead of ArgoCD (RECOMMENDED)
 
 ### Test Results Summary
 - ✅ **API Tests:** 14/14 passing (Auth Utils, Error Classes, Config)
