@@ -51,11 +51,22 @@ gh run watch
 
 ## Method 2: Local Build with Build Script
 
-A build script is provided at `scripts/build-images.sh` for local builds.
+⚠️ **CRITICAL LIMITATION**: Local Docker/Podman builds **DO NOT WORK** in devpod environments due to nested overlayfs filesystem issues.
+
+**Error you'll see**:
+```
+ERROR: mount source: "overlay" ... err: invalid argument
+```
+
+**Solution**: Use Method 1 (GitHub Actions) or build on your host machine (not in devpod). See `DOCKER_BUILD_WORKAROUND.md` for full details.
+
+---
+
+A build script is provided at `scripts/build-images.sh` for local builds **on host machines only** (not in devpod).
 
 ### Prerequisites
 
-- Docker or Podman installed and running
+- Docker or Podman installed and running **on host machine** (not in containerized devpod)
 - GitHub Personal Access Token with `write:packages` and `read:packages` scopes
 
 ### Build Script Usage
@@ -140,6 +151,7 @@ If GitHub Actions fails:
 
 ## Related Documentation
 
+- **`DOCKER_BUILD_WORKAROUND.md`** - ⚠️ **READ THIS FIRST** if local builds fail
 - `DEPLOYMENT_READY.md` - Deployment prerequisites
 - `DEPLOYMENT_STATUS.md` - Current deployment status
 - `FINAL_STATUS.md` - Overall project status
