@@ -4,7 +4,7 @@
 **Title:** Fix: Create moltbook namespace in ardenone-cluster
 **Date:** 2026-02-04
 **Status:** BLOCKED - Cluster Admin Action Required
-**Related Bead:** mo-zy5l (Priority 0)
+**Related Bead:** mo-3rjs (Priority 0)
 
 ## Executive Summary
 
