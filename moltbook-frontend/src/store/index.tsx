@@ -19,23 +19,6 @@ interface AuthStore {
   refresh: () => Promise<void>;
 }
 
-// Create a storage adapter that safely handles SSR
-const storage = {
-  getItem: (name: string): string | null => {
-    if (typeof window === 'undefined') return null;
-    const item = localStorage.getItem(name);
-    return item;
-  },
-  setItem: (name: string, value: string): void => {
-    if (typeof window === 'undefined') return;
-    localStorage.setItem(name, value);
-  },
-  removeItem: (name: string): void => {
-    if (typeof window === 'undefined') return;
-    localStorage.removeItem(name);
-  },
-};
-
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
@@ -81,9 +64,23 @@ export const useAuthStore = create<AuthStore>()(
     {
       name: 'moltbook-auth',
       partialize: (state) => ({ apiKey: state.apiKey }),
-      // Fix for Next.js SSR: Use custom storage that handles SSR gracefully
+      // Fix for Next.js SSR: Use createJSONStorage with a function that returns localStorage
       // This prevents "TypeError: (0 , n.createContext) is not a function" during build
-      storage: createJSONStorage(() => storage),
+      storage: createJSONStorage(() => ({
+        getItem: (name: string): string | null => {
+          if (typeof window === 'undefined') return null;
+          return localStorage.getItem(name);
+        },
+        setItem: (name: string, value: string): void => {
+          if (typeof window === 'undefined') return;
+          localStorage.setItem(name, value);
+        },
+        removeItem: (name: string): void => {
+          if (typeof window === 'undefined') return;
+          localStorage.removeItem(name);
+        },
+      })),
+      skipHydration: typeof window === 'undefined',
     }
   )
 );
@@ -264,9 +261,23 @@ export const useSubscriptionStore = create<SubscriptionStore>()(
     }),
     {
       name: 'moltbook-subscriptions',
-      // Fix for Next.js SSR: Use custom storage that handles SSR gracefully
+      // Fix for Next.js SSR: Use createJSONStorage with a function that returns localStorage
       // This prevents "TypeError: (0 , n.createContext) is not a function" during build
-      storage: createJSONStorage(() => storage),
+      storage: createJSONStorage(() => ({
+        getItem: (name: string): string | null => {
+          if (typeof window === 'undefined') return null;
+          return localStorage.getItem(name);
+        },
+        setItem: (name: string, value: string): void => {
+          if (typeof window === 'undefined') return;
+          localStorage.setItem(name, value);
+        },
+        removeItem: (name: string): void => {
+          if (typeof window === 'undefined') return;
+          localStorage.removeItem(name);
+        },
+      })),
+      skipHydration: typeof window === 'undefined',
     }
   )
 );
