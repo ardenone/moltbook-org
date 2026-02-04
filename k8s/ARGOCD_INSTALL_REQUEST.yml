@@ -1,0 +1,144 @@
+---
+# ============================================================================
+# ARGOCD INSTALLATION RBAC FOR ARDENONE-CLUSTER
+# ============================================================================
+#
+# CRITICAL: This manifest grants the devpod ServiceAccount the permissions
+# needed to install ArgoCD in ardenone-cluster.
+#
+# To apply (requires cluster-admin access):
+#   kubectl apply -f /home/coder/Research/moltbook-org/k8s/ARGOCD_INSTALL_REQUEST.yml
+#
+# After applying this manifest, run from the devpod:
+#   kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+#   kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
+#
+# What this manifest does:
+# 1. Creates a ClusterRole with ArgoCD installation permissions
+# 2. Binds this ClusterRole to the devpod ServiceAccount
+# 3. Creates the argocd namespace (if it doesn't exist)
+#
+# ============================================================================
+# Step 1: Create ClusterRole for ArgoCD installation
+# ============================================================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: argocd-installer
+  labels:
+    app.kubernetes.io/name: devpod
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/part-of: moltbook-platform
+rules:
+  # Namespace management
+  - apiGroups: [""]
+    resources: ["namespaces"]
+    verbs: ["create", "get", "list", "watch", "update", "patch"]
+
+  # CRD management (required for ArgoCD)
+  - apiGroups: ["apiextensions.k8s.io"]
+    resources: ["customresourcedefinitions"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+
+  # ClusterRole and ClusterRoleBinding management (required for ArgoCD)
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterroles", "clusterrolebindings"]
+    verbs: ["get", "create", "update", "patch", "delete", "escalate", "bind"]
+
+  # Role and RoleBinding management (for ArgoCD namespace)
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["roles", "rolebindings"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+
+  # ArgoCD CRDs
+  - apiGroups: ["argoproj.io"]
+    resources: ["applications", "appprojects", "applicationsets"]
+    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+
+  # Common resources needed for ArgoCD installation
+  - apiGroups: [""]
+    resources: ["configmaps", "secrets", "serviceaccounts", "services", "persistentvolumeclaims"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets", "daemonsets", "replicasets"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+
+  - apiGroups: ["batch"]
+    resources: ["jobs", "cronjobs"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+
+  # Networking policies
+  - apiGroups: ["networking.k8s.io"]
+    resources: ["networkpolicies", "ingresses"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+
+  # Traefik IngressRoute
+  - apiGroups: ["traefik.io"]
+    resources: ["ingressroutes", "middlewares"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+
+  # PriorityClass for ArgoCD components
+  - apiGroups: ["scheduling.k8s.io"]
+    resources: ["priorityclasses"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+
+  # PodDisruptionBudget
+  - apiGroups: ["policy"]
+    resources: ["poddisruptionbudgets"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+
+  # ServiceMonitor (if Prometheus Operator is present)
+  - apiGroups: ["monitoring.coreos.com"]
+    resources: ["servicemonitors", "prometheusrules"]
+    verbs: ["get", "create", "update", "patch", "delete"]
+
+---
+# ============================================================================
+# Step 2: Bind ClusterRole to devpod ServiceAccount
+# ============================================================================
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: devpod-argocd-installer
+  labels:
+    app.kubernetes.io/name: devpod
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/part-of: moltbook-platform
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: argocd-installer
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: devpod
+---
+# ============================================================================
+# Step 3: Create the argocd namespace
+# ============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    name: argocd
+    app.kubernetes.io/name: argocd
+    app.kubernetes.io/component: gitops
+    app.kubernetes.io/part-of: argocd
+    app.kubernetes.io/managed-by: kubectl
+---
+# ============================================================================
+# Step 4: Create the moltbook namespace (for the application)
+# ============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: moltbook
+  labels:
+    name: moltbook
+    app.kubernetes.io/name: moltbook
+    app.kubernetes.io/component: platform
+    app.kubernetes.io/part-of: moltbook
+    app.kubernetes.io/instance: moltbook-platform
+    app.kubernetes.io/managed-by: argocd
