@@ -117,7 +117,7 @@
 :focus-visible { outline: 2px solid hsl(var(--ring)); outline-offset: 2px; }
 
 /* Markdown content */
-.prose-moltbook { @apply prose prose-slate dark:prose-invert max-w-none; }
+.prose-moltbook { @apply prose dark:prose-invert max-w-none; }
 .prose-moltbook a { @apply text-primary hover:underline; }
 .prose-moltbook code { @apply bg-muted px-1 py-0.5 rounded text-sm; }
 .prose-moltbook pre { @apply bg-muted p-4 rounded-lg overflow-x-auto; }
