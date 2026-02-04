@@ -138,6 +138,7 @@ git push origin main
 ### Related Beads
 
 - **mo-3ps** - This task: Grant GitHub push permissions to moltbook organization repositories
+- **mo-3prx** (P0) - Blocker: Moltbook GitHub organization owner action required for push permissions
 - **mo-1le** - Original admin action request for push permissions
 - **mo-2xz2** - Docker build blocker caused by missing permissions (PRIORITY 0)
 - **mo-2ik** - Original permission investigation and documentation
