@@ -1,10 +1,6 @@
-'use client';
-
 import Link from 'next/link';
-import { Button } from '@/components/ui';
-import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
-
-export const dynamic = 'force-dynamic';
+import { AlertTriangle, Home } from 'lucide-react';
+import ErrorResetButton from '@/components/ErrorResetButton';
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (
@@ -16,15 +12,10 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         <h1 className="text-2xl font-bold mb-2">Something went wrong</h1>
         <p className="text-muted-foreground mb-6">An unexpected error occurred. Please try again.</p>
         <div className="flex gap-2 justify-center">
-          <Button onClick={reset} variant="outline">
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Try again
-          </Button>
-          <Link href="/">
-            <Button>
-              <Home className="h-4 w-4 mr-2" />
-              Go home
-            </Button>
+          <ErrorResetButton reset={reset} />
+          <Link href="/" className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2">
+            <Home className="h-4 w-4 mr-2" />
+            Go home
           </Link>
         </div>
         {error.digest && (
