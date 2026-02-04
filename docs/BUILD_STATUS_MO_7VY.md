@@ -33,31 +33,42 @@ The API container image was successfully built and pushed to GHCR:
 
 ## Frontend Image - BLOCKED
 
-The frontend container image build is failing with a React Context error during the Next.js prerendering phase.
+The frontend container image build is failing due to multiple compatibility issues.
 
-### Error Details
+### Current Error (Latest Build)
+
 ```
-TypeError: Cannot read properties of null (reading 'useContext')
-    at B.useContext (/app/.next/server/chunks/452.js:39:1357264)
-    at m (/app/.next/server/pages/_error.js:1:26448)
+npm error `npm ci` can only install packages when your package.json and package-lock.json are in sync.
+npm error Invalid: lock file's eslint-config-next@15.1.6 does not satisfy eslint-config-next@16.1.6
+npm error Invalid: lock file's next@15.1.6 does not satisfy next@16.1.6
+npm error Invalid: lock file's @next/eslint-plugin-next@15.1.6 does not satisfy @next/eslint-plugin-next@16.1.6
 ```
 
-### Error Location
-- Failing pages: `/500`, `/404`
-- Failing file: `/app/.next/server/chunks/452.js:39`
-- React module: `react-dom-server.browser.production.min.js`
+### Root Causes
 
-### Root Cause Analysis
+1. **package-lock.json out of sync**: The lock file has `next@15.1.6` but package.json specifies `next@16.1.6`
+2. **Node.js version mismatch**: Next.js 16.1.6 requires Node.js `>=20.9.0` but Dockerfile uses `node:18-alpine`
+3. **Lock file mismatch**: Multiple packages are out of sync (eslint-config-next, sharp, @next/swc-* packages)
 
-The error appears to be related to webpack configuration changes for handling `node:` prefixed modules. The `next.config.js` was recently modified to:
-1. Add externals configuration for `node:` prefixed modules
-2. Add resolve plugins for handling `node:` prefix
-3. Add fallback for Node.js built-ins including `buffer`
+### Environment Issues
 
-These changes may have inadvertently affected how React and React DOM are bundled, causing the prerendering to fail.
+- **Current Node version**: `v18.20.8`
+- **Next.js 16.1.6 requirement**: `>=20.9.0`
+- **Dockerfile base image**: `node:18-alpine` (needs upgrade to `node:20-alpine` or `node:22-alpine`)
 
-### Related Bead
+### Required Fixes
+
+1. **Regenerate package-lock.json**: Run `npm install` to sync with package.json
+2. **Update Dockerfile base image**: Change from `node:18-alpine` to `node:20-alpine` or higher
+3. **Version alignment**: Decide on Next.js version strategy:
+   - **Option A**: Downgrade to Next.js 14.x (stable, production-ready)
+   - **Option B**: Upgrade to Next.js 16.x (latest, requires Node.js 20+)
+4. **Commit updated lock file**: Ensure git state is clean before triggering build
+
+### Related Beads
+- **mo-azqd**: Fix: Frontend build blocked by Next.js 16.1.6 compatibility issues (Priority 0 - Critical)
 - **mo-3rve**: Fix: Frontend build fails with React Context error during prerendering (Priority 0 - Critical)
+- **mo-10ni**: Setup: Configure GITHUB_TOKEN for container image builds (Priority 0 - Critical)
 
 ## Build Method
 
