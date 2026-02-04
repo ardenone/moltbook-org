@@ -361,3 +361,109 @@ moltbook namespace:
 ---
 
 **Next Action:** Cluster administrator applies `cluster-configuration/ardenone-cluster/moltbook/namespace/NAMESPACE_SETUP_REQUEST.yml` to create the moltbook namespace.
+
+---
+
+## GitHub Push Permissions Blocker (mo-2fi)
+
+**Status:** BLOCKED - GitHub Push Permissions Required
+**Date:** 2026-02-04
+**Bead:** mo-2fi
+
+### Blocker Summary
+
+User `jedarden` lacks push permissions to the following moltbook organization repositories:
+- https://github.com/moltbook/api.git
+- https://github.com/moltbook/moltbook-frontend.git
+
+### Verified Permissions
+
+```json
+// moltbook/api
+{
+  "admin": false,
+  "maintain": false,
+  "pull": true,
+  "push": false,
+  "triage": false
+}
+
+// moltbook/moltbook-frontend
+{
+  "admin": false,
+  "maintain": false,
+  "pull": true,
+  "push": false,
+  "triage": false
+}
+```
+
+### Repository Owner
+
+The repositories are owned by the user account `moltbook` (not a formal GitHub organization):
+- Profile: https://github.com/moltbook
+- Website: https://www.moltbook.com/
+
+### Push Test Results
+
+```
+remote: Permission to moltbook/api.git denied to jedarden.
+fatal: unable to access 'https://github.com/moltbook/api.git/': The requested URL returned error: 403
+```
+
+### Ready Commits
+
+Both repositories have Dockerfile commits ready to push:
+
+**API (/tmp/moltbook-api-test/):**
+- Commit: `b4dbc8d feat: Add Dockerfile for containerized deployment`
+- Branch: main (ahead of origin/main by 1 commit)
+- Dockerfile: Multi-stage Node.js 18 Alpine build with health checks
+
+**Frontend (/tmp/moltbook-frontend-test/):**
+- Commit: `ceeda92 feat: Add Dockerfile for containerized deployment`
+- Branch: main (ahead of origin/main by 1 commit)
+- Dockerfile: Next.js 14 standalone build with health checks
+
+### Impact
+
+Once pushed, these Dockerfiles will trigger GitHub Actions to build container images:
+- `ghcr.io/moltbook/moltbook-api:latest`
+- `ghcr.io/moltbook/moltbook-frontend:latest`
+
+### Required Actions
+
+**For repository owner (moltbook):**
+
+Add `jedarden` as a collaborator with write permissions:
+
+**Option 1: Via GitHub CLI (recommended for automation)**
+```bash
+gh api repos/moltbook/api/collaborators/jedarden -X PUT -f permission=write
+gh api repos/moltbook/moltbook-frontend/collaborators/jedarden -X PUT -f permission=write
+```
+
+**Option 2: Via GitHub UI**
+1. Go to https://github.com/moltbook/api/settings/access
+2. Click "Add people"
+3. Enter: jedarden
+4. Select role: Write
+5. Repeat for moltbook-frontend repository
+
+### Verification After Permissions Granted
+
+```bash
+# Verify API permissions
+gh api repos/moltbook/api --jq '.permissions'
+
+# Verify frontend permissions
+gh api repos/moltbook/moltbook-frontend --jq '.permissions'
+
+# Push the commits
+cd /tmp/moltbook-api-test && git push origin main
+cd /tmp/moltbook-frontend-test && git push origin main
+```
+
+### Related Documentation
+
+See `/home/coder/Research/moltbook-org/GITHUB_PERMISSIONS_REQUIRED.md` for full details.
