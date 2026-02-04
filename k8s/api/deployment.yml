@@ -19,7 +19,7 @@ spec:
       # Init container to run database migrations
       initContainers:
       - name: migrate-db
-        image: ghcr.io/moltbook/api:latest
+        image: ghcr.io/ardenone/moltbook-api:latest
         command: ["sh", "-c", "node -e \"const pg = require('pg'); const client = new pg.Client({ connectionString: process.env.DATABASE_URL }); client.connect().then(() => client.query(require('fs').readFileSync('/etc/schema/schema.sql', 'utf8'))).then(() => client.end()).catch(err => { console.error(err); process.exit(1); });\""]
         envFrom:
         - secretRef:
@@ -31,7 +31,7 @@ spec:
 
       containers:
       - name: api
-        image: ghcr.io/moltbook/api:latest
+        image: ghcr.io/ardenone/moltbook-api:latest
         ports:
         - containerPort: 3000
           name: http

@@ -8,9 +8,12 @@
 
 The Moltbook platform deployment implementation is **complete and validated**. All Kubernetes manifests are production-ready, encrypted with SealedSecrets, and synced to both the research repository (`moltbook-org`) and the cluster configuration repository (`ardenone-cluster/cluster-configuration`).
 
-**Deployment is blocked by two external dependencies that require elevated permissions:**
-1. **Namespace creation** (cluster-admin required) - Tracked in new bead: **mo-39k** (Priority 0)
-2. **Docker image builds** (GitHub Actions workflow exists, triggers on push to main)
+**Deployment is blocked by one external dependency that requires elevated permissions:**
+1. **Namespace creation** (cluster-admin required) - Tracked in bead: **mo-3p2** (Priority 0) - **NEW (2026-02-04)**
+
+**Note:** Duplicate namespace beads have been consolidated. mo-3p2 is the primary tracker for namespace creation.
+
+**Docker images** can be built via GitHub Actions when code is pushed to GitHub repositories.
 
 ## ✅ Completed Work
 

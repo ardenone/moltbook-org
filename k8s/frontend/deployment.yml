@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: ghcr.io/moltbook/frontend:latest
+        image: ghcr.io/ardenone/moltbook-frontend:latest
         ports:
         - containerPort: 3000
           name: http

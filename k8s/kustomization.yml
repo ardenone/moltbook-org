@@ -28,10 +28,10 @@ resources:
 
 images:
   - name: ghcr.io/moltbook/api
-    newName: ghcr.io/moltbook/api
+    newName: ghcr.io/ardenone/moltbook-api
     newTag: latest
   - name: ghcr.io/moltbook/frontend
-    newName: ghcr.io/moltbook/frontend
+    newName: ghcr.io/ardenone/moltbook-frontend
     newTag: latest
 
 labels:

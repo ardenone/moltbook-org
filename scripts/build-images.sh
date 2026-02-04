@@ -25,9 +25,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 REGISTRY="ghcr.io"
-ORGANIZATION="moltbook"
-API_IMAGE_NAME="${REGISTRY}/${ORGANIZATION}/api"
-FRONTEND_IMAGE_NAME="${REGISTRY}/${ORGANIZATION}/frontend"
+ORGANIZATION="ardenone"
+API_IMAGE_NAME="${REGISTRY}/${ORGANIZATION}/moltbook-api"
+FRONTEND_IMAGE_NAME="${REGISTRY}/${ORGANIZATION}/moltbook-frontend"
 DEFAULT_TAG="${IMAGE_TAG:-latest}"
 
 # Parse arguments
@@ -178,7 +178,7 @@ build_image() {
 
   # Add build labels
   build_args+=(
-    "--label" "org.opencontainers.image.source=https://github.com/moltbook/moltbook-org"
+    "--label" "org.opencontainers.image.source=https://github.com/ardenone/moltbook-org"
     "--label" "org.opencontainers.image.created=$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
     "--label" "org.opencontainers.image.revision=$(git rev-parse --short HEAD 2>/dev/null || echo 'unknown')"
   )
