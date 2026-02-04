@@ -3,8 +3,9 @@
 ## Status: 🔴 BLOCKED
 
 **Bead**: mo-cx8
-**Blocker Bead**: mo-2z9l
+**Blocker Bead**: mo-1e6t
 **Date**: 2026-02-04
+**Last Verified**: 2026-02-04 19:30 UTC
 
 ## Problem Summary
 
@@ -146,6 +147,6 @@ This will create an ArgoCD Application that syncs the `k8s/` directory.
 
 ## Tracking
 
-- **Original Bead**: mo-cx8
-- **Blocker Bead**: mo-2z9l (priority 0 - critical)
+- **Original Bead**: mo-cx8 (this deployment task)
+- **Blocker Bead**: mo-1e6t (priority 0 - critical)
 - **Related**: mo-3c3c (original RBAC request documentation)

@@ -32,7 +32,7 @@ After applying, the devpod ServiceAccount can deploy Moltbook using `kubectl app
 
 ### Option 2: ArgoCD GitOps Deployment (Recommended for production)
 
-1. Install ArgoCD in ardenone-cluster (see bead mo-30ju)
+1. Install ArgoCD in ardenone-cluster
 2. Apply the ArgoCD Application manifest:
 ```bash
 kubectl apply -f k8s/argocd-application.yml
