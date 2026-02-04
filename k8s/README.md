@@ -2,6 +2,18 @@
 
 This directory contains Kubernetes manifests for deploying Moltbook to ardenone-cluster using ArgoCD GitOps.
 
+## Deployment Status
+
+✅ **DEPLOYED** - Moltbook manifests have been deployed to ardenone-cluster via GitOps.
+
+- **Manifests Location:** `ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/`
+- **ArgoCD Application:** Configured and pointing to the ardenone-cluster repository
+- **Repository:** https://github.com/ardenone/ardenone-cluster.git
+- **Path:** `cluster-configuration/ardenone-cluster/moltbook`
+- **Last Updated:** 2026-02-04
+
+ArgoCD will automatically sync changes from the ardenone-cluster repository to deploy Moltbook to the cluster.
+
 ## Architecture
 
 ```
