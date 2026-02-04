@@ -14,10 +14,10 @@ resources:
   - api/configmap.yml
   - api/deployment.yml
   - api/service.yml
-  - ingress/api-ingressroute.yml
   - frontend/configmap.yml
   - frontend/deployment.yml
   - frontend/service.yml
+  - ingress/api-ingressroute.yml
   - ingress/frontend-ingressroute.yml
 
 images:
@@ -34,3 +34,28 @@ labels:
       app.kubernetes.io/component: platform
       app.kubernetes.io/part-of: moltbook
       app.kubernetes.io/managed-by: argocd
+
+secretGenerator:
+  - name: moltbook-db-credentials
+    type: Opaque
+    literals:
+      - username=moltbook
+      - password=changeme
+    options:
+      disableNameSuffixHash: true
+  - name: moltbook-postgres-superuser
+    type: kubernetes.io/basic-auth
+    literals:
+      - username=postgres
+      - password=changeme
+    options:
+      disableNameSuffixHash: true
+  - name: moltbook-api-secrets
+    type: Opaque
+    literals:
+      - DATABASE_URL=postgresql://moltbook:changeme@moltbook-postgres-rw.moltbook.svc.cluster.local:5432/moltbook
+      - JWT_SECRET=changeme
+      - TWITTER_CLIENT_ID=
+      - TWITTER_CLIENT_SECRET=
+    options:
+      disableNameSuffixHash: true
