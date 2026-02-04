@@ -1,0 +1,37 @@
+---
+# Namespace Creation Request for Moltbook Platform
+#
+# This file should be applied by a cluster administrator or user with
+# cluster-scoped namespace creation permissions.
+#
+# The devpod ServiceAccount (system:serviceaccount:devpod:default) lacks
+# permission to create namespaces at cluster scope.
+#
+# To create the namespace, run:
+#   kubectl apply -f NAMESPACE_REQUEST.yml
+#
+# After the namespace is created, the main deployment can proceed using:
+#   kubectl apply -k k8s/
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: moltbook
+  labels:
+    name: moltbook
+    app.kubernetes.io/name: moltbook
+    app.kubernetes.io/component: platform
+    app.kubernetes.io/part-of: moltbook
+    app.kubernetes.io/instance: moltbook-platform
+    app.kubernetes.io/managed-by: kubectl
+---
+# Note: After namespace creation, the following resources need to be deployed:
+# 1. SealedSecrets (will be auto-decrypted by sealed-secrets controller)
+# 2. PostgreSQL cluster (CNPG)
+# 3. Redis deployment
+# 4. API backend deployment
+# 5. Frontend deployment
+# 6. Ingress routes (Traefik)
+#
+# All resources are defined in k8s/ directory and can be applied with:
+#   kubectl apply -k k8s/

@@ -4,11 +4,16 @@ kind: Kustomization
 
 namespace: moltbook
 
+# Temporary kustomization that excludes namespace creation
+# This is a workaround for lack of namespace creation permissions
+# Requires namespace to be pre-created by cluster admin:
+#   kubectl create namespace moltbook
+
 resources:
-  - namespace/moltbook-namespace.yml
+  # - namespace/moltbook-namespace.yml  # EXCLUDED - requires cluster-scoped permissions
   - namespace/moltbook-rbac.yml
   - secrets/moltbook-api-sealedsecret.yml
-  - secrets/postgres-superuser-sealedsecret.yml
+  - secrets/moltbook-postgres-superuser-sealedsecret.yml
   - secrets/moltbook-db-credentials-sealedsecret.yml
   - database/cluster.yml
   - database/schema-configmap.yml
@@ -36,11 +41,4 @@ labels:
       app.kubernetes.io/name: moltbook
       app.kubernetes.io/component: platform
       app.kubernetes.io/part-of: moltbook
-      app.kubernetes.io/managed-by: argocd
-
-# SealedSecrets are used instead of secretGenerator for production
-# RBAC is included for devpod ServiceAccount to manage moltbook resources
-# Apply sealed secrets before applying this kustomization:
-#   kubectl apply -f secrets/moltbook-api-sealedsecret.yml
-#   kubectl apply -f secrets/moltbook-postgres-superuser-sealedsecret.yml
-#   kubectl apply -f secrets/moltbook-db-credentials-sealedsecret.yml
+      app.kubernetes.io/managed-by: kubectl

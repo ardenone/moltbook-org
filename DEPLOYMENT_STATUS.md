@@ -1,8 +1,8 @@
 # Moltbook Deployment Status
 
-**Last Updated**: 2026-02-04 15:20 UTC
+**Last Updated**: 2026-02-04 15:23 UTC
 **Bead**: mo-saz
-**Status**: ⚠️ Deployment Manifests Complete - BLOCKED on ArgoCD Installation
+**Status**: ✅ Deployment Manifests Complete - BLOCKED on ArgoCD Installation (mo-3ca) and Namespace Permissions (mo-3rp)
 
 ## Summary
 
@@ -79,7 +79,7 @@ Created comprehensive guides:
 
 ### 1. ArgoCD Installation (CRITICAL)
 
-**Blocker Bead**: `mo-p0w` - "Setup: Install ArgoCD in ardenone-cluster"
+**Blocker Bead**: `mo-3ca` - "CRITICAL: Install ArgoCD in ardenone-cluster"
 
 **Status**: 🚨 **CRITICAL BLOCKER**
 
@@ -100,7 +100,7 @@ No resources found in argocd namespace.
 
 ### 1.1 RBAC Permissions
 
-**Blocker Bead**: `mo-1kr` - "Fix: Grant devpod ServiceAccount namespace creation permissions"
+**Blocker Bead**: `mo-3rp` - "CRITICAL: Grant namespace creation permissions to devpod ServiceAccount or pre-create moltbook namespace"
 
 **Status**: 🔨 **BLOCKED**
 
