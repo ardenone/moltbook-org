@@ -2,21 +2,17 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  // Disable build-time optimizations that cause createContext bundling issues
-  generateBuildId: undefined,
-  experimental: {
-    // Force all pages to be dynamic to avoid SSG build issues with client context
-    isrMemoryCacheSize: 0,
-  },
+  // Disable ISR memory cache (deprecated in Next.js 15)
+  // Note: isrMemoryCacheSize is deprecated and causes warnings
+  experimental: {},
   // Ensure React is bundled correctly
   transpilePackages: [],
   webpack: (config, { isServer }) => {
     // Fix for createContext bundling issue during Docker build
     if (isServer) {
-      config.externals = [...(config.externals || []), 'swr', '@tanstack/react-query'];
-      // Ensure React is treated as an internal module, not external
-      const externals = Array.isArray(config.externals) ? config.externals : [config.externals];
-      config.externals = externals.filter(e => e !== 'react' && e !== 'react-dom');
+      // Don't externalize swr and @tanstack/react-query - they use React Context
+      // which requires proper bundling
+      // config.externals = [...(config.externals || []), 'swr', '@tanstack/react-query'];
     }
     return config;
   },
