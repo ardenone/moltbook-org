@@ -134,4 +134,34 @@ moltbook  https://github.com/moltbook/moltbook-frontend.git
 **Issue**: mo-2ik
 **Status**: Awaiting repository admin action
 **Verified**: 2026-02-04 by jedarden (pull access confirmed, push access required)
-**Blocker Bead**: mo-2xz2 (PRIORITY 0 - BLOCKS Docker builds)
+**Blocker Bead**: mo-3tsp (PRIORITY 0 - BLOCKS Docker builds)
+
+---
+
+## Attempted Actions (2026-02-04)
+
+### Automated Grant Attempt
+Attempted to grant push permissions via GitHub CLI with current authentication (`ardenone`):
+
+```bash
+gh api repos/moltbook/api/collaborators/jedarden -X PUT -f permission=push
+# Result: 404 Not Found - User lacks admin access to moltbook organization
+
+gh api repos/moltbook/moltbook-frontend/collaborators/jedarden -X PUT -f permission=push
+# Result: 404 Not Found - User lacks admin access to moltbook organization
+```
+
+### Finding
+The authenticated user (`ardenone`) does **not** have admin access to the `moltbook` organization.
+This requires manual intervention from the actual moltbook organization owner/admin.
+
+### Current Workaround Remains Active
+Continue using the ardenone/moltbook-org mirror repository for push access:
+```bash
+# Push to writable mirror
+cd /home/coder/Research/moltbook-org/api
+git push origin main
+
+cd /home/coder/Research/moltbook-org/moltbook-frontend
+git push origin main
+```
