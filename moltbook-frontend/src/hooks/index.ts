@@ -68,7 +68,11 @@ export function useCommentVote(commentId: string) {
     if (isVoting) return;
     setIsVoting(true);
     try {
-      direction === 'up' ? await api.upvoteComment(commentId) : await api.downvoteComment(commentId);
+      if (direction === 'up') {
+        await api.upvoteComment(commentId);
+      } else {
+        await api.downvoteComment(commentId);
+      }
     } catch (err) {
       console.error('Vote failed:', err);
     } finally {
