@@ -10,13 +10,25 @@
 
 A cluster admin needs to run **one** of these commands:
 
-### Option 1: Create Namespace Only (Quickest, for manual deployment)
+### Option 1: ArgoCD GitOps Deployment (Recommended for Production)
+
+```bash
+# One-time setup - ArgoCD manages everything automatically
+kubectl apply -f k8s/argocd-application.yml
+
+# ArgoCD will automatically:
+# - Create the moltbook namespace (CreateNamespace=true)
+# - Deploy all resources (database, redis, api, frontend)
+# - Keep everything in sync with Git
+```
+
+### Option 2: Create Namespace Only (Quickest, for manual deployment)
 
 ```bash
 kubectl create namespace moltbook
 ```
 
-### Option 2: Grant Namespace Creation Permissions + Create Namespace (Recommended for Development)
+### Option 3: Grant Namespace Creation Permissions + Create Namespace (Recommended for Development)
 
 ```bash
 # From the moltbook-org directory
@@ -63,11 +75,12 @@ This is an intentional security boundary. Namespace creation requires cluster-ad
 
 ## Option Comparison
 
-| Option | Namespace Created | RBAC Granted | Future Management |
-|--------|------------------|--------------|-------------------|
-| 1 (create only) | ✅ | ❌ | ⚠️ Limited (can't recreate if deleted) |
-| 2 (RBAC + namespace) | ✅ | ✅ | ✅ Full namespace management |
+| Option | Namespace Created | RBAC Granted | Future Management | Best For |
+|--------|------------------|--------------|-------------------|----------|
+| 1 (ArgoCD) | ✅ (auto) | ❌ (not needed) | ✅ Full GitOps sync | Production |
+| 2 (create only) | ✅ | ❌ | ⚠️ Limited (can't recreate if deleted) | Quick testing |
+| 3 (RBAC + namespace) | ✅ | ✅ | ✅ Full namespace management | Development |
 
 **Recommendation:**
-- For production: Use Option 1 (create only) - minimal permissions
-- For development: Use Option 2 (RBAC + namespace) to allow future namespace creation
+- For production: Use Option 1 (ArgoCD GitOps)
+- For development: Use Option 3 (RBAC + namespace) to allow future namespace creation
