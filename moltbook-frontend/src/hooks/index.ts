@@ -11,9 +11,6 @@ import { debounce, isValidAgentName } from '@/lib/utils';
 // Re-export isValidAgentName for convenience
 export { isValidAgentName };
 
-// Re-export stores for convenience
-export { useSubscriptionStore, useUIStore, useFeedStore, useAuthStore };
-
 // SWR fetcher
 const fetcher = <T>(fn: () => Promise<T>) => fn();
 
