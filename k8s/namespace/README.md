@@ -14,8 +14,9 @@ This directory contains manifests for setting up the Moltbook namespace in the a
 - See: `k8s/CLUSTER_ADMIN_README.md` for quick cluster admin instructions
 
 **Resolution path:** A cluster admin must either:
-1. Create the namespace directly: `kubectl create namespace moltbook` (quickest)
-2. Apply RBAC to grant devpod namespace creation: `kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml` (recommended for development)
+1. Deploy via ArgoCD (recommended for production): `kubectl apply -f k8s/argocd-application.yml` (GitOps, self-healing)
+2. Create the namespace directly: `kubectl create namespace moltbook` (quickest, for manual deploy)
+3. Apply RBAC to grant devpod namespace creation: `kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml` (recommended for development)
 
 ### Why This is Blocked
 

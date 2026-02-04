@@ -1,6 +1,14 @@
 ---
 # RBAC for devpod ServiceAccount to deploy to moltbook namespace
 # This allows the devpod to create and manage resources in the moltbook namespace
+#
+# IMPORTANT: This Role assumes the moltbook namespace already exists.
+# To create the namespace, a cluster admin must run one of:
+#   1. kubectl create namespace moltbook
+#   2. kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml
+#   3. kubectl apply -f k8s/argocd-application.yml (ArgoCD GitOps)
+#
+# See k8s/CLUSTER_ADMIN_README.md for detailed instructions.
 
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
@@ -8,10 +16,8 @@ metadata:
   name: moltbook-deployer
   namespace: moltbook
 rules:
-  # Namespace management
-  - apiGroups: [""]
-    resources: ["namespaces"]
-    verbs: ["get", "create"]
+  # Note: Namespace creation requires ClusterRole (see devpod-namespace-creator-rbac.yml)
+  # This Role only grants permissions within the existing moltbook namespace
 
   # ConfigMaps
   - apiGroups: [""]

@@ -41,7 +41,33 @@ The Moltbook platform deployment cannot proceed because the `moltbook` namespace
 
 A cluster administrator must perform ONE of the following:
 
-### Option 1: Automated Setup (Recommended)
+### Option 1: ArgoCD GitOps Deployment (⭐ Recommended for Production)
+
+```bash
+# One-time setup - ArgoCD manages everything
+kubectl apply -f k8s/argocd-application.yml
+
+# ArgoCD will automatically:
+# - Create the moltbook namespace (CreateNamespace=true is set)
+# - Deploy all resources (database, redis, api, frontend)
+# - Keep everything in sync with Git
+# - Self-heal if resources are modified
+```
+
+**Why ArgoCD is preferred:**
+- GitOps native - no RBAC sprawl
+- Self-healing - automatically fixes drift
+- No manual intervention needed after initial setup
+- Rollback support with Git history
+
+### Option 2: Direct Namespace Creation (Quickest for Manual Deploy)
+
+```bash
+# Create only the namespace (devpod can deploy into existing namespaces)
+kubectl create namespace moltbook
+```
+
+### Option 3: RBAC + Namespace (For Development Environment)
 
 ```bash
 # From a terminal with cluster-admin access
@@ -49,27 +75,21 @@ cd /home/coder/Research/moltbook-org
 ./k8s/setup-namespace.sh
 ```
 
-### Option 2: Manual kubectl Apply
+### Option 4: Manual kubectl Apply
 
 ```bash
 # Apply the consolidated setup manifest
 kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
 ```
 
-### Option 3: Direct Namespace Creation (Minimal)
-
-```bash
-# Create only the namespace (devpod can deploy into existing namespaces)
-kubectl create namespace moltbook
-```
-
 ## What Each Option Does
 
-| Option | Namespace Created | RBAC Granted | Future Management |
-|--------|------------------|--------------|-------------------|
-| 1 | ✅ | ✅ | ✅ Full namespace management |
-| 2 | ✅ | ✅ | ✅ Full namespace management |
-| 3 | ✅ | ❌ | ⚠️ Limited (can't recreate if deleted) |
+| Option | Namespace Created | RBAC Granted | Future Management | Best For |
+|--------|------------------|--------------|-------------------|----------|
+| 1 (ArgoCD) | ✅ | ❌ | ✅ GitOps + Self-healing | Production |
+| 2 (create only) | ✅ | ❌ | ⚠️ Limited (manual deploy) | Quick testing |
+| 3 (RBAC + namespace) | ✅ | ✅ | ✅ Full namespace management | Development |
+| 4 (kubectl apply) | ✅ | ✅ | ✅ Full namespace management | Development |
 
 ## After Resolution
 
