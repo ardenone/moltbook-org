@@ -7,6 +7,8 @@
 # 2. Create the moltbook namespace
 #
 # After applying, the devpod ServiceAccount can manage the moltbook namespace for deployment.
+#
+# NOTE: See DEPLOYMENT_BLOCKER.md for additional blockers including GitHub push permissions (mo-2fi)
 
 ---
 # Step 1: Grant devpod ServiceAccount permission to create namespaces
