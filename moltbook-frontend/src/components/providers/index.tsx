@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, type ReactNode } from 'react';
-import { useAuthStore } from '@/store';
+import { useAuthStore, useSubscriptionStore } from '@/store';
 import { api } from '@/lib/api';
+import { hydrate } from 'zustand/middleware';
 
 // Auth provider to initialize auth state
 function AuthProvider({ children }: { children: ReactNode }) {
@@ -11,6 +12,11 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const init = async () => {
+      // Manually hydrate stores on client-side (fixes SSR build issues)
+      if (typeof window !== 'undefined') {
+        useAuthStore.persist?.hydrate?.();
+        useSubscriptionStore.persist?.hydrate?.();
+      }
       if (apiKey) {
         api.setApiKey(apiKey);
         await refresh();
