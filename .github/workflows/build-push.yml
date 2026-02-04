@@ -21,6 +21,10 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write
+    outputs:
+      image-digest: ${{ steps.build-api.outputs.digest }}
+      image-ref: ${{ steps.build-api.outputs.imageid }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -46,6 +50,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push API image
+        id: build-api
         uses: docker/build-push-action@v5
         with:
           context: ./api
@@ -54,12 +59,18 @@ jobs:
           labels: ${{ steps.meta-api.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
 
   build-frontend:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
+      id-token: write
+    outputs:
+      image-digest: ${{ steps.build-frontend.outputs.digest }}
+      image-ref: ${{ steps.build-frontend.outputs.imageid }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -85,6 +96,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Frontend image
+        id: build-frontend
         uses: docker/build-push-action@v5
         with:
           context: ./moltbook-frontend
@@ -93,3 +105,27 @@ jobs:
           labels: ${{ steps.meta-frontend.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: true
+          sbom: true
+
+  build-summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    needs: [build-api, build-frontend]
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - name: Build Summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            core.summary.addHeading('Moltbook Image Build Summary', 3)
+            core.summary.addTable([
+              [{data: 'Component'}, {data: 'Image'}, {data: 'Digest'}],
+              [{data: 'API'}, {data: '${{ needs.build-api.outputs.image-ref }}'}, {data: '${{ needs.build-api.outputs.image-digest }}'}],
+              [{data: 'Frontend'}, {data: '${{ needs.build-frontend.outputs.image-ref }}'}, {data: '${{ needs.build-frontend.outputs.image-digest }}'}]
+            ])
+            core.summary.addLink('View API on GHCR', 'https://github.com/ardenone?tab=packages&name=moltbook-api')
+            core.summary.addLink('View Frontend on GHCR', 'https://github.com/ardenone?tab=packages&name=moltbook-frontend')
+            await core.summary.write()
