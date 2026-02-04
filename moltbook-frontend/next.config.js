@@ -8,6 +8,13 @@ const nextConfig = {
   experimental: {
     // Optimize package imports for better tree-shaking
     optimizePackageImports: ['lucide-react'],
+    // Disable webpack caching to prevent NFT build trace errors
+    webpack: (config, { isServer }) => {
+      if (isServer) {
+        config.cache = false;
+      }
+      return config;
+    },
   },
 };
 
