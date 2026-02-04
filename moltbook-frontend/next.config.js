@@ -2,14 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
-  // Disable ISR memory cache (deprecated in Next.js 15)
-  // Note: isrMemoryCacheSize is deprecated and causes warnings
-  experimental: {},
   // Ensure React is bundled correctly
   transpilePackages: [],
-  // Use webpack instead of Turbopack for compatibility
   webpack: (config, { isServer }) => {
-    // Minimal webpack configuration to avoid breaking Next.js internals
+    // Handle node: prefixed modules properly
     if (isServer) {
       // Ensure React is not externalized
       if (Array.isArray(config.externals)) {
@@ -17,12 +13,34 @@ const nextConfig = {
           (e) => typeof e === 'string' && !e.startsWith('react')
         );
       }
+
+      // Configure webpack to handle node: prefixed modules
+      // These should be treated as externals (Node.js built-ins)
+      config.externals = config.externals || [];
+      const originalExternals = Array.isArray(config.externals)
+        ? config.externals
+        : [config.externals];
+
+      // Add a function external to handle node: prefixed modules
+      config.externals = [
+        ...originalExternals.filter(e => typeof e !== 'function'),
+        function({ request }, callback) {
+          // Mark node: prefixed modules as external
+          if (typeof request === 'string' && request.startsWith('node:')) {
+            return callback(null, 'commonjs ' + request);
+          }
+          // For non-function externals in the array, call them
+          if (originalExternals.length > 0) {
+            const funcExternals = originalExternals.filter(e => typeof e === 'function');
+            if (funcExternals.length > 0) {
+              return funcExternals[0]({ request }, callback);
+            }
+          }
+          return callback();
+        },
+      ];
     }
     return config;
-  },
-  // Explicitly disable Turbopack to use webpack
-  experimental: {
-    turbo: undefined,
   },
 };
 
