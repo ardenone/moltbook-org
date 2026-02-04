@@ -85,6 +85,7 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 
 - **mo-3ax**: Original task (documenting and tracking the blocker)
 - **mo-138**: This task - verified RBAC blocker must be resolved before deployment
+- **mo-39sj**: Current cluster-admin action bead (P0) - Apply devpod-namespace-creator ClusterRoleBinding
 - **mo-1njh**: Original blocker (priority 0 - critical)
 - **mo-1c9d**: Follow-up blocker bead for cluster-admin action
 
@@ -92,4 +93,5 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 
 **Last Updated**: 2026-02-04
 **Status**: Awaiting cluster administrator action
-**Verified by**: mo-138
+**Verified by**: mo-3ax
+**Current Action Bead**: mo-39sj (P0 - Critical)
