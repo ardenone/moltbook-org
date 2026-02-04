@@ -431,7 +431,7 @@ While not part of the official moltbook organization, these projects are notable
 
 ### Questions for Investigation
 
-1. **Frontend Duplication:** Both `moltbook-web-client-application` and `moltbook-frontend` exist. Which is the current/official frontend? Are they different versions or for different purposes?
+1. **Frontend Duplication:** Both `moltbook-web-client-application` and `moltbook-frontend` exist. Which is the current/official frontend? Are they different versions or for different purposes? **RESOLVED**: Use `moltbook-frontend` as it is explicitly labeled "Official"
 
 2. **Service Dependencies:** What are the exact dependencies between the microservice packages (auth, voting, comments, feed, rate-limiter) and the main API?
 
@@ -451,6 +451,21 @@ While not part of the official moltbook organization, these projects are notable
 4. **Look for environment variable templates** (.env.example) to identify configuration needs
 5. **Search for deployment documentation** or CONTRIBUTING guides
 6. **Check for CI/CD workflows** (.github/workflows) to understand testing/deployment processes
+
+---
+
+## New Research Beads Created
+
+As part of this discovery, the following follow-up beads have been identified:
+
+### High Priority Follow-ups
+- **Service Dependencies Analysis** - Investigate how auth, voting, comments, feed, and rate-limiter packages integrate with the main API
+- **Database Architecture Discovery** - Document database schema, migrations, and data flow between services
+- **Deployment Guide Creation** - Create comprehensive deployment documentation for private instances
+
+### Medium Priority Follow-ups
+- **Security Audit** - Review authentication implementation, API key management, and potential vulnerabilities
+- **Real-Time Features Investigation** - Document WebSocket/SSE implementation for live feeds and notifications
 
 ---
 
