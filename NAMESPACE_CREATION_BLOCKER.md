@@ -1,4 +1,4 @@
-# Namespace Creation Blocker - mo-3iz
+# Namespace Creation Blocker - mo-hv4
 
 ## Status: BLOCKED - Requires Cluster Admin
 
@@ -48,9 +48,24 @@ Grant namespace creation permissions to devpod ServiceAccount - this violates se
    ```
 
 ### Bead Tracking
-- **Blocker Bead Created:** mo-2sao - "Blocker: Create moltbook namespace requires cluster-admin"
-- **Priority:** 0 (Critical)
-- **Assigned to:** Cluster Admin
+- **Current Bead:** mo-hv4 - "Fix: Create moltbook namespace in ardenone-cluster"
+- **Priority:** 1 (High)
+- **Assigned to:** Cluster Admin (external action required)
+
+### Resolution Actions
+
+**For Cluster Admin - Execute one of these options:**
+
+**Option 1: Create namespace directly (Quickest)**
+```bash
+kubectl create namespace moltbook
+```
+
+**Option 2: Grant devpod SA namespace creation permissions**
+```bash
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/namespace/devpod-namespace-creator-rbac.yml
+```
+This allows the devpod ServiceAccount to create namespaces in the future.
 
 ### Artifacts Ready
 All deployment manifests are ready and waiting for namespace creation:
