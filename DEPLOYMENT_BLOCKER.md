@@ -64,7 +64,11 @@ kubectl get clusterrolebinding devpod-namespace-creator
 A cluster administrator should run:
 
 ```bash
+# Option 1: From moltbook-org repo
 kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
+
+# Option 2: From ardenone-cluster repo
+kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace/NAMESPACE_SETUP_REQUEST.yml
 ```
 
 **From outside the cluster** (with cluster-admin credentials):
@@ -77,6 +81,8 @@ This creates:
 - **ClusterRole**: `namespace-creator` (create/get/list/watch namespaces)
 - **ClusterRoleBinding**: `devpod-namespace-creator` (binds to devpod ServiceAccount)
 - **Namespace**: `moltbook` with ArgoCD labels
+
+**📖 Detailed Guide**: See [cluster-configuration/ardenone-cluster/moltbook/CLUSTER_ADMIN_ACTION_REQUIRED.md](cluster-configuration/ardenone-cluster/moltbook/CLUSTER_ADMIN_ACTION_REQUIRED.md) for comprehensive documentation including verification, troubleshooting, and security considerations.
 
 ### After Cluster Admin Applies RBAC
 

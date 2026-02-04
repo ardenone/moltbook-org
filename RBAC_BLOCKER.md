@@ -4,7 +4,16 @@
 
 ### Summary
 
-The Moltbook deployment is blocked by a missing ClusterRoleBinding that must be applied by a cluster administrator. The devpod ServiceAccount does not have permission to create ClusterRole/ClusterRoleBinding resources, which are required for namespace creation and RBAC management.
+The Moltbook deployment is blocked by TWO separate issues:
+
+1. **Kubernetes RBAC Blocker** (this document): Missing ClusterRoleBinding that must be applied by a cluster administrator
+2. **GitHub Permissions Blocker** (separate): User `jedarden` lacks push permissions to moltbook organization repositories - see [GITHUB_PERMISSIONS_BLOCKER.md](GITHUB_PERMISSIONS_BLOCKER.md)
+
+Both blockers require manual intervention by external administrators (cluster-admin for K8s RBAC, moltbook org owner for GitHub permissions).
+
+### Kubernetes RBAC Blocker Details
+
+The devpod ServiceAccount does not have permission to create ClusterRole/ClusterRoleBinding resources, which are required for namespace creation and RBAC management.
 
 ### Current Status
 
