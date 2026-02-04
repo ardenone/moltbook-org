@@ -143,7 +143,7 @@ After RBAC is configured and images are built/pushed:
    curl https://api-moltbook.ardenone.com/health
    ```
 
-### 3. Production Secrets
+### 4. Production Secrets
 
 **Before production deployment**:
 1. Generate strong secrets:
@@ -160,8 +160,11 @@ After RBAC is configured and images are built/pushed:
 4. Apply sealed secrets:
    ```bash
    kubectl apply -f k8s/secrets/moltbook-api-sealedsecret.yml
+   kubectl apply -f k8s/secrets/moltbook-db-credentials-sealedsecret.yml
    kubectl apply -f k8s/secrets/postgres-superuser-sealedsecret.yml
    ```
+
+See `k8s/secrets/README.md` for complete instructions.
 
 ## Architecture
 

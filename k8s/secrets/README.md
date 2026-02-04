@@ -17,6 +17,8 @@ cp moltbook-db-credentials-template.yml moltbook-db-credentials.yml
 cp postgres-superuser-secret-template.yml postgres-superuser-secret.yml
 ```
 
+Note: You can also use `db-connection-secret-template.yml` if you prefer a separate connection string secret.
+
 2. Generate strong passwords and secrets:
 ```bash
 # Generate JWT secret (32 bytes, base64 encoded)
