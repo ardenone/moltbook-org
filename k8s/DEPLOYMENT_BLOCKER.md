@@ -1,9 +1,46 @@
 # Moltbook Deployment Blocker Summary
 
-**Status:** BLOCKED - Namespace Creation Requires Cluster Admin
+**Status:** BLOCKED - ArgoCD Installation Requires Cluster Admin
 **Date:** 2026-02-04
-**Bead:** mo-saz (Implementation: Deploy Moltbook platform to ardenone-cluster)
-**Current Fix Bead:** mo-3rs (Fix: Grant devpod namespace creation permissions or create moltbook namespace)
+**Bead:** mo-3tx (CRITICAL: Install ArgoCD in ardenone-cluster for Moltbook deployment)
+
+## Blocker Summary
+
+The Moltbook deployment requires **ArgoCD** for GitOps-based deployment. ArgoCD is **NOT installed** in ardenone-cluster, and installation requires cluster-admin privileges that the devpod ServiceAccount does not possess.
+
+---
+
+## Primary Blocker: ArgoCD Installation (mo-3tx)
+
+### Why ArgoCD is Required
+
+1. **GitOps Principle**: The project uses ArgoCD for continuous deployment
+2. **ArgoCD Application Manifest**: `k8s/argocd-application.yml` is ready but requires ArgoCD CRDs
+3. **Namespace Auto-Creation**: ArgoCD Application is configured with `CreateNamespace=true`
+4. **Automated Sync**: Keep deployments in sync with Git repository
+
+### Current State
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| ArgoCD CRDs | ❌ Not Installed | Only Argo Rollouts CRDs exist |
+| argocd namespace | ❌ Does Not Exist | Cannot create without cluster-admin |
+| ArgoCD pods | ❌ Not Running | No pods/services found |
+| ArgoCD Application manifest | ✅ Ready | `k8s/argocd-application.yml` |
+
+### Error Messages
+
+```
+Error: customresourcedefinitions.apiextensions.k8s.io is forbidden:
+User "system:serviceaccount:devpod:default" cannot create resource "customresourcedefinitions"
+
+Error: namespaces is forbidden: User "system:serviceaccount:devpod:default"
+cannot create resource "namespaces" at cluster scope
+```
+
+---
+
+## Related Blocker: Namespace Creation (mo-3rs)
 
 ---
 
@@ -136,7 +173,83 @@ The following beads may be superseded by mo-3rs:
 
 ---
 
-## Deployment Architecture (Post-RBAC)
+---
+
+## ArgoCD Installation Instructions
+
+### For Cluster Administrator
+
+**Automated Installation (Recommended)**
+
+```bash
+cd /home/coder/Research/moltbook-org
+./k8s/install-argocd.sh
+```
+
+**Manual Installation**
+
+```bash
+# Apply the official ArgoCD manifest
+kubectl apply -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+# Wait for pods to be ready
+kubectl wait --for=condition=ready pod \
+  -l app.kubernetes.io/name=argocd-server \
+  -n argocd --timeout=300s
+```
+
+**Verify Installation**
+
+```bash
+./k8s/install-argocd.sh --verify
+```
+
+### Post-Installation: Deploy Moltbook
+
+Once ArgoCD is installed, apply the Moltbook Application:
+
+```bash
+kubectl apply -f k8s/argocd-application.yml
+```
+
+This will:
+- Create the `moltbook` namespace automatically
+- Deploy all resources from `k8s/` directory via Kustomize
+- Keep everything in sync with Git
+
+---
+
+## ArgoCD UI Access
+
+```bash
+# Port-forward to ArgoCD API server
+kubectl port-forward svc/argocd-server -n argocd 8080:443
+
+# Get initial admin password
+kubectl -n argocd get secret argocd-initial-admin-secret \
+  -o jsonpath="{.data.password}" | base64 -d
+
+# Login at https://localhost:8080
+# Username: admin
+# Password: <from command above>
+```
+
+---
+
+## Alternative: Direct kubectl Deployment (Non-GitOps)
+
+If ArgoCD installation is delayed, you can deploy directly:
+
+```bash
+# Requires namespace creation RBAC (mo-3rs)
+kubectl apply -k k8s/
+```
+
+**Note:** This bypasses GitOps and requires manual updates for future changes.
+
+---
+
+## Deployment Architecture (Post-ArgoCD)
 
 ```
 moltbook namespace:
@@ -201,4 +314,24 @@ moltbook namespace:
 
 ---
 
-**Next Action:** Cluster administrator applies RBAC, then devpod team deploys with `kubectl apply -k k8s/`
+## Related Beads
+
+### Active Blocker Beads
+- **mo-27cr** (Priority 0): CRITICAL: RBAC for ArgoCD installation - devpod SA needs cluster-admin
+  - Created during mo-3tx execution
+  - Documents required RBAC for ArgoCD installation
+- **mo-3tx** (Priority 1): CRITICAL: Install ArgoCD in ardenone-cluster for Moltbook deployment
+  - Current bead
+  - Created installation script and documentation
+
+### Previously Documented Blockers
+- **mo-3rs** (Priority 1): Fix: Grant devpod namespace creation permissions or create moltbook namespace
+  - Namespace creation is now handled by ArgoCD Application (CreateNamespace=true)
+
+### Blocked Beads
+- **mo-saz** (Priority 2): Implementation: Deploy Moltbook platform to ardenone-cluster
+  - Waiting for ArgoCD installation
+
+---
+
+**Next Action:** Cluster administrator installs ArgoCD using `./k8s/install-argocd.sh`, then applies `k8s/argocd-application.yml`
