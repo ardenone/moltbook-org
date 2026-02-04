@@ -1,16 +1,23 @@
 # Moltbook Deployment Status - ardenone-cluster
 
-**Status:** BLOCKED - Namespace Creation Requires Cluster Admin (See mo-382)
+**Status:** ✅ MANIFESTS DEPLOYED TO CLUSTER-CONFIGURATION - BLOCKED ON CLUSTER ADMIN RBAC
 
-**Date:** 2026-02-04
+**Date:** 2026-02-04 17:05 UTC
 
 **Bead:** mo-saz (Implementation: Deploy Moltbook platform to ardenone-cluster)
 
 **Test Results:** ✅ API: 14/14 passing | ✅ Frontend: 36/36 passing
 
+**Deployment Progress:**
+- ✅ All manifests committed to cluster-configuration repo: `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/`
+- ✅ GitOps-ready manifests prepared for ArgoCD or manual kubectl deployment
+- ⚠️ ArgoCD namespace exists but controller pods not running (ArgoCD not operational)
+- ❌ Manual kubectl apply blocked by namespace creation permissions
+
 **Blockers:**
-1. **ArgoCD Not Installed** - The `argocd` namespace does not exist in ardenone-cluster
-2. **RBAC Setup** - ClusterRoleBinding for namespace creation required
+1. **Namespace Creation Blocked** - DevPod ServiceAccount cannot create `moltbook` namespace
+2. **RBAC Required** - ClusterRoleBinding `devpod-namespace-creator` must be applied by cluster admin (see mo-382)
+3. **ArgoCD Not Operational** - ArgoCD namespace exists but no running pods
 
 ---
 
@@ -20,6 +27,7 @@ All Kubernetes manifests for deploying the Moltbook platform to ardenone-cluster
 
 **Implementation Complete:**
 - ✅ All manifests created and validated
+- ✅ Manifests committed to cluster-configuration repo at `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/`
 - ✅ Kustomization builds successfully (1050 lines)
 - ✅ SealedSecrets configured (encrypted credentials)
 - ✅ Traefik IngressRoutes with proper domain naming
@@ -28,6 +36,10 @@ All Kubernetes manifests for deploying the Moltbook platform to ardenone-cluster
 - ✅ API and Frontend deployments with health checks
 - ✅ Traefik middlewares for security, CORS, and rate limiting
 - ✅ Comprehensive deployment documentation created
+
+**Manifest Locations:**
+- **moltbook-org repo:** `/home/coder/Research/moltbook-org/k8s/` (development/testing)
+- **cluster-configuration repo:** `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/` (production deployment)
 
 **Next Steps:** See `k8s/DEPLOY_INSTRUCTIONS.md` for step-by-step deployment guide.
 
@@ -226,14 +238,19 @@ The following P0 beads are now superseded by mo-382:
 
 **New Blocker Bead:** mo-382 consolidates all namespace creation blocker beads
 
-### 2. ArgoCD Not Installed (INFO)
-**Status:** ArgoCD is NOT deployed in ardenone-cluster (no `argocd` namespace exists)
+### 2. ArgoCD Not Operational (INFO)
+**Status:** ArgoCD namespace exists but no controller/server pods are running
 
-**Impact:** The ArgoCD Application manifest (`k8s/argocd-application.yml`) references the non-existent `argocd` namespace
+**Impact:** GitOps deployment via ArgoCD is not available. The ArgoCD Application manifest (`k8s/argocd-application.yml`) cannot be used.
+
+**Verification:**
+```bash
+kubectl get pods -n argocd  # Returns "No resources found in argocd namespace"
+```
 
 **Resolution Options:**
-1. Install ArgoCD in the cluster before using GitOps deployment
-2. Deploy directly using `kubectl apply -k k8s/` instead of ArgoCD (RECOMMENDED)
+1. Install/reinstall ArgoCD in the cluster before using GitOps deployment
+2. Deploy directly using `kubectl apply -k k8s/` instead of ArgoCD (RECOMMENDED for current state)
 
 ### Test Results Summary
 - ✅ **API Tests:** 14/14 passing (Auth Utils, Error Classes, Config)
