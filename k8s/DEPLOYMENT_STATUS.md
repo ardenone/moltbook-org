@@ -131,7 +131,7 @@ curl https://moltbook.ardenone.com
 
 ## Blocker Bead
 
-- **mo-35ap** [P0]: BLOCKER: Cluster Admin needed - Apply RBAC for Moltbook namespace creation
+- **mo-1e6t** [P0]: Blocker: Apply namespace-creator ClusterRole for Moltbook deployment
 
 ---
 

@@ -8,9 +8,10 @@ The Moltbook platform deployment cannot proceed because the `moltbook` namespace
 
 ## Blocker Bead
 
-- **Bead ID**: mo-2156
+- **Bead ID**: mo-1e6t
 - **Priority**: 0 (Critical)
-- **Title**: BLOCKER: Cluster-admin needed to create moltbook namespace
+- **Title**: Blocker: Apply namespace-creator ClusterRole for Moltbook deployment
+- **Description**: Moltbook deployment (mo-cx8) is blocked because the devpod ServiceAccount lacks cluster-admin permissions to create the namespace-creator ClusterRole, bind it to the devpod ServiceAccount via ClusterRoleBinding, and create the moltbook namespace.
 
 ## What Was Verified
 
