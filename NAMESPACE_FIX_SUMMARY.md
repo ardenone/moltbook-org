@@ -111,9 +111,14 @@ scripts/
 
 ### Next Steps
 
-1. **Cluster Admin**: Apply `k8s/NAMESPACE_SETUP_REQUEST.yml`
+1. **Cluster Admin**: Apply `k8s/NAMESPACE_SETUP_REQUEST.yml` OR just `kubectl create namespace moltbook`
 2. **Verify**: Namespace exists with `kubectl get namespace moltbook`
 3. **Deploy**: Apply application manifests with `kubectl apply -k k8s/`
+
+### Related Beads
+
+- **mo-3flx**: BLOCKER - Cluster Admin needed to create namespace (P0)
+- **mo-drj**: This bead - Fix: Create moltbook namespace in ardenone-cluster
 
 ### Security Considerations
 
