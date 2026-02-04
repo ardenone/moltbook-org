@@ -22,6 +22,20 @@ kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml
 - Devpod needs namespace management permissions for future deployments
 - One-time cluster admin action enables full deployment automation
 
+### Option 1b: Apply Individual RBAC Files (Alternative to Option 1)
+
+```bash
+# From the moltbook-org directory, apply in order:
+kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+kubectl create namespace moltbook
+kubectl apply -f k8s/namespace/moltbook-rbac.yml
+```
+
+**Why this approach:**
+- Same result as Option 1, but applies files individually
+- Useful if you want to review each manifest separately
+- Referenced in blocker bead mo-18q
+
 ### Option 2: Create Namespace Only (Quickest, for manual deployment)
 
 ```bash
@@ -70,7 +84,9 @@ The devpod ServiceAccount (`system:serviceaccount:devpod:default`) does not have
 This is an intentional security boundary. Namespace creation requires cluster-admin privileges.
 
 **Documentation:**
-- `k8s/NAMESPACE_SETUP_REQUEST.yml` - Consolidated RBAC + namespace manifest
+- `k8s/NAMESPACE_SETUP_REQUEST.yml` - Consolidated RBAC + namespace manifest (RECOMMENDED)
+- `k8s/namespace/devpod-namespace-creator-rbac.yml` - Individual ClusterRole/ClusterRoleBinding manifest
+- `k8s/namespace/moltbook-rbac.yml` - Individual Role/RoleBinding for moltbook namespace
 - `k8s/namespace/README.md` - Detailed setup instructions
 - `k8s/DEPLOYMENT_BLOCKER_MO-CX8.md` - Full blocker analysis
 
