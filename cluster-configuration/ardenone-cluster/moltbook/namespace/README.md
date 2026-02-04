@@ -54,6 +54,20 @@ kubectl get clusterrolebinding devpod-namespace-creator
 
 ## Related Beads
 
-- **mo-2s1** - Fix: Create moltbook namespace in ardenone-cluster (current task)
+- **mo-1te** - Fix: Moltbook deployment blocked by missing RBAC permissions (this documentation task)
+- **mo-30c1** - Blocker: Apply ClusterRole for Moltbook namespace creation (cluster-admin action required)
 - **mo-3tx** - CRITICAL: Install ArgoCD in ardenone-cluster for Moltbook deployment
 - **mo-saz** - Implementation: Deploy Moltbook platform to ardenone-cluster (blocked)
+
+## Verification from devpod
+
+```bash
+# Verify namespace does NOT exist (expected blocker)
+kubectl get namespace moltbook  # Should fail with "NotFound"
+
+# Verify RBAC is NOT applied (expected blocker)
+kubectl get clusterrolebinding devpod-namespace-creator  # Should fail with "NotFound"
+
+# Test namespace creation permission (should return "no")
+kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
+```

@@ -18,12 +18,12 @@ The Moltbook deployment is blocked by a missing ClusterRoleBinding that must be 
 A cluster administrator must apply the RBAC manifest:
 
 ```bash
-# RECOMMENDED: Single manifest that creates RBAC + namespace (from moltbook-org)
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
+# RECOMMENDED: Single manifest that creates RBAC + namespace
+kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace/NAMESPACE_SETUP_REQUEST.yml
 
-# ALTERNATIVE: Two-step approach using ardenone-cluster repo
-kubectl apply -f /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/namespace/moltbook-namespace.yml
+# ALTERNATIVE: Two-step approach
+kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml
+kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace/moltbook-namespace.yml
 ```
 
 ### What the Manifest Creates
@@ -82,17 +82,19 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 
 ### Related Documentation
 
-- `/home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml` - Complete setup manifest (RBAC + namespace)
-- `/home/coder/Research/moltbook-org/k8s/namespace/devpod-namespace-creator-rbac.yml` - RBAC only (moltbook-org)
-- `/home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml` - RBAC only (ardenone-cluster)
-- `/home/coder/Research/moltbook-org/k8s/` - Complete Moltbook manifests
+- `cluster-configuration/ardenone-cluster/moltbook/namespace/NAMESPACE_SETUP_REQUEST.yml` - Complete setup manifest (RBAC + namespace)
+- `cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml` - RBAC only
+- `cluster-configuration/ardenone-cluster/moltbook/namespace/moltbook-namespace.yml` - Namespace only
+- `DEPLOYMENT_GUIDE.md` - Full deployment guide
+- `DEPLOYMENT_BLOCKER.md` - Current deployment blockers
 
 ### Related Beads
 
-- **mo-eypj**: Current cluster-admin action bead (P0) - Blocker: Apply devpod-namespace-creator ClusterRoleBinding (created by mo-138)
+- **mo-1ch4** (P0) - Active RBAC blocker bead: Apply devpod-namespace-creator ClusterRoleBinding for Moltbook
+- **mo-1te** - This task: RBAC verification and documentation
+- **mo-eypj**: Previous cluster-admin action bead (P0) - Blocker: Apply devpod-namespace-creator ClusterRoleBinding
 - **mo-3e6j**: Previous cluster-admin action bead (P0) - BLOCKER: Cluster-admin must apply devpod RBAC for namespace creation
 - **mo-39sj**: Previous cluster-admin action bead (P0) - Apply devpod-namespace-creator ClusterRoleBinding
-- **mo-138**: This task - Document RBAC blocker verification for Moltbook deployment (current task)
 - **mo-3ax**: Original task - Investigation and verification of RBAC blocker
 
 ### Verification Log (mo-138 - 2026-02-04 21:07 UTC)
