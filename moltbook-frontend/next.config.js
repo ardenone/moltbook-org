@@ -1,11 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  output: 'standalone',
+  // Note: output: 'standalone' removed due to Next.js 15.1.6 NFT build trace bug
+  // The actual error was "ENOENT: no such file or directory, open '.next/server/app/api/agents/route.js.nft.json'"
+  // See: https://github.com/vercel/next.js/issues/43849
+  // The Dockerfile has been updated to use standard Next.js deployment (npm start)
   experimental: {
-    // Disable server minification to fix "Failed to collect page data for /_not-found" build error in Next.js 15
-    // See: https://github.com/vercel/next.js/discussions/74884
-    serverMinification: false,
     // Optimize package imports for better tree-shaking
     optimizePackageImports: ['lucide-react'],
   },
