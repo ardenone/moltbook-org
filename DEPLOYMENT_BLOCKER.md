@@ -60,6 +60,9 @@ kubectl get clusterrolebinding devpod-namespace-creator
 **Re-verified by**: mo-1e6t bead (claude-glm, zai-bravo worker, 2026-02-05)
 **Result**: CONFIRMED - Blocker still requires cluster-admin action
 
+**Re-verified by**: mo-1rgl bead (claude-glm-echo, 2026-02-05 ~18:00 UTC)
+**Result**: CONFIRMED - Blocker still requires cluster-admin action
+
 **Re-verification**:
 - Confirmed moltbook namespace does NOT exist
 - Confirmed namespace-creator ClusterRole does NOT exist
@@ -69,6 +72,7 @@ kubectl get clusterrolebinding devpod-namespace-creator
 - Verified cannot create ClusterRoleBinding (Forbidden)
 - Checked rolebinding-controller SA - cannot create cluster-scoped resources
 - Checked apexalgo-iad cluster - moltbook namespace also does NOT exist there
+- RBAC manifests validated and ready for cluster-admin application
 
 ## Required Action (Cluster Admin Only)
 
@@ -128,8 +132,8 @@ This will deploy:
 
 ### Related Beads
 
-- **mo-xoy0** (Priority 0): ADMIN: Cluster Admin Action - Apply NAMESPACE_SETUP_REQUEST.yml for Moltbook deployment (NEW - supersedes 40+ duplicate RBAC beads)
-- **mo-1te** (Priority 0): Fix: Moltbook deployment blocked by missing RBAC permissions (current bead - documentation update)
+- **mo-1rgl** (Priority 0): Fix: RBAC for moltbook namespace creation (current bead - verification update)
+- **mo-xoy0** (Priority 0): ADMIN: Cluster Admin Action - Apply NAMESPACE_SETUP_REQUEST.yml for Moltbook deployment (supersedes 40+ duplicate RBAC beads)
 - **mo-2j8b** (Priority 0): RBAC: Cluster admin must apply devpod-namespace-creator ClusterRoleBinding
 - **mo-3ax** (Priority 1): RBAC: Document devpod-namespace-creator blocker - requires cluster-admin
 - **mo-138** (Priority 1): Blocker: Apply RBAC for Moltbook namespace creation (re-verification)
@@ -165,4 +169,26 @@ kubectl get clusterrolebinding devpod-namespace-creator
 kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 
 # Should return: yes
+```
+
+### Latest Verification (2026-02-05 ~18:00 UTC)
+
+**Verified by**: mo-1rgl (claude-glm-echo)
+
+| Check | Status | Details |
+|-------|--------|---------|
+| Namespace `moltbook` | ❌ NotFound | Does not exist in cluster |
+| ClusterRole `namespace-creator` | ❌ NotFound | RBAC not applied |
+| ClusterRoleBinding `devpod-namespace-creator` | ❌ NotFound | RBAC not applied |
+| devpod SA create namespace | ❌ Forbidden | `namespaces is forbidden: User "system:serviceaccount:devpod:default" cannot create resource "namespaces"` |
+| devpod SA create clusterrole | ❌ Forbidden | `clusterroles is forbidden` |
+| devpod SA create clusterrolebinding | ❌ Forbidden | `clusterrolebindings is forbidden` |
+| RBAC manifests | ✅ Ready | `k8s/NAMESPACE_SETUP_REQUEST.yml` validated |
+| Documentation | ✅ Current | Updated with verification status |
+
+**Action Required**: Cluster-admin must apply the RBAC manifest to enable Moltbook deployment.
+
+```bash
+# For cluster-admin - apply this single command:
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
 ```

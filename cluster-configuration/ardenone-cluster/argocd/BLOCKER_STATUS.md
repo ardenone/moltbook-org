@@ -99,6 +99,7 @@ kubectl apply -f k8s/argocd-application.yml
 
 | Bead ID | Title | Priority | Status |
 |---------|-------|----------|--------|
+| **mo-3uep** | **Fix: Cluster-admin action - Create moltbook namespace for Moltbook deployment (mo-3ttq)** | **P1** | **OPEN** |
 | **mo-ku75** | **CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding** | **P0** | **OPEN** |
 | mo-1gnb | CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding to enable ArgoCD installation | P0 | OPEN |
 | mo-1ka7 | CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding for ArgoCD installation | P0 | OPEN |
