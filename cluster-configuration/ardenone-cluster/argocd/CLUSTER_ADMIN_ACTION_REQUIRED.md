@@ -68,19 +68,19 @@ kubectl get pods -n argocd
 
 ---
 
-**Prepared by:** Claude Code (task mo-3ki8, updated for mo-y3id, mo-dwxh, mo-rn1c)
+**Prepared by:** Claude Code (task mo-3ki8, updated for mo-y3id, mo-dwxh, mo-rn1c, mo-ku75)
 **Date:** 2026-02-05 (Updated - Blocker Still Active)
 **Priority:** P0 - CRITICAL BLOCKER
-**Related Beads**: mo-y3id (P0), mo-2e6h (P1), mo-dwxh (ADMIN task - CLOSED but action not completed), mo-1ka7 (P0), mo-rn1c (P0 - latest cluster-admin action bead)
+**Related Beads**: mo-ku75 (P0 - active blocker), mo-rn1c (P0), mo-y3id (P0), mo-2e6h (P1), mo-dwxh (ADMIN task - BLOCKED), mo-1ka7 (P0)
 **Supersedes**: mo-3ki8 (incorrectly closed)
 **Last Verified:** 2026-02-05 13:10 UTC - ClusterRoleBinding `devpod-argocd-manager` STILL NOT FOUND
-**Current Task**: mo-rn1c - CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding
+**Current Task**: mo-ku75 - CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding
 
 ## Status Update (2026-02-05 13:10 UTC)
 
-Task mo-dwxh was marked CLOSED but the ClusterRoleBinding was NOT created. Verified that:
+Task mo-dwxh was attempted but blocked by insufficient RBAC. Verified that:
 - `devpod-argocd-manager` ClusterRoleBinding does NOT exist
 - ArgoCD namespace does NOT exist
 - Devpod SA lacks cluster-admin permissions
 
-Created new bead mo-rn1c (P0) to track the required cluster-admin action.
+Created new bead mo-ku75 (P0) to track the required cluster-admin action.

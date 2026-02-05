@@ -243,11 +243,67 @@ kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller
 
 ---
 
-**Last Updated**: 2026-02-05 05:43 UTC
-**Verified by**: mo-1fgm (claude-glm-hotel worker)
+**Last Updated**: 2026-02-05 12:48 UTC
+**Verified by**: mo-dwxh (claude-glm-delta worker)
 **Status**: 🔴 BLOCKED - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
 **Estimated Time**: 5 minutes (one-time cluster setup)
+
+---
+
+## Latest Verification (2026-02-05 12:48 UTC)
+
+### Task mo-dwxh - ADMIN: Cluster-admin Action Required
+
+This task was explicitly designated as an "ADMIN: Cluster-admin" task requiring external cluster-admin privileges. The devpod ServiceAccount cannot complete the following actions:
+
+### Attempted Actions (All Failed - Expected)
+
+| Action | Result | Details |
+|--------|--------|---------|
+| Create ClusterRoleBinding `devpod-argocd-manager` | ❌ FORBIDDEN | User "system:serviceaccount:devpod:default" cannot create resource "clusterrolebindings" |
+| Apply ArgoCD installation manifest | ❌ FORBIDDEN | Cannot create CRDs, ServiceAccounts, Roles, RoleBindings, Deployments, etc. in devpod namespace |
+| Verify ArgoCD namespace | ❌ NOT FOUND | Namespace does not exist |
+| Verify ArgoCD CRDs | ❌ NOT INSTALLED | Only Argo Rollouts CRDs (analysisruns, analysistemplates, experiments, rollouts) exist |
+
+### Current State Summary (Confirmed)
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| argocd namespace | ❌ NOT FOUND | Does not exist |
+| ArgoCD CRDs | ❌ NOT INSTALLED | Only Argo Rollouts CRDs exist |
+| argocd-manager-role ClusterRole | ✅ EXISTS | Wildcard permissions (cluster-admin equivalent) |
+| argocd-manager-role-binding | ✅ EXISTS | Bound to kube-system:argocd-manager |
+| devpod-argocd-manager ClusterRoleBinding | ❌ NOT FOUND | **Required for task completion** |
+| Devpod SA permissions | ❌ INSUFFICIENT | Cannot create cluster-scoped resources (CRDs, ClusterRoleBindings, namespaces) |
+
+### Required Cluster-Admin Action
+
+**Step 1: Apply RBAC** (from cluster-admin workstation)
+
+```bash
+kubectl create clusterrolebinding devpod-argocd-manager \
+  --clusterrole=argocd-manager-role \
+  --serviceaccount=devpod:default
+```
+
+**Step 2: Install ArgoCD** (from devpod, after RBAC is applied)
+
+```bash
+kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
+```
+
+**Step 3: Verify Installation**
+
+```bash
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s
+kubectl get pods -n argocd
+kubectl get crd | grep argoproj.io
+```
+
+---
+
+## Previous Verification (2026-02-05 05:43 UTC)
 
 ## Related Blocker Beads (2026-02-05)
 

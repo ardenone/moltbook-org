@@ -3,8 +3,8 @@
 **Task ID**: mo-dwxh
 **Title**: ADMIN: Cluster-admin - Install ArgoCD in ardenone-cluster
 **Status**: BLOCKED - Requires cluster-admin RBAC
-**Date**: 2026-02-05 13:08 UTC
-**Worker**: claude-glm-alpha
+**Date**: 2026-02-05 13:20 UTC
+**Worker**: claude-glm-india
 
 ---
 
@@ -12,7 +12,7 @@
 
 Task mo-dwxh ("ADMIN: Cluster-admin - Install ArgoCD") was executed from a devpod but **failed to complete** because the devpod ServiceAccount lacks the cluster-admin privileges required to create ClusterRoleBindings.
 
-**Resolution**: Created bead **mo-1gnb (P0)** to track the cluster-admin action required. A cluster-admin must apply the RBAC manifest before ArgoCD can be installed.
+**Resolution**: Existing blocker beads **mo-80sx (P0)** and **mo-y3id (P0)** track the cluster-admin action required. A cluster-admin must apply the RBAC manifest before ArgoCD can be installed.
 
 ---
 
@@ -78,9 +78,9 @@ kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -
 
 | Bead ID | Title | Priority | Status |
 |---------|-------|----------|--------|
-| **mo-1gnb** | **CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding** | **P0** | **OPEN** |
-| mo-1ka7 | CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding for ArgoCD installation | P0 | OPEN |
-| mo-dwxh | ADMIN: Cluster-admin - Install ArgoCD in ardenone-cluster | P1 | BLOCKED (waiting for mo-1gnb) |
+| **mo-80sx** | **CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding for ArgoCD installation** | **P0** | **OPEN** |
+| **mo-y3id** | **CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding** | **P0** | **OPEN** |
+| mo-dwxh | ADMIN: Cluster-admin - Install ArgoCD in ardenone-cluster | P1 | BLOCKED (waiting for mo-80sx/mo-y3id) |
 | mo-1fgm | CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments | P1 | BLOCKED |
 | mo-3ttq | Deploy Moltbook application via ArgoCD | P1 | BLOCKED |
 
@@ -109,3 +109,15 @@ kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -
 **Last Updated**: 2026-02-05 13:08 UTC
 **Status**: BLOCKED - Awaiting cluster-admin action (mo-1gnb)
 **Priority**: P0 (Critical)
+
+---
+
+## Related Verification: mo-1rgl (2026-02-05)
+
+Task mo-1rgl ("Fix: RBAC for moltbook namespace creation") re-verified the RBAC blocker:
+- Confirmed `moltbook` namespace does NOT exist
+- Confirmed `namespace-creator` ClusterRole does NOT exist
+- Confirmed `devpod-namespace-creator` ClusterRoleBinding does NOT exist
+- Confirmed devpod SA cannot create namespaces, ClusterRoles, or ClusterRoleBindings
+
+**Note**: Per `k8s/DEPLOYMENT_PATH_DECISION.md`, PATH 2 (kubectl manual) was selected. This requires the simpler NAMESPACE_SETUP_REQUEST.yml instead of the full ArgoCD installation manifest.
