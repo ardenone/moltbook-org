@@ -44,24 +44,46 @@ const nextConfig = {
       '@radix-ui/react-tooltip',
     ],
     typedRoutes: false,
-    // Mark next-themes and sonner as external packages for server components
+    // CRITICAL: Mark all client-only packages as external for server components
     // This prevents createContext errors during Docker build when Next.js
     // tries to analyze client-only packages during the SSG phase
-    serverComponentsExternalPackages: ['next-themes', 'sonner'],
+    serverComponentsExternalPackages: [
+      'next-themes',
+      'sonner',
+      'framer-motion',
+      'react-hot-toast',
+      'swr',
+    ],
   },
 
   // Webpack configuration for React 19 + Next.js 15 compatibility
   webpack: (config, { isServer }) => {
-    // Server-side: prevent React from being bundled where it causes createContext issues
+    // CRITICAL FIX: Force all client-only packages to be external on server
+    // This prevents createContext errors during Docker build
     if (isServer) {
-      // Exclude client-only packages from server bundle analysis
-      // This prevents Next.js from trying to execute createContext during build
       config.externals = config.externals || [];
+      // Use object pattern for externals to properly exclude client-only packages
+      const clientOnlyPackages = [
+        'next-themes',
+        'sonner',
+        'framer-motion',
+        'react-hot-toast',
+        'swr',
+      ];
       if (Array.isArray(config.externals)) {
-        config.externals.push({
-          'next-themes': 'next-themes',
-          'sonner': 'sonner',
-        });
+        config.externals.push(
+          ...clientOnlyPackages.map(pkg => ({
+            [pkg]: pkg,
+          }))
+        );
+      } else if (typeof config.externals === 'function') {
+        const originalExternals = config.externals;
+        config.externals = ({ context, request }, callback) => {
+          if (clientOnlyPackages.includes(request)) {
+            return callback(null, request);
+          }
+          return originalExternals({ context, request }, callback);
+        };
       }
     }
 

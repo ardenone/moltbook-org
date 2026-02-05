@@ -12,27 +12,31 @@ import { PostCard } from '@/components/post';
 import { Input, Card, CardHeader, CardTitle, CardContent, Avatar, AvatarImage, AvatarFallback, Skeleton, Badge } from '@/components/ui';
 import { Search, Users, Hash, FileText, X } from 'lucide-react';
 import { cn, formatScore, getInitials, getAgentUrl, getSubmoltUrl } from '@/lib/utils';
-import * as TabsPrimitive from '@radix-ui/react-tabs';
+
+// CRITICAL: Using Tabs components from @/components/ui instead of direct Radix imports
+// to avoid duplicate Context initialization during Next.js build.
+// Direct imports of @radix-ui/react-tabs can cause createContext errors when
+// Next.js analyzes components during the build phase.
 
 
 export default function SearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialQuery = searchParams?.get('q') || '';
-  
+
   const [query, setQuery] = useState(initialQuery);
   const [activeTab, setActiveTab] = useState('all');
   const debouncedQuery = useDebounce(query, 300);
   const { data, isLoading, error } = useSearch(debouncedQuery);
-  
+
   useEffect(() => {
     if (debouncedQuery) {
       router.replace(`/search?q=${encodeURIComponent(debouncedQuery)}`, { scroll: false });
     }
   }, [debouncedQuery, router]);
-  
+
   const totalResults = (data?.posts?.length || 0) + (data?.agents?.length || 0) + (data?.submolts?.length || 0);
-  
+
   return (
     <PageContainer>
       <div className="max-w-4xl mx-auto">
@@ -55,140 +59,160 @@ export default function SearchPage() {
             )}
           </div>
         </div>
-        
+
         {/* Results */}
         {debouncedQuery.length >= 2 ? (
           <>
-            {/* Tabs */}
-            <TabsPrimitive.Root value={activeTab} onValueChange={setActiveTab}>
+            {/* Custom tabs implementation to avoid Radix Context issues */}
+            <div>
               <Card className="mb-4">
-                <TabsPrimitive.List className="flex border-b">
-                  <TabsPrimitive.Trigger value="all" className={cn('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors', activeTab === 'all' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}>
+                <div className="flex border-b">
+                  <button
+                    onClick={() => setActiveTab('all')}
+                    className={cn('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors', activeTab === 'all' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}
+                  >
                     All
                     {data && <Badge variant="secondary" className="text-xs">{totalResults}</Badge>}
-                  </TabsPrimitive.Trigger>
-                  <TabsPrimitive.Trigger value="posts" className={cn('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors', activeTab === 'posts' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('posts')}
+                    className={cn('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors', activeTab === 'posts' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}
+                  >
                     <FileText className="h-4 w-4" />
                     Posts
                     {data?.posts && <Badge variant="secondary" className="text-xs">{data.posts.length}</Badge>}
-                  </TabsPrimitive.Trigger>
-                  <TabsPrimitive.Trigger value="agents" className={cn('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors', activeTab === 'agents' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('agents')}
+                    className={cn('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors', activeTab === 'agents' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}
+                  >
                     <Users className="h-4 w-4" />
                     Agents
                     {data?.agents && <Badge variant="secondary" className="text-xs">{data.agents.length}</Badge>}
-                  </TabsPrimitive.Trigger>
-                  <TabsPrimitive.Trigger value="submolts" className={cn('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors', activeTab === 'submolts' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('submolts')}
+                    className={cn('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors', activeTab === 'submolts' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}
+                  >
                     <Hash className="h-4 w-4" />
                     Submolts
                     {data?.submolts && <Badge variant="secondary" className="text-xs">{data.submolts.length}</Badge>}
-                  </TabsPrimitive.Trigger>
-                </TabsPrimitive.List>
+                  </button>
+                </div>
               </Card>
-              
+
               {isLoading ? (
                 <SearchSkeleton />
               ) : (
                 <>
-                  <TabsPrimitive.Content value="all" className="space-y-4">
-                    {/* Agents section */}
-                    {data?.agents && data.agents.length > 0 && (
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <Users className="h-4 w-4" /> Agents
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid gap-2">
-                            {data.agents.slice(0, 3).map(agent => (
-                              <AgentResult key={agent.id} agent={agent} />
-                            ))}
-                          </div>
-                          {data.agents.length > 3 && (
-                            <button onClick={() => setActiveTab('agents')} className="mt-2 text-sm text-primary hover:underline">
-                              View all {data.agents.length} agents →
-                            </button>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )}
-                    
-                    {/* Submolts section */}
-                    {data?.submolts && data.submolts.length > 0 && (
-                      <Card>
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-base flex items-center gap-2">
-                            <Hash className="h-4 w-4" /> Submolts
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <div className="grid gap-2">
-                            {data.submolts.slice(0, 3).map(submolt => (
-                              <SubmoltResult key={submolt.id} submolt={submolt} />
-                            ))}
-                          </div>
-                          {data.submolts.length > 3 && (
-                            <button onClick={() => setActiveTab('submolts')} className="mt-2 text-sm text-primary hover:underline">
-                              View all {data.submolts.length} submolts →
-                            </button>
-                          )}
-                        </CardContent>
-                      </Card>
-                    )}
-                    
-                    {/* Posts section */}
-                    {data?.posts && data.posts.length > 0 && (
-                      <div className="space-y-4">
-                        <h3 className="font-semibold flex items-center gap-2">
-                          <FileText className="h-4 w-4" /> Posts
-                        </h3>
-                        {data.posts.map(post => (
-                          <PostCard key={post.id} post={post} isCompact />
-                        ))}
-                      </div>
-                    )}
-                    
-                    {totalResults === 0 && <NoResults query={debouncedQuery} />}
-                  </TabsPrimitive.Content>
-                  
-                  <TabsPrimitive.Content value="posts" className="space-y-4">
-                    {data?.posts && data.posts.length > 0 ? (
-                      data.posts.map(post => <PostCard key={post.id} post={post} />)
-                    ) : (
-                      <NoResults query={debouncedQuery} type="posts" />
-                    )}
-                  </TabsPrimitive.Content>
-                  
-                  <TabsPrimitive.Content value="agents" className="space-y-2">
-                    {data?.agents && data.agents.length > 0 ? (
-                      <Card>
-                        <CardContent className="pt-4">
-                          <div className="grid gap-2">
-                            {data.agents.map(agent => <AgentResult key={agent.id} agent={agent} />)}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ) : (
-                      <NoResults query={debouncedQuery} type="agents" />
-                    )}
-                  </TabsPrimitive.Content>
-                  
-                  <TabsPrimitive.Content value="submolts" className="space-y-2">
-                    {data?.submolts && data.submolts.length > 0 ? (
-                      <Card>
-                        <CardContent className="pt-4">
-                          <div className="grid gap-2">
-                            {data.submolts.map(submolt => <SubmoltResult key={submolt.id} submolt={submolt} />)}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ) : (
-                      <NoResults query={debouncedQuery} type="submolts" />
-                    )}
-                  </TabsPrimitive.Content>
+                  {activeTab === 'all' && (
+                    <div className="space-y-4">
+                      {/* Agents section */}
+                      {data?.agents && data.agents.length > 0 && (
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base flex items-center gap-2">
+                              <Users className="h-4 w-4" /> Agents
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid gap-2">
+                              {data.agents.slice(0, 3).map(agent => (
+                                <AgentResult key={agent.id} agent={agent} />
+                              ))}
+                            </div>
+                            {data.agents.length > 3 && (
+                              <button onClick={() => setActiveTab('agents')} className="mt-2 text-sm text-primary hover:underline">
+                                View all {data.agents.length} agents →
+                              </button>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Submolts section */}
+                      {data?.submolts && data.submolts.length > 0 && (
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-base flex items-center gap-2">
+                              <Hash className="h-4 w-4" /> Submolts
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid gap-2">
+                              {data.submolts.slice(0, 3).map(submolt => (
+                                <SubmoltResult key={submolt.id} submolt={submolt} />
+                              ))}
+                            </div>
+                            {data.submolts.length > 3 && (
+                              <button onClick={() => setActiveTab('submolts')} className="mt-2 text-sm text-primary hover:underline">
+                                View all {data.submolts.length} submolts →
+                              </button>
+                            )}
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Posts section */}
+                      {data?.posts && data.posts.length > 0 && (
+                        <div className="space-y-4">
+                          <h3 className="font-semibold flex items-center gap-2">
+                            <FileText className="h-4 w-4" /> Posts
+                          </h3>
+                          {data.posts.map(post => (
+                            <PostCard key={post.id} post={post} isCompact />
+                          ))}
+                        </div>
+                      )}
+
+                      {totalResults === 0 && <NoResults query={debouncedQuery} />}
+                    </div>
+                  )}
+
+                  {activeTab === 'posts' && (
+                    <div className="space-y-4">
+                      {data?.posts && data.posts.length > 0 ? (
+                        data.posts.map(post => <PostCard key={post.id} post={post} />)
+                      ) : (
+                        <NoResults query={debouncedQuery} type="posts" />
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === 'agents' && (
+                    <div className="space-y-2">
+                      {data?.agents && data.agents.length > 0 ? (
+                        <Card>
+                          <CardContent className="pt-4">
+                            <div className="grid gap-2">
+                              {data.agents.map(agent => <AgentResult key={agent.id} agent={agent} />)}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <NoResults query={debouncedQuery} type="agents" />
+                      )}
+                    </div>
+                  )}
+
+                  {activeTab === 'submolts' && (
+                    <div className="space-y-2">
+                      {data?.submolts && data.submolts.length > 0 ? (
+                        <Card>
+                          <CardContent className="pt-4">
+                            <div className="grid gap-2">
+                              {data.submolts.map(submolt => <SubmoltResult key={submolt.id} submolt={submolt} />)}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ) : (
+                        <NoResults query={debouncedQuery} type="submolts" />
+                      )}
+                    </div>
+                  )}
                 </>
               )}
-            </TabsPrimitive.Root>
+            </div>
           </>
         ) : (
           <div className="text-center py-12">
