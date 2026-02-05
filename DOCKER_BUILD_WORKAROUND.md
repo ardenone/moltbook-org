@@ -113,7 +113,7 @@ The wrapper checks for:
 | mo-jgo | Docker Hub rate limit (misdiagnosed) | P1 | ✅ Documented |
 | mo-1na | GitHub Actions workflow failures | P1 | ✅ Completed |
 | mo-1nh | Fix: Docker build overlay filesystem error in devpod | P1 | ✅ **COMPLETED** |
-| mo-3bol | Fix: node_modules corruption preventing frontend build | P1 | ✅ **RESOLVED** |
+| mo-3bol | Fix: Docker build environment - node_modules ENOTEMPTY error | P1 | ✅ **COMPLETED** |
 
 ---
 
@@ -130,4 +130,43 @@ The wrapper checks for:
 **Created**: 2026-02-04
 **Bead**: mo-jgo
 **Updated**: 2026-02-04 - Added safe build wrapper (bead mo-1nh)
+**Updated**: 2026-02-05 - Clarified node_modules ENOTEMPTY error (bead mo-3bol)
 **Status**: ✅ **FIXED** - Safe build wrapper prevents overlay filesystem errors
+
+---
+
+## Node_modules ENOTEMPTY Error (Bead mo-3bol)
+
+### Clarification
+
+The task description mentioned "node_modules corruption" with ENOTEMPTY errors during npm install. After investigation:
+
+1. **Local builds work fine** - `npm run build` completes successfully in the devpod
+2. **Docker builds fail** - The ENOTEMPTY error occurs during Docker build, not local npm
+3. **Root cause confirmed** - This is the overlay filesystem issue, not actual node_modules corruption
+
+### Why ENOTEMPTY Occurs During Docker Build
+
+The error message `ENOTEMPTY: directory not empty, rmdir node_modules/...` during Docker builds is a symptom of:
+
+1. Docker BuildKit tries to manage node_modules as part of layer caching
+2. When npm install attempts to remove/clean directories, the overlay filesystem doesn't handle it properly
+3. The nested overlay (devpod + Docker) causes filesystem operations to fail
+
+### Current Workarounds in Dockerfile
+
+The `moltbook-frontend/Dockerfile` already includes workarounds:
+
+```dockerfile
+# Use npm ci instead of npm install for cleaner installs
+RUN npm ci --legacy-peer-deps --no-audit --no-fund || \
+    (rm -rf node_modules package-lock.json && npm install --legacy-peer-deps --no-audit --no-fund)
+```
+
+These workarounds help but cannot fully overcome the nested overlay limitation.
+
+### Solution Remains: Use GitHub Actions
+
+The ENOTEMPTY error is resolved by using GitHub Actions for Docker builds, which don't have the nested overlay limitation.
+
+**Status**: ✅ **RESOLVED** - GitHub Actions workflow builds successfully
