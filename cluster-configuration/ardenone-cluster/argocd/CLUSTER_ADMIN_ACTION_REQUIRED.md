@@ -68,9 +68,10 @@ kubectl get pods -n argocd
 
 ---
 
-**Prepared by:** Claude Code (task mo-3ki8, updated for mo-y3id)
+**Prepared by:** Claude Code (task mo-3ki8, updated for mo-y3id, mo-dwxh)
 **Date:** 2026-02-05 (Updated - Blocker Still Active)
 **Priority:** P0 - CRITICAL BLOCKER
-**Related Beads**: mo-y3id (P0), mo-2e6h (P1)
+**Related Beads**: mo-y3id (P0), mo-2e6h (P1), mo-dwxh (ADMIN task), mo-1ka7 (P0 - cluster-admin action)
 **Supersedes**: mo-3ki8 (incorrectly closed)
-**Last Verified:** 2026-02-05 - ClusterRoleBinding `devpod-argocd-manager` STILL NOT FOUND
+**Last Verified:** 2026-02-05 13:08 UTC - ClusterRoleBinding `devpod-argocd-manager` STILL NOT FOUND
+**Current Task**: mo-dwxh - ADMIN: Cluster-admin - Install ArgoCD in ardenone-cluster
