@@ -111,8 +111,9 @@ The wrapper checks for:
 | Bead | Title | Priority | Status |
 |------|-------|----------|--------|
 | mo-jgo | Docker Hub rate limit (misdiagnosed) | P1 | ✅ Documented |
-| mo-1na | GitHub Actions workflow failures | P1 | 🔄 In Progress |
+| mo-1na | GitHub Actions workflow failures | P1 | ✅ Completed |
 | mo-1nh | Fix: Docker build overlay filesystem error in devpod | P1 | ✅ **COMPLETED** |
+| mo-3bol | Fix: node_modules corruption preventing frontend build | P1 | ✅ **RESOLVED** |
 
 ---
 
