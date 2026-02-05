@@ -22,6 +22,7 @@
 #   --api-only      Build only the API image
 #   --frontend-only Build only the Frontend image
 #   --tag TAG       Use specific tag instead of 'latest'
+#   --force         Bypass container environment check (experimental)
 #   --help          Show this help message
 #
 # Examples:
@@ -47,6 +48,7 @@ DO_PUSH=false
 BUILD_API=true
 BUILD_FRONTEND=true
 TAG="$DEFAULT_TAG"
+FORCE_BUILD=false
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -69,6 +71,10 @@ while [[ $# -gt 0 ]]; do
     --tag)
       TAG="$2"
       shift 2
+      ;;
+    --force)
+      FORCE_BUILD=true
+      shift
       ;;
     --help)
       sed -n '/^# Usage/,/^$/p' "$0" | sed 's/^# //g' | sed 's/^#//g'
@@ -112,25 +118,35 @@ check_prerequisites() {
 
   # Check if running in a containerized environment
   if [[ -f /.dockerenv ]] || grep -qa docker /proc/1/cgroup 2>/dev/null; then
-    log_error "=========================================="
-    log_error "ERROR: Running inside a Docker container!"
-    log_error "=========================================="
-    log_error ""
-    log_error "Docker/Podman cannot build images inside containers due to overlay"
-    log_error "filesystem limitations (nested overlayfs is not supported)."
-    log_error ""
-    log_error "RECOMMENDED SOLUTIONS:"
-    log_error "  1. Use GitHub Actions: .github/workflows/build-images.yml (automatic on push)"
-    log_error "  2. Build locally from your machine (not from devpod/container)"
-    log_error "  3. Use kaniko: kubectl apply -f scripts/build-with-kaniko.yml"
-    log_error ""
-    log_error "To build images, run this script from a non-containerized environment:"
-    log_error "  - Your local machine with Docker/Podman installed"
-    log_error "  - A VM or physical server"
-    log_error "  - GitHub Actions runner (automatic workflow)"
-    log_error ""
-    log_error "See documentation for more details."
-    exit 1
+    if [[ "$FORCE_BUILD" == "true" ]]; then
+      log_warning "=========================================="
+      log_warning "WARNING: Running inside a containerized environment!"
+      log_warning "=========================================="
+      log_warning "Build forced with --force flag. Proceeding at your own risk."
+      log_warning "Build may fail due to overlay filesystem limitations."
+      log_warning ""
+    else
+      log_error "=========================================="
+      log_error "ERROR: Running inside a Docker container!"
+      log_error "=========================================="
+      log_error ""
+      log_error "Docker/Podman cannot build images inside containers due to overlay"
+      log_error "filesystem limitations (nested overlayfs is not supported)."
+      log_error ""
+      log_error "RECOMMENDED SOLUTIONS:"
+      log_error "  1. Use GitHub Actions: .github/workflows/build-images.yml (automatic on push)"
+      log_error "  2. Build locally from your machine (not from devpod/container)"
+      log_error "  3. Use kaniko: kubectl apply -f scripts/build-with-kaniko.yml"
+      log_error ""
+      log_error "To force build anyway (experimental), use: --force"
+      log_error "To build images, run this script from a non-containerized environment:"
+      log_error "  - Your local machine with Docker/Podman installed"
+      log_error "  - A VM or physical server"
+      log_error "  - GitHub Actions runner (automatic workflow)"
+      log_error ""
+      log_error "See documentation for more details."
+      exit 1
+    fi
   fi
 
   # Check for podman or docker
