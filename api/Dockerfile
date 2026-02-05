@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20-alpine AS builder
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ RUN npm ci --omit=dev --no-audit --no-fund || \
 COPY src/ ./src/
 
 # Production stage
-FROM node:20-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
