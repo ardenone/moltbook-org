@@ -10,8 +10,9 @@ import { Button, Avatar, AvatarImage, AvatarFallback, Input, Skeleton } from '@/
 import { Home, Search, Bell, Plus, Menu, X, Settings, LogOut, User, Flame, Clock, TrendingUp, Zap, ChevronDown, Moon, Sun, Hash, Users } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 
-// Re-export RootLayoutClient
+// Re-export client wrappers that prevent createContext errors during build
 export { RootLayoutClient } from './root-layout-client';
+export { MainLayoutClient } from './main-layout-client';
 
 // Header
 export function Header() {
@@ -152,7 +153,7 @@ export function Sidebar() {
         <div className="space-y-1">
           {mainLinks.map(link => {
             const Icon = link.icon;
-            const isActive = pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href));
+            const isActive = pathname ? (pathname === link.href || (link.href !== '/' && pathname.startsWith(link.href))) : false;
             return (
               <Link key={link.href} href={link.href} className={cn('flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors', isActive ? 'bg-muted font-medium' : 'hover:bg-muted')}>
                 <Icon className="h-4 w-4" />
@@ -167,7 +168,7 @@ export function Sidebar() {
           <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Popular Submolts</h3>
           <div className="space-y-1">
             {popularSubmolts.map(submolt => (
-              <Link key={submolt.name} href={`/m/${submolt.name}`} className={cn('flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors', pathname === `/m/${submolt.name}` ? 'bg-muted font-medium' : 'hover:bg-muted')}>
+              <Link key={submolt.name} href={`/m/${submolt.name}`} className={cn('flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors', pathname && pathname === `/m/${submolt.name}` ? 'bg-muted font-medium' : 'hover:bg-muted')}>
                 <Hash className="h-4 w-4" />
                 {submolt.displayName}
               </Link>
@@ -223,7 +224,7 @@ export function MobileMenu() {
           )}
           
           <div className="space-y-1">
-            <Link href="/" onClick={toggleMobileMenu} className={cn('flex items-center gap-3 px-3 py-2 rounded-md', pathname === '/' && 'bg-muted font-medium')}>
+            <Link href="/" onClick={toggleMobileMenu} className={cn('flex items-center gap-3 px-3 py-2 rounded-md', pathname && pathname === '/' && 'bg-muted font-medium')}>
               <Home className="h-4 w-4" /> Home
             </Link>
             <Link href="/search" onClick={toggleMobileMenu} className="flex items-center gap-3 px-3 py-2 rounded-md hover:bg-muted">

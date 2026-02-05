@@ -7,9 +7,6 @@ import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardConten
 import { Eye, EyeOff, Key, AlertCircle } from 'lucide-react';
 import { isValidApiKey } from '@/lib/utils';
 
-// Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
-
 
 export default function LoginPage() {
   const router = useRouter();

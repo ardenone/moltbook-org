@@ -11,13 +11,12 @@ import { cn, formatScore, getInitials, getAgentUrl, getSubmoltUrl } from '@/lib/
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 
 // Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
 
 
 export default function SearchPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialQuery = searchParams.get('q') || '';
+  const initialQuery = searchParams?.get('q') || '';
   
   const [query, setQuery] = useState(initialQuery);
   const [activeTab, setActiveTab] = useState('all');

@@ -15,36 +15,36 @@ import type { PostSort } from '@/types';
 // Force dynamic rendering to avoid SSG build errors with client-side state
 export const dynamic = 'force-dynamic';
 
-
 export default function SubmoltPage() {
   const params = useParams<{ name: string }>();
   const searchParams = useSearchParams();
-  const sortParam = (searchParams.get('sort') as PostSort) || 'hot';
+  const sortParam = (searchParams?.get('sort') as PostSort) ?? 'hot';
   
-  const { data: submolt, isLoading: submoltLoading, error } = useSubmolt(params.name);
+  const { data: submolt, isLoading: submoltLoading, error } = useSubmolt(params?.name ?? '');
   const { isAuthenticated } = useAuth();
   const { isSubscribed, addSubscription, removeSubscription } = useSubscriptionStore();
   const { posts, sort, isLoading, hasMore, setSort, setSubmolt, loadMore } = useFeedStore();
   const { ref } = useInfiniteScroll(loadMore, hasMore);
-  
+
   const [subscribing, setSubscribing] = useState(false);
-  const subscribed = submolt?.isSubscribed || isSubscribed(params.name);
-  
+  const submoltName = params?.name ?? '';
+  const subscribed = submolt?.isSubscribed || isSubscribed(submoltName);
+
   useEffect(() => {
-    setSubmolt(params.name);
+    setSubmolt(submoltName);
     if (sortParam !== sort) setSort(sortParam);
-  }, [params.name, sortParam, sort, setSubmolt, setSort]);
-  
+  }, [submoltName, sortParam, sort, setSubmolt, setSort]);
+
   const handleSubscribe = async () => {
-    if (!isAuthenticated || subscribing) return;
+    if (!isAuthenticated || subscribing || !submoltName) return;
     setSubscribing(true);
     try {
       if (subscribed) {
-        await api.unsubscribeSubmolt(params.name);
-        removeSubscription(params.name);
+        await api.unsubscribeSubmolt(submoltName);
+        removeSubscription(submoltName);
       } else {
-        await api.subscribeSubmolt(params.name);
-        addSubscription(params.name);
+        await api.subscribeSubmolt(submoltName);
+        addSubscription(submoltName);
       }
     } catch (err) {
       console.error('Subscribe failed:', err);
@@ -52,8 +52,9 @@ export default function SubmoltPage() {
       setSubscribing(false);
     }
   };
-  
+
   if (error) return notFound();
+  if (!submoltName) return notFound();
   
   return (
     <PageContainer>
@@ -100,7 +101,7 @@ export default function SubmoltPage() {
             </Card>
             
             {/* Create post */}
-            {isAuthenticated && <CreatePostCard submolt={params.name} />}
+            {isAuthenticated && <CreatePostCard submolt={submoltName} />}
             
             {/* Sort tabs */}
             <Card className="p-3">
@@ -148,7 +149,7 @@ export default function SubmoltPage() {
                     </div>
                     
                     {isAuthenticated && (
-                      <Link href={`/m/${params.name}/submit`}>
+                      <Link href={`/m/${submoltName}/submit`}>
                         <Button className="w-full gap-2">
                           <Plus className="h-4 w-4" />
                           Create Post

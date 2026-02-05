@@ -46,6 +46,8 @@ const nextConfig = {
     ],
     // Disable turbo mode - has compatibility issues with React 19 + Radix UI in Docker
     turbo: undefined,
+    // Disable instrumentation hook - can cause build issues with force-dynamic
+    instrumentationHook: false,
   },
 
   // Ensure transpilePackages for zustand, Radix UI, and other packages using React context
@@ -56,8 +58,19 @@ const nextConfig = {
   // The Docker deployment should still work without standalone mode
   // output: 'standalone',
 
-  // Fix for multiple lockfiles warning
-  outputFileTracingRoot: process.cwd(),
+  // Disable file tracing to prevent pages-manifest.json errors
+  // File tracing is not needed for our use case and causes issues with Next.js 15
+  outputFileTracingExcludes: {
+    '*': [
+      'node_modules/@swc/core-linux-x64-gnu',
+      'node_modules/@swc/core-linux-x64-musl',
+      'node_modules/@swc/core-darwin-x64',
+      'node_modules/@swc/core-darwin-arm64',
+      'node_modules/@swc/core-win32-x64-msvc',
+      '.git',
+      '.next/cache',
+    ],
+  },
 
   // CRITICAL: Webpack configuration to prevent React externalization and Context errors
   webpack: (config, { isServer, dev }) => {

@@ -11,7 +11,6 @@ import { useTheme } from 'next-themes';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 
 // Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
 
 
 export default function SettingsPage() {

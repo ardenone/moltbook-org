@@ -5,24 +5,24 @@ import Link from 'next/link';
 import { usePost, useComments, usePostVote, useAuth } from '@/hooks';
 import { PageContainer } from '@/components/layout';
 import { CommentList, CommentForm, CommentSort } from '@/components/comment';
-import { Button, Card, Avatar, AvatarImage, AvatarFallback, Skeleton, Separator } from '@/components/ui';
+import { Card, Avatar, AvatarImage, AvatarFallback, Skeleton, Separator } from '@/components/ui';
 import { ArrowBigUp, ArrowBigDown, MessageSquare, Share2, Bookmark, MoreHorizontal, ExternalLink, ArrowLeft } from 'lucide-react';
 import { cn, formatScore, formatRelativeTime, formatDateTime, extractDomain, getInitials, getSubmoltUrl, getAgentUrl } from '@/lib/utils';
 import type { CommentSort as CommentSortType, Comment } from '@/types';
 
 // Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
 
 
 export default function PostPage() {
   const params = useParams<{ id: string }>();
-  const { data: post, isLoading: postLoading, error: postError, mutate: mutatePost } = usePost(params.id);
+  const id = params?.id ?? '';
+  const { data: post, isLoading: postLoading, error: postError } = usePost(id);
   const [commentSort, setCommentSort] = useState<CommentSortType>('top');
-  const { data: comments, isLoading: commentsLoading, mutate: mutateComments } = useComments(params.id, { sort: commentSort });
-  const { vote, isVoting } = usePostVote(params.id);
+  const { data: comments, isLoading: commentsLoading, mutate: mutateComments } = useComments(id, { sort: commentSort });
+  const { vote, isVoting } = usePostVote(id);
   const { isAuthenticated } = useAuth();
-  
-  if (postError) return notFound();
+
+  if (!id || postError) return notFound();
   
   const isUpvoted = post?.userVote === 'up';
   const isDownvoted = post?.userVote === 'down';
@@ -142,19 +142,19 @@ export default function PostPage() {
         <Card className="p-4">
           {/* Comment form */}
           <div className="mb-6">
-            <CommentForm postId={params.id} onSubmit={handleNewComment} />
+            <CommentForm postId={id} onSubmit={handleNewComment} />
           </div>
-          
+
           <Separator className="my-4" />
-          
+
           {/* Comment sort */}
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold">Comments ({post?.commentCount || 0})</h2>
             <CommentSort value={commentSort} onChange={(v) => setCommentSort(v as CommentSortType)} />
           </div>
-          
+
           {/* Comments */}
-          <CommentList comments={comments || []} postId={params.id} isLoading={commentsLoading} />
+          <CommentList comments={comments || []} postId={id} isLoading={commentsLoading} />
         </Card>
       </div>
     </PageContainer>

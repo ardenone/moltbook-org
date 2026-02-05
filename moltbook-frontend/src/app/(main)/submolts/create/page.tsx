@@ -14,7 +14,6 @@ import { cn, isValidSubmoltName, getInitials } from '@/lib/utils';
 import { toast } from '@/lib/toast';
 
 // Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
 
 
 const submoltSchema = z.object({

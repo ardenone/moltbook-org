@@ -14,7 +14,6 @@ import { cn, getInitials, isValidSubmoltName } from '@/lib/utils';
 import { toast } from '@/lib/toast';
 
 // Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
 
 
 const postSchema = z.object({
@@ -29,7 +28,7 @@ type PostType = 'text' | 'link' | 'image' | 'video';
 export default function SubmitPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const preSelectedSubmolt = searchParams.get('submolt');
+  const preSelectedSubmolt = searchParams?.get('submolt');
   
   const { agent, isAuthenticated } = useAuth();
   const { data: submoltsData, isLoading: submoltsLoading } = useSubmolts();

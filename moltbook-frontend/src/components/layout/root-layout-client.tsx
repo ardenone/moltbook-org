@@ -1,35 +1,18 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import dynamic from 'next/dynamic';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from 'sonner';
+import { Providers } from '@/components/providers';
 
-// CRITICAL: Dynamic imports with ssr: false prevent createContext errors during Docker build
+// CRITICAL: Root Layout Client Component for React 19 + Next.js 15
 //
-// Root Cause: Even with 'use client' and export const dynamic = 'force-dynamic',
-// Next.js 15 still attempts to execute client components during build for optimization.
-// Components using React Context (ThemeProvider, Toaster, Providers) fail because
-// React Context APIs are not available in the Node.js build environment.
+// Root Cause: In Next.js 15 with React 19, the 'ssr: false' option for dynamic imports
+// is deprecated and causes build errors. Context APIs work correctly in React 19 when
+// components are properly marked with 'use client'.
 //
-// Solution: Use dynamic imports with ssr: false to completely skip server-side rendering
-// and prevent these components from being executed during the Docker build.
-
-const ThemeProvider = dynamic(
-  () => import('next-themes').then(mod => ({ default: mod.ThemeProvider })),
-  { ssr: false }
-);
-
-const Toaster = dynamic(
-  () => import('sonner').then(mod => ({ default: mod.Toaster })),
-  { ssr: false }
-);
-
-const Providers = dynamic(
-  () => import('@/components/providers').then(mod => ({ default: mod.Providers })),
-  {
-    ssr: false,
-    loading: () => null, // Don't render anything during initial load
-  }
-);
+// Solution: Direct imports work correctly with React 19 + Next.js 15. The 'use client'
+// directive ensures these components only run on the client side.
 
 export function RootLayoutClient({ children }: { children: ReactNode }) {
   return (
