@@ -2,7 +2,9 @@
 
 **Status:** BLOCKER - Cluster Admin Action Required
 **Date:** 2026-02-04
-**Related Bead:** mo-18q
+**Related Beads:**
+- **mo-s45e** - Blocker: RBAC permissions for Moltbook namespace creation (current)
+- **mo-18q** - Blocker: Apply RBAC manifests for Moltbook deployment
 
 ## Overview
 
