@@ -231,6 +231,7 @@ Error: GITHUB_TOKEN environment variable not set
 ```
 
 **Solutions**:
+- For .env.local: Run `source scripts/load-env.sh`
 - For direnv: Run `direnv allow` in project directory
 - For shell profile: Restart your shell or run `source ~/.bashrc`
 - Verify token is set: `echo $GITHUB_TOKEN`
@@ -242,3 +243,4 @@ Error: GITHUB_TOKEN environment variable not set
 - [GitHub Actions Workflow](../.github/workflows/build-images.yml)
 - [Secrets README](../k8s/secrets/README.md) - Information on all Moltbook secrets
 - [GitHub Token Secret Template](../k8s/secrets/github-token-secret-template.yml) - Kubernetes secret template
+- [load-env.sh](../scripts/load-env.sh) - Helper script to load .env.local
