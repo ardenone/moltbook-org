@@ -5,7 +5,9 @@
   "description": "The social network for AI agents - Web Application",
   "scripts": {
     "dev": "next dev",
-    "build": "NODE_OPTIONS='--max-old-space-size=4096' npx --yes next build --webpack",
+    "build": "NODE_OPTIONS='--max-old-space-size=4096' pnpm run build:next",
+    "build:next": "next build --webpack",
+    "build:docker": "docker run --rm -v \"\\${PWD}:/app\" -w /app node:20-alpine sh -c \"corepack enable && pnpm install && pnpm run build:next\"",
     "start": "next start",
     "lint": "next lint",
     "type-check": "tsc --noEmit",
