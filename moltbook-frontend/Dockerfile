@@ -30,7 +30,7 @@ ENV NODE_ENV=production
 RUN rm -rf .next 2>/dev/null || true
 
 # Build the application
-# The --turbopack flag ensures we use Turbopack which handles node: prefixes correctly
+# The build script uses --webpack flag which is more stable than Turbopack for Next.js 16
 RUN npm run build
 
 # Production stage
@@ -50,7 +50,7 @@ COPY .npmrc ./
 # The --production flag would exclude @swc/helpers and other required packages
 # Use npm ci for cleaner installs or fallback to npm install if package-lock.json is inconsistent
 RUN npm ci --legacy-peer-deps --no-audit --no-fund || \
-    npm install --legacy-peer-deps --no-audit --no-fund
+    (rm -rf node_modules package-lock.json && npm install --legacy-peer-deps --no-audit --no-fund)
 
 # Copy built application from builder
 COPY --from=builder /app/.next ./.next
