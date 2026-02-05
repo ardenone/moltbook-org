@@ -1,14 +1,14 @@
-# Docker BuildKit Overlayfs Fix - Analysis and Workarounds
+# Docker BuildKit Overlayfs Fix - Analysis and Resolution
 
 **Bead ID:** mo-2392
 **Date:** 2026-02-05
-**Status:** 🔴 BLOCKER - Local builds not possible in devpod environment
+**Status:** ✅ RESOLVED - Docker builds now working with PVC storage
 
 ## Problem Statement
 
-Docker BuildKit fails with overlayfs mount error "invalid argument" when attempting to build container images on the devpod.
+Docker BuildKit was failing with overlayfs mount error "invalid argument" when attempting to build container images on the devpod.
 
-### Error Details
+### Error Details (Historical)
 
 ```
 ERROR: process "/bin/sh -c echo \"test\" > /tmp/test.txt" did not complete successfully:
@@ -38,9 +38,9 @@ overlay on / type overlay (rw,relatime,
   uuid=on)
 ```
 
-Docker BuildKit attempts to create **nested overlayfs mounts** on top of this existing overlayfs layer, which the kernel rejects with "invalid argument".
+Docker BuildKit attempted to create **nested overlayfs mounts** on top of this existing overlayfs layer, which the kernel rejected with "invalid argument".
 
-### Architecture
+### Architecture (Before Fix)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -50,7 +50,7 @@ Docker BuildKit attempts to create **nested overlayfs mounts** on top of this ex
 ├─────────────────────────────────────────────────────────────┤
 │ /var/lib/docker (on overlayfs)                             │
 ├─────────────────────────────────────────────────────────────┤
-│ Docker BuildKit overlayfs ← FAILS HERE (nested overlayfs)  │
+│ Docker BuildKit overlayfs ← FAILED HERE (nested overlayfs) │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -61,17 +61,76 @@ Docker BuildKit attempts to create **nested overlayfs mounts** on top of this ex
 - **Overlayfs module:** Loaded (217088 references)
 - **Max user namespaces:** 255328
 
-### Why It Fails
+### Why It Failed
 
-The kernel has limits on overlayfs nesting. When Docker BuildKit (running inside an overlayfs) tries to create another overlayfs mount for container build operations, it exceeds these limits or hits incompatibility issues with the nested configuration.
+The kernel has limits on overlayfs nesting. When Docker BuildKit (running inside an overlayfs) tried to create another overlayfs mount for container build operations, it exceeded these limits or hit incompatibility issues with the nested configuration.
 
-## Affected Operations
+## Resolution
 
-- ❌ `docker build` / `docker buildx build` - Fails with overlayfs mount error
-- ❌ `docker buildx build` with cache mounts - Fails immediately
-- ❌ Any Docker image build operation - All blocked
+### Solution: Relocate Docker Data Directory to PVC
 
-## Workarounds and Solutions
+**Implemented in commit:** `66fdf9a` (feat(mo-2392): Fix: Devpod storage layer - Docker overlayfs nested mount issue)
+
+The issue was resolved by moving Docker's data directory from `/var/lib/docker` (on overlayfs) to `/home/coder/.docker-data` (on the Longhorn PVC with ext4 filesystem).
+
+### Changes Made
+
+1. **Created new Docker storage location:**
+   ```bash
+   mkdir -p /home/coder/.docker-data
+   ```
+
+2. **Configured Docker daemon:**
+   - Docker Root Dir: `/home/coder/.docker-data` (was: `/var/lib/docker`)
+   - Storage Driver: overlay2 (was: overlayfs with nesting)
+
+3. **Configuration file:** `/etc/default/docker` with `DOCKER_OPTS`
+
+### Architecture (After Fix)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Node Filesystem (ext4 on nvme0n1p2)                        │
+├─────────────────────────────────────────────────────────────┤
+│ K3s containerd overlayfs (26 layers) ← Running pod root    │
+├─────────────────────────────────────────────────────────────┤
+│ /home/coder (Longhorn PVC with ext4)                       │
+├─────────────────────────────────────────────────────────────┤
+│ /home/coder/.docker-data (ext4) ← Docker storage here      │
+├─────────────────────────────────────────────────────────────┤
+│ Docker BuildKit overlayfs ← NOW WORKS (on ext4, not nested)│
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Verification
+
+### Current Docker Configuration
+
+```bash
+$ docker info | grep "Docker Root Dir"
+ Docker Root Dir: /home/coder/.docker-data
+```
+
+### Test Results (2026-02-05)
+
+```bash
+$ docker buildx build -f /tmp/Dockerfile.test -t test-build-final /tmp
+#0 building with "default" instance using docker driver
+#1 [internal] load build definition from Dockerfile.test
+#1 DONE 0.1s
+#4 [1/2] FROM docker.io/library/alpine:3.19
+#4 DONE 0.1s
+#5 [2/2] RUN echo "test" > /tmp/test.txt
+#5 DONE 0.7s
+#6 exporting to image
+#6 DONE 1.2s
+```
+
+**Result:** ✅ PASSED - Docker builds now work correctly
+
+## Alternative Workarounds (Not Required After Fix)
+
+These were investigated but are no longer needed since the issue is resolved:
 
 ### Workaround 1: Buildah (LIMITED - User Namespace Issues)
 
@@ -100,159 +159,13 @@ buildah bud -f Dockerfile -t myimage:latest .
 
 Run BuildKit in a separate Kubernetes pod (requires RBAC permissions).
 
-```bash
-# Create Kubernetes BuildKit builder (needs RBAC)
-kubectl apply -f - <<EOF
-apiVersion: v1
-kind: ServiceAccount
-metadata:
-  name: buildkit
-  namespace: devpod
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
-metadata:
-  name: buildkit
-  namespace: devpod
-rules:
-- apiGroups: ["apps"]
-  resources: ["deployments"]
-  verbs: ["create", "get", "update", "delete"]
-- apiGroups: [""]
-  resources: ["pods"]
-  verbs: ["get", "list", "watch"]
----
-apiVersion: rbac.authorization.k8s.io/v1
-kind: RoleBinding
-metadata:
-  name: buildkit
-  namespace: devpod
-roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: buildkit
-subjects:
-- kind: ServiceAccount
-  name: buildkit
-EOF
+**Status:** ❌ NOT REQUIRED - Issue resolved with PVC storage
 
-# Create builder (using the service account)
-docker buildx create \
-  --use \
-  --driver=kubernetes \
-  --driver-opt=namespace=devpod \
-  --driver-opt=serviceaccount=buildkit \
-  --name=k8s-builder
-```
-
-**Pros:**
-- ✅ Native Docker build experience
-- ✅ Builds run in separate pod
-
-**Cons:**
-- ❌ Requires RBAC permissions (currently unavailable)
-- ❌ More complex setup
-
-### Workaround 3: Docker Daemon with VFS Driver (Not Available)
-
-Configure Docker to use VFS storage driver instead of overlayfs.
-
-```json
-// /etc/docker/daemon.json
-{
-  "storage-driver": "vfs"
-}
-```
-
-**Status:** ❌ NOT AVAILABLE - Requires Docker daemon restart and root access
-
-### Workaround 4: External Build Services (RECOMMENDED)
+### Workaround 3: External Build Services
 
 Build images externally and pull them.
 
-```bash
-# Use GitHub Actions, GitLab CI, or other CI/CD
-# Build image in CI pipeline
-# Pull pre-built image to devpod
-docker pull registry.example.com/myimage:latest
-```
-
-**Pros:**
-- ✅ Works in any environment
-- ✅ No local build required
-
-**Cons:**
-- ❌ External dependency
-- ❌ Slower feedback loop
-
-### Workaround 5: Use Pre-built Images
-
-Skip local builds entirely and use official or pre-built images.
-
-```bash
-# Use pre-built images instead of building
-docker pull node:20-alpine
-docker pull python:3.12-slim
-```
-
-**Pros:**
-- ✅ No build issues
-- ✅ Faster
-
-**Cons:**
-- ❌ Not always applicable
-- ❌ Can't customize images
-
-## Recommended Solution: Use External Build Services
-
-For this devpod environment, **external builds** are the recommended solution because:
-
-1. **Docker BuildKit fails** - Nested overlayfs not supported
-2. **Buildah fails** - User namespace restrictions
-3. **Local builds not possible** - Container runtime constraints
-
-### Recommended Workflows
-
-#### Option 1: CI/CD Pipeline Builds (RECOMMENDED)
-
-Use GitHub Actions, GitLab CI, or similar to build images:
-
-```yaml
-# .github/workflows/docker-build.yml
-name: Docker Build
-on: [push]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Build image
-        run: docker build -t registry.example.com/myimage:${{ github.sha }} .
-      - name: Push image
-        run: docker push registry.example.com/myimage:${{ github.sha }}
-```
-
-#### Option 2: Pre-built Images
-
-Use official or organization pre-built images:
-
-```bash
-# Pull pre-built images instead of building locally
-docker pull node:20-alpine
-docker pull python:3.12-slim
-docker pull your-registry.com/custom-image:latest
-```
-
-#### Option 3: Remote BuildKit with RBAC (Future)
-
-Request RBAC permissions to use Kubernetes BuildKit driver:
-
-```bash
-# Requires RBAC (currently unavailable)
-kubectl create serviceaccount buildkit -n devpod
-kubectl create rolebinding buildkit --role=buildkit --serviceaccount=devpod:buildkit
-docker buildx create --use --driver=kubernetes --driver-opt=namespace=devpod
-```
+**Status:** ❌ NOT REQUIRED - Local builds now work
 
 ## Related Issues
 
@@ -260,43 +173,33 @@ docker buildx create --use --driver=kubernetes --driver-opt=namespace=devpod
 - **mo-11q0:** Docker build overlayfs mount failures
 - **mo-1rp9:** npm install blocker (related to filesystem issues)
 
-## Summary of Findings
+## Summary
 
 | Method | Status | Reason |
 |--------|--------|--------|
-| Docker BuildKit | ❌ Fails | Nested overlayfs not supported |
+| Docker BuildKit (original) | ❌ Failed | Nested overlayfs not supported |
+| Docker BuildKit (fixed) | ✅ Works | Moved to PVC storage (ext4) |
 | Buildah | ❌ Fails | User namespace restrictions |
-| Kubernetes BuildKit | ❌ Blocked | Requires RBAC permissions |
-| External CI/CD | ✅ Works | Use GitHub Actions / GitLab CI |
-| Pre-built images | ✅ Works | Pull from registry |
-
-## Next Steps
-
-1. ✅ **Root cause identified** - Nested overlayfs + user namespace issues
-2. ⏳ **Set up CI/CD pipeline** for image builds
-3. ⏳ **Request RBAC permissions** for Kubernetes BuildKit driver
-4. ⏳ **Document build workflows** for the team
+| Kubernetes BuildKit | ⏸️ Not needed | Local builds work now |
 
 ## Success Criteria
 
-- [x] Root cause identified (nested overlayfs + user namespaces)
+- [x] Root cause identified (nested overlayfs in devpod)
 - [x] Docker BuildKit overlayfs issue confirmed
 - [x] Buildah tested - fails with user namespace errors
-- [x] Workarounds documented (external CI/CD, pre-built images)
-- [ ] Set up CI/CD pipeline for automated builds
-- [ ] Document team migration guide
+- [x] Resolution implemented - Docker moved to PVC storage
+- [x] Docker builds verified working
+- [x] Workarounds documented (for reference)
 
 ## Conclusion
 
-**Local Docker image builds are not possible** in this devpod environment due to:
+**Docker BuildKit overlayfs issue is RESOLVED.**
 
-1. **Docker BuildKit** - Cannot create nested overlayfs mounts
-2. **Buildah** - User namespace restrictions prevent image extraction
+The fix involved moving Docker's data directory from `/var/lib/docker` (on overlayfs) to `/home/coder/.docker-data` (on the Longhorn PVC with ext4). This eliminates the nested overlayfs problem and allows Docker builds to work correctly in the devpod environment.
 
-### Recommended Actions
+**Current Status:** ✅ WORKING - Docker builds operational on PVC storage
 
-1. **Immediate:** Use pre-built images for development
-2. **Short-term:** Set up CI/CD pipeline for image builds (GitHub Actions, GitLab CI)
-3. **Long-term:** Request RBAC permissions for Kubernetes BuildKit driver
-
-**Status:** 🔴 LOCAL BUILDS NOT POSSIBLE - Use external CI/CD or pre-built images
+**Commits:**
+- `66fdf9a` - feat(mo-2392): Fix: Devpod storage layer - Docker overlayfs nested mount issue
+- `df3e185` - feat(mo-2392): Add /dev/shm storage fix documentation
+- `77dd63f` - feat(mo-2392): Blocker: Devpod storage layer corruption - overlayfs broken
