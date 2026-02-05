@@ -243,16 +243,58 @@ kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller
 
 ---
 
-**Last Updated**: 2026-02-05 05:35 UTC
-**Verified by**: mo-1fgm (claude-glm-foxtrot worker)
-**Re-verified**: 2026-02-05 05:30 UTC (zai-bravo worker)
+**Last Updated**: 2026-02-05 05:43 UTC
+**Verified by**: mo-1fgm (claude-glm-hotel worker)
 **Status**: 🔴 BLOCKED - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
 **Estimated Time**: 5 minutes (one-time cluster setup)
 
 ## Related Blocker Beads (2026-02-05)
 
-- **mo-2dpt** (P0): ADMIN: Cluster Admin Action - Install ArgoCD in ardenone-cluster - OPEN
+- **mo-1osa** (P0): BLOCKER: Cluster-admin needed to apply ArgoCD RBAC permissions for ardenone-cluster - OPEN
 - **mo-1fgm** (P1): CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments - BLOCKED
 
 **Documentation**: See `BLOCKER_STATUS.md` for detailed blocker resolution steps.
+
+---
+## Latest Verification (2026-02-05 05:43 UTC)
+
+### Current State Summary
+| Component | Status | Details |
+|-----------|--------|---------|
+| argocd namespace | ❌ NOT FOUND | Does not exist |
+| ArgoCD CRDs | ❌ NOT INSTALLED | Only Argo Rollouts CRDs exist |
+| argocd-manager-role ClusterRole | ✅ EXISTS | Wildcard permissions |
+| argocd-manager-role-binding | ✅ EXISTS | Bound to kube-system:argocd-manager |
+| devpod-argocd-manager ClusterRoleBinding | ❌ NOT FOUND | Needs cluster-admin to create |
+| devpod-argocd-installer ClusterRoleBinding | ❌ NOT FOUND | Needs cluster-admin to create |
+| Devpod SA permissions | ❌ INSUFFICIENT | Cannot create CRDs, namespaces, clusterrolebindings |
+
+### Required Cluster-Admin Action
+
+```bash
+# Option 1: Use existing argocd-manager-role (RECOMMENDED - simpler)
+kubectl create clusterrolebinding devpod-argocd-manager \
+  --clusterrole=argocd-manager-role \
+  --serviceaccount=devpod:default
+
+# Option 2: Use full ARGOCD_INSTALL_REQUEST.yml
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/ARGOCD_INSTALL_REQUEST.yml
+```
+
+### After RBAC is Applied, From Devpod:
+
+```bash
+# Install ArgoCD
+kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
+
+# Wait for pods to be ready
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s
+
+# Verify installation
+kubectl get pods -n argocd
+kubectl get crd | grep argoproj.io
+
+# Deploy Moltbook Application
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
+```
