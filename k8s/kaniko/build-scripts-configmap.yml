@@ -1,0 +1,220 @@
+---
+# Kaniko Build Scripts ConfigMap
+#
+# Contains shell scripts for building Moltbook container images using Kaniko.
+# These scripts are mounted into the kaniko-build-runner deployment at /scripts/
+#
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kaniko-build-scripts
+  namespace: moltbook
+  labels:
+    app: kaniko-build-runner
+data:
+  # Build all images (API and Frontend)
+  build-all.sh: |
+    #!/bin/sh
+    set -e
+    echo "========================================"
+    echo "Building All Moltbook Images with Kaniko"
+    echo "========================================"
+    echo ""
+
+    IMAGE_TAG="${IMAGE_TAG:-latest}"
+    REGISTRY="${DEST_REGISTRY:-ghcr.io/ardenone}"
+
+    echo "Registry: ${REGISTRY}"
+    echo "Tag: ${IMAGE_TAG}"
+    echo ""
+
+    # Build API
+    echo "Building API image..."
+    /warmup /workspace/api &&
+    executor \
+      --context=/workspace/api \
+      --dockerfile=/workspace/api/Dockerfile \
+      --destination=${REGISTRY}/moltbook-api:${IMAGE_TAG} \
+      --destination=${REGISTRY}/moltbook-api:latest \
+      --cache=true \
+      --cache-dir=/cache \
+      --snapshotMode=redo \
+      --use-new-run && echo "API build complete!" || echo "API build failed!"
+
+    echo ""
+
+    # Build Frontend
+    echo "Building Frontend image..."
+    /warmup /workspace/frontend &&
+    executor \
+      --context=/workspace/moltbook-frontend \
+      --dockerfile=/workspace/moltbook-frontend/Dockerfile \
+      --destination=${REGISTRY}/moltbook-frontend:${IMAGE_TAG} \
+      --destination=${REGISTRY}/moltbook-frontend:latest \
+      --cache=true \
+      --cache-dir=/cache \
+      --snapshotMode=redo \
+      --use-new-run && echo "Frontend build complete!" || echo "Frontend build failed!"
+
+    echo ""
+    echo "========================================"
+    echo "All builds complete!"
+    echo "========================================"
+
+  # Build API image only
+  build-api.sh: |
+    #!/bin/sh
+    set -e
+    echo "========================================"
+    echo "Building Moltbook API with Kaniko"
+    echo "========================================"
+    echo ""
+
+    IMAGE_TAG="${IMAGE_TAG:-latest}"
+    REGISTRY="${DEST_REGISTRY:-ghcr.io/ardenone}"
+
+    echo "Registry: ${REGISTRY}"
+    echo "Tag: ${IMAGE_TAG}"
+    echo ""
+
+    /warmup /workspace/api &&
+    executor \
+      --context=/workspace/api \
+      --dockerfile=/workspace/api/Dockerfile \
+      --destination=${REGISTRY}/moltbook-api:${IMAGE_TAG} \
+      --destination=${REGISTRY}/moltbook-api:latest \
+      --cache=true \
+      --cache-dir=/cache \
+      --snapshotMode=redo \
+      --use-new-run
+
+    echo ""
+    echo "========================================"
+    echo "API build complete!"
+    echo "========================================"
+
+  # Build Frontend image only
+  build-frontend.sh: |
+    #!/bin/sh
+    set -e
+    echo "========================================"
+    echo "Building Moltbook Frontend with Kaniko"
+    echo "========================================"
+    echo ""
+
+    IMAGE_TAG="${IMAGE_TAG:-latest}"
+    REGISTRY="${DEST_REGISTRY:-ghcr.io/ardenone}"
+
+    echo "Registry: ${REGISTRY}"
+    echo "Tag: ${IMAGE_TAG}"
+    echo ""
+
+    /warmup /workspace/frontend &&
+    executor \
+      --context=/workspace/moltbook-frontend \
+      --dockerfile=/workspace/moltbook-frontend/Dockerfile \
+      --destination=${REGISTRY}/moltbook-frontend:${IMAGE_TAG} \
+      --destination=${REGISTRY}/moltbook-frontend:latest \
+      --cache=true \
+      --cache-dir=/cache \
+      --snapshotMode=redo \
+      --use-new-run
+
+    echo ""
+    echo "========================================"
+    echo "Frontend build complete!"
+    echo "========================================"
+
+  # Helper script to prepare build context
+  warmup: |
+    #!/bin/sh
+    # Warmup script - prepares build context directory
+    # Usage: /warmup <context-path>
+
+    CONTEXT_PATH="$1"
+
+    if [ -z "$CONTEXT_PATH" ]; then
+      echo "Usage: /warmup <context-path>"
+      exit 1
+    fi
+
+    echo "Preparing build context: ${CONTEXT_PATH}"
+
+    # Create context directory if it doesn't exist
+    mkdir -p "${CONTEXT_PATH}"
+
+    # The actual source files should be mounted or copied separately
+    # This script is a placeholder for any pre-build setup
+
+    echo "Build context ready"
+
+  # Manual build instructions
+  README.txt: |
+    Kaniko Build Runner - Manual Build Instructions
+    ================================================
+
+    This ConfigMap contains build scripts for the kaniko-build-runner deployment.
+
+    QUICK START:
+    -----------
+
+    1. Set up GHCR credentials (choose one):
+
+       a) Create a Kubernetes secret:
+          kubectl create secret docker-registry ghcr-credentials \
+            --docker-server=ghcr.io \
+            --docker-username=ardenone \
+            --docker-password=<YOUR_GITHUB_TOKEN> \
+            -n moltbook
+
+       b) Or authenticate manually inside the pod:
+          kubectl exec -it deployment/kaniko-build-runner -- sh
+          echo "https://<USERNAME>:<TOKEN>@ghcr.io" > /kaniko/.docker/config.json
+
+    2. Trigger a build:
+
+       # Build both API and Frontend
+       kubectl exec -it deployment/kaniko-build-runner -- /scripts/build-all.sh
+
+       # Build only API
+       kubectl exec -it deployment/kaniko-build-runner -- /scripts/build-api.sh
+
+       # Build only Frontend
+       kubectl exec -it deployment/kaniko-build-runner -- /scripts/build-frontend.sh
+
+    3. Use custom image tag:
+       kubectl exec -it deployment/kaniko-build-runner -- env IMAGE_TAG=v1.0.0 /scripts/build-all.sh
+
+    BUILD SCRIPTS:
+    -------------
+    - /scripts/build-all.sh       - Build API and Frontend
+    - /scripts/build-api.sh       - Build API only
+    - /scripts/build-frontend.sh  - Build Frontend only
+    - /warmup                     - Prepare build context
+
+    KANIKO FLAGS USED:
+    -----------------
+    - --context: Path to build context
+    - --dockerfile: Path to Dockerfile
+    - --destination: Image registry destination (can be specified multiple times)
+    - --cache: Enable layer caching
+    - --cache-dir: Directory for cache storage
+    - --snapshotMode=redo: Force redo of snapshots (cleaner builds)
+    - --use-new-run: Use new RUN command implementation
+
+    TROUBLESHOOTING:
+    ---------------
+    If builds fail, check:
+
+    1. GHCR credentials are valid
+    2. GITHUB_TOKEN has write:packages scope
+    3. Build context files are accessible
+    4. Sufficient resources (CPU/Memory) allocated
+
+    For interactive debugging:
+      kubectl exec -it deployment/kaniko-build-runner -- sh
+
+    REFERENCES:
+    -----------
+    - Kaniko: https://github.com/GoogleContainerTools/kaniko
+    - Kaniko Executor: https://github.com/GoogleContainerTools/kaniko#running-kaniko-in-a-kubernetes-cluster

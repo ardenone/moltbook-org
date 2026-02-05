@@ -1,0 +1,156 @@
+# Kaniko Build Configuration for Kubernetes-based Container Image Builds
+# This file provides an alternative to GitHub Actions for building images
+# in environments where Docker/Podman cannot build due to overlay filesystem limitations.
+#
+# DEPRECATION NOTICE: Per project constraints, this Job is NOT RECOMMENDED.
+# Use GitHub Actions (.github/workflows/build-images.yml) instead.
+# If you must use this pattern, convert to an idempotent Deployment with restart-on-config-change.
+#
+# Usage:
+#   kubectl apply -f scripts/build-with-kaniko.yml
+#   kubectl wait --for=condition=complete --timeout=600s job/kaniko-build-api
+#
+# Requirements:
+# - Kubernetes cluster with kaniko executor image available
+# - ServiceAccount with registry push permissions (GITHUB_TOKEN secret)
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kaniko-build-config
+  namespace: moltbook
+data:
+  # Dockerfile paths
+  DOCKERFILE_API: "/workspace/api/Dockerfile"
+  DOCKERFILE_FRONTEND: "/workspace/moltbook-frontend/Dockerfile"
+  # Context paths
+  CONTEXT_API: "/workspace/api"
+  CONTEXT_FRONTEND: "/workspace/moltbook-frontend"
+  # Destination registries
+  DESTINATION_API: "ghcr.io/ardenone/moltbook-api"
+  DESTINATION_FRONTEND: "ghcr.io/ardenone/moltbook-frontend"
+---
+# NOT RECOMMENDED: Use Deployment instead for ArgoCD compatibility
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kaniko-build-api
+  namespace: moltbook
+  labels:
+    app: moltbook
+    component: build
+    type: kaniko
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: kaniko
+        image: gcr.io/kaniko-project/executor:latest
+        command:
+        - /kaniko/executor
+        args:
+        - --dockerfile=/workspace/api/Dockerfile
+        - --context=/workspace
+        - --destination=ghcr.io/ardenone/moltbook-api:latest
+        - --cache=true
+        - --cache-dir=/cache
+        - --verbosity=info
+        env:
+        - name: IMAGE_TAG
+          value: "latest"
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+        - name: cache
+          mountPath: /cache
+        - name: docker-config
+          mountPath: /kaniko/.docker
+      volumes:
+      - name: workspace
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      - name: docker-config
+        secret:
+          secretName: docker-config
+          items:
+          - key: .dockerconfigjson
+            path: config.json
+      initContainers:
+      - name: checkout
+        image: alpine/git:latest
+        command:
+        - sh
+        - -c
+        - |
+          git clone https://github.com/ardenone/moltbook-org.git /workspace
+          cd /workspace
+          git checkout main
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+---
+# Alternative: Idempotent Deployment for ArgoCD-compatible builds
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: moltbook-kaniko-builder
+  namespace: moltbook
+  labels:
+    app: moltbook
+    component: kaniko-builder
+spec:
+  replicas: 0  # Scale up to build, scale down when done
+  selector:
+    matchLabels:
+      app: moltbook
+      component: kaniko-builder
+  template:
+    metadata:
+      labels:
+        app: moltbook
+        component: kaniko-builder
+    spec:
+      containers:
+      - name: builder
+        image: gcr.io/kaniko-project/executor:latest
+        command:
+        - sh
+        - -c
+        - |
+          echo "Running kaniko build..."
+          /kaniko/executor \
+            --dockerfile=/workspace/api/Dockerfile \
+            --context=dir:///workspace \
+            --destination=ghcr.io/ardenone/moltbook-api:latest \
+            --cache=true \
+            --cache-dir=/cache
+          
+          echo "Build completed successfully. Sleeping to keep pod running..."
+          sleep infinity
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+        - name: cache
+          mountPath: /cache
+        - name: docker-config
+          mountPath: /kaniko/.docker
+        resources:
+          requests:
+            cpu: 500m
+            memory: 512Mi
+          limits:
+            cpu: 2000m
+            memory: 2Gi
+      volumes:
+      - name: workspace
+        emptyDir: {}
+      - name: cache
+        emptyDir: {}
+      - name: docker-config
+        secret:
+          secretName: docker-config
+          items:
+          - key: .dockerconfigjson
+            path: config.json

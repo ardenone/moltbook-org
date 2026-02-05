@@ -8,7 +8,7 @@ Moltbook requires two container images to be built and pushed to GitHub Containe
 
 ## Devpod Build Limitation
 
-**IMPORTANT**: Container builds cannot be performed inside devpods due to overlay filesystem restrictions. The build must be executed on a machine with full Docker/Podman access.
+**CRITICAL**: Container builds **CANNOT** be performed inside devpods due to overlay filesystem restrictions (nested overlayfs is not supported by the Linux kernel).
 
 ### Error when building in devpod:
 ```
@@ -16,16 +16,37 @@ failed to mount: mount source: "overlay", target: "/var/...", fstype: overlay, f
 data: "...", err: invalid argument
 ```
 
-## Build Location Options
+## Recommended Build Options
 
-### Option 1: Local Machine (Recommended)
+### Option 1: GitHub Actions (Recommended - Fully Automated)
+
+The `.github/workflows/build-images.yml` workflow automatically builds and pushes images:
+- **On push to main**: Automatic build and push to GHCR
+- **On pull requests**: Build only (for testing)
+- **Manual trigger**: Via GitHub Actions UI
+
+**Usage:**
+```bash
+# Automatic - just push to main
+git push origin main
+
+# Or trigger manually:
+# Visit: https://github.com/ardenone/moltbook-org/actions/workflows/build-images.yml
+# Click "Run workflow" button
+```
+
+**Benefits:**
+- No local Docker required
+- Runs on native Ubuntu VM
+- Automatic caching
+- Integrated authentication
+- Free for public repositories
+
+### Option 2: Local Machine
 Build on your local development machine with Docker Desktop/Podman installed.
 
-### Option 2: CI/CD Pipeline
-Use GitHub Actions to build and push images automatically.
-
 ### Option 3: Dedicated Build Server
-Use a server/container with proper Docker-in-Docker (DinD) support.
+Use a server with native Docker support (not containerized).
 
 ## Prerequisites
 
@@ -135,29 +156,16 @@ GitHub has rate limits on container registry operations. If you hit limits:
 - Use authenticated pulls (counts against higher limit)
 - Consider caching layers in CI/CD
 
-## CI/CD Alternative
+## CI/CD Automation
 
-For automated builds, consider setting up GitHub Actions:
+Automated builds are already configured via GitHub Actions:
 
-```yaml
-# .github/workflows/build-images.yml
-name: Build Container Images
-on:
-  push:
-    branches: [main]
-    tags: ['v*']
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - run: ./scripts/build-images.sh --push --tag ${GITHUB_REF##*/v}
-```
+**Workflow:** `.github/workflows/build-images.yml`
+
+**Triggers:**
+- Push to `main` branch
+- Pull requests to `main` (build only)
+- Manual workflow dispatch
+- Changes to `api/`, `moltbook-frontend/`, or workflow file
+
+**No additional setup required** - the workflow uses GitHub's built-in `GITHUB_TOKEN` for authentication.

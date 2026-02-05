@@ -57,12 +57,14 @@ For production deployments, use the automated GitHub Actions workflow:
 
 The workflow automatically:
 - Triggers on push to `main` branch when files in `api/`, `moltbook-frontend/`, or the workflow itself change
+- Triggers on version tags (e.g., `v1.0.0`) for release builds
 - Can be manually triggered via `workflow_dispatch`
 - Builds both API and Frontend images using Docker Buildx
 - Pushes images to GitHub Container Registry (GHCR): `ghcr.io/ardenone/moltbook-api` and `ghcr.io/ardenone/moltbook-frontend`
 - Tags images with:
   - Branch name (e.g., `main`)
   - Git SHA (e.g., `main-abc1234`)
+  - Semantic version tags (e.g., `v1.0.0`, `v1.0`) when tags are pushed
   - `latest` (for main branch)
 - Automatically updates `k8s/kustomization.yml` with the new image tags
 - Uses GitHub Actions cache for faster builds
@@ -86,6 +88,14 @@ The workflow automatically:
    - Detects the change in `k8s/kustomization.yml`
    - Pulls new images
    - Deploys to the cluster
+
+**For releases**, push a version tag:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+This will build and tag images as `v1.0.0`, `v1.0`, and `latest`.
 
 ### 3. Manual Workflow Trigger
 

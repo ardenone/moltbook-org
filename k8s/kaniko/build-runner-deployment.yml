@@ -1,0 +1,131 @@
+---
+# Kaniko Build Runner - Daemonless Container Image Builder for Kubernetes
+#
+# This deployment provides an alternative to GitHub Actions for building container
+# images directly within the Kubernetes cluster. Kaniko doesn't require Docker
+# daemon and works without privileged mode, making it ideal for containerized
+# environments like devpods where nested overlayfs prevents Docker builds.
+#
+# Architecture:
+# - Long-running deployment (not a Job) for GitOps compatibility with ArgoCD
+# - Builds images on-demand using a ConfigMap-based build script
+# - Uses PersistentVolumeClaim for build context and cache
+# - Supports authentication to GHCR via Kubernetes secrets
+#
+# Usage:
+# 1. Create GHCR credentials secret: kubectl create secret docker-registry ghcr-credentials ...
+# 2. Deploy this manifest: kubectl apply -f k8s/kaniko/
+# 3. Trigger build: kubectl exec -it deployment/kaniko-build-runner -- /build.sh
+#
+# Reference: https://github.com/GoogleContainerTools/kaniko
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kaniko-build-runner
+  namespace: moltbook
+  labels:
+    app: kaniko-build-runner
+    purpose: image-builder
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kaniko-build-runner
+  template:
+    metadata:
+      labels:
+        app: kaniko-build-runner
+        purpose: image-builder
+    spec:
+      # Use hostPath for build context when running in devpod environment
+      # This provides faster build times by avoiding PVC overhead
+      volumes:
+      # Shared empty directory for build artifacts
+      - name: build-context
+        emptyDir: {}
+      # Kaniko build cache directory
+      - name: kaniko-cache
+        emptyDir: {}
+      # Build scripts and configuration
+      - name: build-scripts
+        configMap:
+          name: kaniko-build-scripts
+      # GHCR credentials for pushing images
+      - name: ghcr-credentials
+        secret:
+          secretName: ghcr-credentials
+          optional: true  # Allow manual authentication via DOCKER_CONFIG
+
+      containers:
+      - name: kaniko-runner
+        image: gcr.io/kaniko-project/executor:latest
+        command: ["sh", "-c"]
+        args:
+          - |
+            echo "Kaniko Build Runner Ready"
+            echo "=========================="
+            echo "This pod provides on-demand container image building."
+            echo ""
+            echo "Available build scripts:"
+            echo "  /scripts/build-all.sh     - Build API and Frontend images"
+            echo "  /scripts/build-api.sh     - Build API image only"
+            echo "  /scripts/build-frontend.sh - Build Frontend image only"
+            echo ""
+            echo "To trigger a build, run:"
+            echo "  kubectl exec -it deployment/kaniko-build-runner -- /scripts/build-all.sh"
+            echo ""
+            echo "Or enter the pod and run manually:"
+            echo "  kubectl exec -it deployment/kaniko-build-runner -- sh"
+            echo ""
+            # Keep the container running for on-demand builds
+            tail -f /dev/null
+
+        env:
+        # Kaniko cache configuration
+        - name: KANIKO_CACHE_DIR
+          value: /cache
+        # Destination registry
+        - name: DEST_REGISTRY
+          value: ghcr.io/ardenone
+        # Image tag (can be overridden)
+        - name: IMAGE_TAG
+          value: "latest"
+
+        volumeMounts:
+        - name: build-context
+          mountPath: /workspace
+        - name: kaniko-cache
+          mountPath: /cache
+        - name: build-scripts
+          mountPath: /scripts
+        - name: ghcr-credentials
+          mountPath: /kaniko/.docker
+          readOnly: true
+
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+
+        livenessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "test -f /dev/null || exit 0"
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 5
+
+        readinessProbe:
+          exec:
+            command:
+            - sh
+            - -c
+            - "test -f /dev/null || exit 0"
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 3

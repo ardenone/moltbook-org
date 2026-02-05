@@ -13,41 +13,52 @@ Moltbook uses GitHub Actions to build and push container images to GitHub Contai
 
 ## Building Images
 
-### Option 1: GitHub Actions (Recommended)
+### Option 1: GitHub Actions (Recommended - Fully Automated)
 
-The `.github/workflows/build-push.yml` workflow automatically builds and pushes images when:
+The `.github/workflows/build-images.yml` workflow automatically builds and pushes images when:
 - Code is pushed to the `main` branch
 - Changes are made to `api/**`, `moltbook-frontend/**`, or the workflow itself
-- Manual trigger via `workflow_dispatch`
+- Pull requests targeting `main` (build only, no push)
+- Manual trigger via `workflow_dispatch` in GitHub Actions UI
 
 **To trigger a build:**
 
 ```bash
-# Push to main (automatic trigger)
+# Push to main (automatic trigger with push to registry)
 git push origin main
 
+# Or create a PR (build only for testing)
+gh pr create --base main
+
 # Or trigger manually via GitHub Actions UI
-# Visit: https://github.com/ardenone/moltbook-org/actions/workflows/build-push.yml
+# Visit: https://github.com/ardenone/moltbook-org/actions/workflows/build-images.yml
 ```
 
-### Option 2: Local Build (Requires Fix)
+**Why GitHub Actions is Recommended:**
+- Runs on native Ubuntu VMs with full Docker support
+- No overlay filesystem limitations
+- Automatic caching for faster builds
+- Integrated with GitHub Container Registry
+- No manual authentication required
 
-Currently, local Docker builds in devpods fail with overlay filesystem errors:
+### Option 2: Local Build (Not Available in Devpods)
 
-```
-ERROR: mount source: "overlay", target: "...", err: invalid argument
-```
+**IMPORTANT:** Local Docker builds in devpods are **NOT supported** due to overlay filesystem limitations.
 
-This is a known limitation in containerized development environments (devpods).
+**The Problem:**
+- Devpods run inside containers (on Kubernetes)
+- Building Docker images requires nested overlay filesystem
+- This is not supported by the Linux kernel overlay driver
+- Error: `mount source: "overlay", target: "...", err: invalid argument`
 
-**Workaround:** Use GitHub Actions for building images.
+**Workaround Options:**
 
-**For local development**, you may need to:
-1. Build on a non-containerized host
-2. Use a VM with proper overlay filesystem support
-3. Fix the devpod Docker-in-Docker configuration
+1. **Use GitHub Actions** (recommended - fully automated)
+2. **Build on your local machine** with Docker Desktop/Podman
+3. **Use a dedicated build server** with native Docker support
+4. **Use kaniko** (daemonless builder that works in Kubernetes)
 
-### Manual Build (On Supported Host)
+### Manual Build (On Non-Containerized Host)
 
 If you have a working Docker environment:
 
@@ -106,6 +117,7 @@ If you see overlay filesystem errors, use GitHub Actions instead. This is a devp
 
 ## See Also
 
-- [GitHub Actions Workflow](../.github/workflows/build-push.yml)
+- [GitHub Actions Workflow](../.github/workflows/build-images.yml)
 - [API Dockerfile](../api/Dockerfile)
 - [Frontend Dockerfile](../moltbook-frontend/Dockerfile)
+- [Build Instructions](BUILD_INSTRUCTIONS.md)

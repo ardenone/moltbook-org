@@ -1,0 +1,43 @@
+pane	alpha	0	1	:*	0	coder-jeda-codespace-fccdd7b87-jn4bd	:/home/coder/Research/moltbook-org	1	bash	:
+pane	bravo	0	1	:*	0	coder-jeda-codespace-fccdd7b87-jn4bd	:/home/coder/Research/moltbook-org	1	bash	:
+pane	claude-glm-alpha	0	1	:*	0	coder-jeda-codespace-fccdd7b87-jn4bd	:/home/coder/Research/moltbook-org	1	bash	:/bin/bash /home/coder/claude-config/scripts/bead-worker.sh --executor=claude-glm --workspace=/home/coder/Research/moltbook-org --session-name=claude-glm-alpha
+tee -a /home/coder/.beads-workers/claude-glm-alpha.log
+/bin/bash /home/coder/claude-config/agents/claude-code-glm-4.7/stream-parser.sh
+pane	claude-glm-bravo	0	1	:*	0	coder-jeda-codespace-fccdd7b87-jn4bd	:/home/coder/Research/moltbook-org	1	bash	:/bin/bash /home/coder/claude-config/scripts/bead-worker.sh --executor=claude-glm --workspace=/home/coder/Research/moltbook-org --session-name=claude-glm-bravo
+tee -a /home/coder/.beads-workers/claude-glm-bravo.log
+/bin/bash /home/coder/claude-config/agents/claude-code-glm-4.7/stream-parser.sh
+pane	claude-glm-charlie	0	1	:*	0	coder-jeda-codespace-fccdd7b87-jn4bd	:/home/coder/Research/moltbook-org	1	bash	:/bin/bash /home/coder/claude-config/scripts/bead-worker.sh --executor=claude-glm --workspace=/home/coder/Research/moltbook-org --session-name=claude-glm-charlie
+tee -a /home/coder/.beads-workers/claude-glm-charlie.log
+/bin/bash /home/coder/claude-config/agents/claude-code-glm-4.7/stream-parser.sh
+pane	claude-glm-delta	0	1	:*	0	coder-jeda-codespace-fccdd7b87-jn4bd	:/home/coder/Research/moltbook-org	1	bash	:/bin/bash /home/coder/claude-config/scripts/bead-worker.sh --executor=claude-glm --workspace=/home/coder/Research/moltbook-org --session-name=claude-glm-delta
+tee -a /home/coder/.beads-workers/claude-glm-delta.log
+pane	claude-glm-echo	0	1	:*	0	coder-jeda-codespace-fccdd7b87-jn4bd	:/home/coder/Research/moltbook-org	1	bash	:/bin/bash /home/coder/claude-config/scripts/bead-worker.sh --executor=claude-glm --workspace=/home/coder/Research/moltbook-org --session-name=claude-glm-echo
+tee -a /home/coder/.beads-workers/claude-glm-echo.log
+pane	claude-glm-foxtrot	0	1	:*	0	coder-jeda-codespace-fccdd7b87-jn4bd	:/home/coder/Research/moltbook-org	1	bash	:/bin/bash /home/coder/claude-config/scripts/bead-worker.sh --executor=claude-glm --workspace=/home/coder/Research/moltbook-org --session-name=claude-glm-foxtrot
+tee -a /home/coder/.beads-workers/claude-glm-foxtrot.log
+pane	claude-glm-golf	0	1	:*	0	coder-jeda-codespace-fccdd7b87-jn4bd	:/home/coder/Research/moltbook-org	1	bash	:/bin/bash /home/coder/claude-config/scripts/bead-worker.sh --executor=claude-glm --workspace=/home/coder/Research/moltbook-org --session-name=claude-glm-golf
+tee -a /home/coder/.beads-workers/claude-glm-golf.log
+pane	claude-glm-hotel	0	1	:*	0	coder-jeda-codespace-fccdd7b87-jn4bd	:/home/coder/Research/moltbook-org	1	bash	:/bin/bash /home/coder/claude-config/scripts/bead-worker.sh --executor=claude-glm --workspace=/home/coder/Research/moltbook-org --session-name=claude-glm-hotel
+tee -a /home/coder/.beads-workers/claude-glm-hotel.log
+pane	claude-glm-india	0	1	:*	0	coder-jeda-codespace-fccdd7b87-jn4bd	:/home/coder/Research/moltbook-org	1	bash	:/bin/bash /home/coder/claude-config/scripts/bead-worker.sh --executor=claude-glm --workspace=/home/coder/Research/moltbook-org --session-name=claude-glm-india
+tee -a /home/coder/.beads-workers/claude-glm-india.log
+pane	claude-sonnet-charlie	0	1	:*	0	coder-jeda-codespace-fccdd7b87-jn4bd	:/home/coder/Research/moltbook-org	1	bash	:/bin/bash /home/coder/claude-config/scripts/bead-worker.sh --executor=claude-sonnet --workspace=/home/coder/Research/moltbook-org --session-name=claude-sonnet-charlie
+tee -a /home/coder/.beads-workers/claude-sonnet-charlie.log
+/bin/bash /home/coder/claude-config/agents/claude-code-sonnet/stream-parser.sh
+pane	zai-alpha	0	1	:*	0	✳ Claude Code	:/home/coder	1	claude	:claude --settings /home/coder/.claude/settings-zai.json --dangerously-skip-permissions
+pane	zai-bravo	0	1	:*	0	✳ Claude Code	:/home/coder	1	claude	:claude --settings /home/coder/.claude/settings-zai.json --dangerously-skip-permissions
+window	alpha	0	:bash	1	:*	6485,227x37,0,0,92	:
+window	bravo	0	:bash	1	:*	6486,227x37,0,0,93	:
+window	claude-glm-alpha	0	:bash	1	:*	e48b,227x37,0,0,89	:
+window	claude-glm-bravo	0	:bash	1	:*	6483,227x37,0,0,90	:
+window	claude-glm-charlie	0	:bash	1	:*	648a,227x37,0,0,59	:
+window	claude-glm-delta	0	:bash	1	:*	6483,227x37,0,0,52	:
+window	claude-glm-echo	0	:bash	1	:*	6485,227x37,0,0,54	:
+window	claude-glm-foxtrot	0	:bash	1	:*	6406,206x37,0,0,55	:
+window	claude-glm-golf	0	:bash	1	:*	6407,206x37,0,0,56	:
+window	claude-glm-hotel	0	:bash	1	:*	6408,206x37,0,0,57	:
+window	claude-glm-india	0	:bash	1	:*	6409,206x37,0,0,58	:
+window	claude-sonnet-charlie	0	:bash	1	:*	d965,80x24,0,0,83	:
+window	zai-alpha	0	:claude	1	:*	6484,227x37,0,0,91	:
+window	zai-bravo	0	:claude	1	:*	e485,227x37,0,0,45	:
+state	zai-bravo	
