@@ -3,8 +3,8 @@
 **Task ID**: mo-dwxh
 **Title**: ADMIN: Cluster-admin - Install ArgoCD in ardenone-cluster
 **Status**: BLOCKED - Requires cluster-admin RBAC
-**Date**: 2026-02-05 13:20 UTC
-**Worker**: claude-glm-india
+**Date**: 2026-02-05 12:48 UTC (Re-verified)
+**Worker**: claude-glm-delta
 
 ---
 
