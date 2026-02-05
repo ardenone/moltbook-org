@@ -1,9 +1,12 @@
 # ArgoCD Installation Blocker Status
 
-**Date**: 2026-02-05 05:35 UTC
-**Bead**: mo-1fgm
+**Date**: 2026-02-05 (Updated)
+**Beads**: mo-y3id (P0), mo-2e6h (P1)
 **Status**: BLOCKED - Requires cluster-admin intervention
-**Blocker Bead**: mo-3ki8 (P0) - BLOCKER: ArgoCD installation requires cluster-admin RBAC
+**Blocker Bead**: mo-y3id (P0) - CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding
+**Last Verified**: 2026-02-05 - ClusterRoleBinding STILL NOT APPLIED
+
+**Note**: mo-3ki8 was incorrectly closed by a worker agent. The actual cluster-admin action was never performed.
 
 ## Current State
 
@@ -94,8 +97,9 @@ kubectl apply -f k8s/argocd-application.yml
 
 | Bead ID | Title | Priority | Status |
 |---------|-------|----------|--------|
-| **mo-3ki8** | **BLOCKER: ArgoCD installation requires cluster-admin RBAC** | **P0** | **OPEN** |
-| mo-1fgm | CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments | P1 | BLOCKED |
+| **mo-y3id** | **CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding** | **P0** | **OPEN** |
+| mo-2e6h | Install ArgoCD in ardenone-cluster after RBAC is applied | P1 | BLOCKED |
+| mo-3ki8 | BLOCKER: ArgoCD installation requires cluster-admin RBAC | P0 | CLOSED (incorrectly - superseded by mo-y3id) |
 
 ## Verification Script
 

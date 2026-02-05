@@ -68,7 +68,9 @@ kubectl get pods -n argocd
 
 ---
 
-**Prepared by:** Claude Code (task mo-1fgm)
-**Date:** 2026-02-05 05:34 UTC
+**Prepared by:** Claude Code (task mo-3ki8, updated for mo-y3id)
+**Date:** 2026-02-05 (Updated - Blocker Still Active)
 **Priority:** P0 - CRITICAL BLOCKER
-**Related Bead:** mo-3ki8
+**Related Beads**: mo-y3id (P0), mo-2e6h (P1)
+**Supersedes**: mo-3ki8 (incorrectly closed)
+**Last Verified:** 2026-02-05 - ClusterRoleBinding `devpod-argocd-manager` STILL NOT FOUND
