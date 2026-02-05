@@ -2,7 +2,7 @@
 node_modules/
 .pnp/
 .pnp.js
-package-lock.json
+# package-lock.json - Track this for reproducible builds
 
 # Build outputs
 .next/
