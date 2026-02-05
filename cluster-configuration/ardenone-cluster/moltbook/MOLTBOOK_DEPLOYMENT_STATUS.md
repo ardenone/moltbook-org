@@ -487,3 +487,24 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 | 2026-02-05 23:40 UTC | SealedSecrets verified | ✅ 3 sealed secrets ready (API, DB, superuser) | mo-3ttq (claude-glm-india) |
 | 2026-02-05 23:40 UTC | Existing P0 blockers | ✅ mo-3uep, mo-1nen, mo-2mws, 30+ duplicates confirmed | mo-3ttq (claude-glm-india) |
 | 2026-02-05 23:40 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-india) |
+| 2026-02-05 23:21 UTC | Namespace `moltbook` | ❌ NotFound | mo-3ttq (claude-glm-foxtrot) |
+| 2026-02-05 23:21 UTC | ArgoCD namespace | ❌ NotFound | mo-3ttq (claude-glm-foxtrot) |
+| 2026-02-05 23:21 UTC | ClusterRole `namespace-creator` | ❌ NotFound | mo-3ttq (claude-glm-foxtrot) |
+| 2026-02-05 23:21 UTC | ClusterRoleBinding `devpod-namespace-creator` | ❌ NotFound | mo-3ttq (claude-glm-foxtrot) |
+| 2026-02-05 23:21 UTC | Devpod SA create namespace | ❌ Forbidden (namespaces is forbidden) | mo-3ttq (claude-glm-foxtrot) |
+| 2026-02-05 23:21 UTC | kubectl auth can-i create namespaces | ❌ no | mo-3ttq (claude-glm-foxtrot) |
+| 2026-02-05 23:21 UTC | kubectl kustomize k8s/ | ✅ Validated (24 resources) | mo-3ttq (claude-glm-foxtrot) |
+| 2026-02-05 23:21 UTC | k8s/ manifests verified | ✅ All manifests ready | mo-3ttq (claude-glm-foxtrot) |
+| 2026-02-05 23:21 UTC | Existing P0 blockers | ✅ mo-3uep, mo-1nen, mo-2mws, 30+ duplicates confirmed | mo-3ttq (claude-glm-foxtrot) |
+| 2026-02-05 23:21 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-foxtrot) |
+| 2026-02-05 08:15 UTC | Namespace `moltbook` | ❌ NotFound | mo-3ttq (claude-glm-alpha) |
+| 2026-02-05 08:15 UTC | ArgoCD namespace | ❌ NotFound | mo-3ttq (claude-glm-alpha) |
+| 2026-02-05 08:15 UTC | ClusterRole `namespace-creator` | ❌ NotFound | mo-3ttq (claude-glm-alpha) |
+| 2026-02-05 08:15 UTC | ClusterRoleBinding `devpod-namespace-creator` | ❌ NotFound | mo-3ttq (claude-glm-alpha) |
+| 2026-02-05 08:15 UTC | Devpod SA create namespace | ❌ Forbidden (namespaces is forbidden) | mo-3ttq (claude-glm-alpha) |
+| 2026-02-05 08:15 UTC | kubectl auth can-i create namespaces | ❌ no | mo-3ttq (claude-glm-alpha) |
+| 2026-02-05 08:15 UTC | SealedSecret CRD | ✅ Installed (sealedsecrets.bitnami.com) | mo-3ttq (claude-glm-alpha) |
+| 2026-02-05 08:15 UTC | kubectl kustomize k8s/ | ✅ Validated (24+ resources: Namespace, Roles, ConfigMaps, Services, Deployments, SealedSecrets, Cluster, IngressRoutes, Middlewares) | mo-3ttq (claude-glm-alpha) |
+| 2026-02-05 08:15 UTC | k8s/ manifests verified | ✅ All manifests ready | mo-3ttq (claude-glm-alpha) |
+| 2026-02-05 08:15 UTC | Existing P0 blockers | ✅ 30+ duplicate P0 blockers confirmed (mo-35ca, mo-1nen, mo-2mws, mo-3uep, mo-1rgl, etc.) | mo-3ttq (claude-glm-alpha) |
+| 2026-02-05 08:15 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-alpha) |
