@@ -92,20 +92,39 @@ This option doesn't persist the token and must be specified each time.
 
 ### Option 4: Kubernetes Secret (For CI/CD)
 
-For automated builds in Kubernetes, use a Kubernetes Secret:
+For automated builds in Kubernetes, use a Kubernetes Secret.
 
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: github-token
-  namespace: moltbook
-type: Opaque
-stringData:
-  GITHUB_TOKEN: "your_actual_token_here"
+A template is provided at `k8s/secrets/github-token-secret-template.yml`:
+
+```bash
+# 1. Copy and fill in the template
+cp k8s/secrets/github-token-secret-template.yml k8s/secrets/github-token-secret.yml
+editor k8s/secrets/github-token-secret.yml  # Replace REPLACE_WITH_GITHUB_TOKEN
+
+# 2. Create a SealedSecret (recommended for production)
+kubeseal --format yaml < k8s/secrets/github-token-secret.yml > k8s/secrets/github-token-sealedsecret.yml
+
+# 3. Apply to cluster
+kubectl apply -f k8s/secrets/github-token-sealedsecret.yml
+
+# 4. Clean up the plain secret (DO NOT COMMIT)
+rm k8s/secrets/github-token-secret.yml
 ```
 
-Then reference in your Pod/Job:
+For Kaniko builds, create the docker-registry secret format:
+
+```bash
+kubectl create secret docker-registry docker-config \
+  --docker-server=ghcr.io \
+  --docker-username=ardenone \
+  --docker-password=YOUR_GITHUB_TOKEN \
+  --docker-email=noreply@github.com \
+  --namespace=moltbook \
+  --dry-run=client -o yaml | \
+kubeseal --format yaml > k8s/secrets/docker-config-sealedsecret.yml
+```
+
+Then reference in your Pod/Deployment:
 
 ```yaml
 spec:
@@ -119,7 +138,7 @@ spec:
           key: GITHUB_TOKEN
 ```
 
-**Note**: For production use, consider using SealedSecrets or external secret management.
+**Note**: For production use, SealedSecrets are recommended. The template file `k8s/secrets/github-token-secret-template.yml` contains both the Opaque secret format and the docker-registry format needed for Kaniko.
 
 ## Verification
 
@@ -198,3 +217,5 @@ Error: GITHUB_TOKEN environment variable not set
 - [Container Build Guide](./CONTAINER_BUILD_GUIDE.md)
 - [External Build Summary](./EXTERNAL_BUILD_SUMMARY.md)
 - [GitHub Actions Workflow](../.github/workflows/build-images.yml)
+- [Secrets README](../k8s/secrets/README.md) - Information on all Moltbook secrets
+- [GitHub Token Secret Template](../k8s/secrets/github-token-secret-template.yml) - Kubernetes secret template
