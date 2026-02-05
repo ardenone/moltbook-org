@@ -1,9 +1,9 @@
 # Moltbook Deployment Status - ardenone-cluster
 
 **Task**: mo-3ttq - Deploy: Complete Moltbook deployment to ardenone-cluster (waiting for RBAC)
-**Date**: 2026-02-05 (Updated ~09:43 UTC)
+**Date**: 2026-02-05 (Updated 10:02 UTC)
 **Status**: 🔴 BLOCKED - Requires cluster-admin privileges
-**Latest Verification**: ArgoCD sync verification (mo-orzh) - external ArgoCD architecture confirmed. Blockers created: mo-dbl7 (expired argocd-readonly token), mo-sg2v (ApplicationSet not created at external ArgoCD).
+**Latest Verification**: Namespace creation attempted - RBAC block confirmed (`User "system:serviceaccount:devpod:default" cannot create resource "namespaces"`). 40+ P0 blocker beads exist. Cluster-admin action required.
 
 ---
 
