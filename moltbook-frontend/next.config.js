@@ -1,4 +1,6 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
   reactStrictMode: true,
 
@@ -15,12 +17,16 @@ const nextConfig = {
   // - Different memory/CPU constraints
   //
   // Multi-layered Fix Strategy:
-  // 1. Disable all static optimization features
+  // 1. Use standalone output mode for better bundling
   // 2. Prevent React from being externalized during server-side bundling
   // 3. Disable image optimization (requires server-side processing)
   // 4. Disable webpack build cache (prevents stale artifacts)
   // 5. Force all routes to be dynamically rendered
-  // 6. Use dynamic imports with ssr: false for Context-based providers
+  // 6. Disable all static optimization features
+
+  // Use standalone output mode for better Docker compatibility
+  // This creates a minimal build with only necessary files
+  output: 'standalone',
 
   // Disable source maps in production to reduce build size
   productionBrowserSourceMaps: false,
@@ -29,9 +35,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-
-  // Optimize CSS handling
-  optimizeCss: false,
 
   experimental: {
     // Optimize package imports for better tree-shaking
@@ -56,6 +59,23 @@ const nextConfig = {
 
   // CRITICAL: Webpack configuration to prevent React externalization and Context errors
   webpack: (config, { isServer, dev }) => {
+    // ========== RESOLVE CONFIGURATION FIX ==========
+    // Ensure React modules resolve correctly by setting up proper resolution paths
+    config.resolve = config.resolve || {};
+
+    // Ensure node_modules is in the resolve modules path
+    config.resolve.modules = config.resolve.modules || [];
+    if (!config.resolve.modules.includes('node_modules')) {
+      config.resolve.modules.push('node_modules');
+    }
+
+    // Set up React aliases using relative paths to avoid require.resolve issues
+    // The key insight: we need to point to the actual package directories
+    config.resolve.alias = config.resolve.alias || {};
+    config.resolve.alias.react = path.resolve(__dirname, 'node_modules/react');
+    config.resolve.alias['react-dom'] = path.resolve(__dirname, 'node_modules/react-dom');
+    config.resolve.alias['react/jsx-runtime'] = path.resolve(__dirname, 'node_modules/react/jsx-runtime');
+
     // ========== SERVER-SIDE BUNDLING FIX ==========
     // When isServer is true, Next.js bundles code for the Node.js server environment
     // The issue: React packages get marked as "external" (not bundled), expecting them
@@ -94,25 +114,19 @@ const nextConfig = {
         };
       }
 
-      // Step 2: Ensure React modules resolve to actual installed packages
-      config.resolve = config.resolve || {};
-      config.resolve.alias = config.resolve.alias || {};
-      try {
-        config.resolve.alias.react = require.resolve('react');
-        config.resolve.alias['react-dom'] = require.resolve('react-dom');
-        config.resolve.alias['react/jsx-runtime'] = require.resolve('react/jsx-runtime');
-      } catch (e) {
-        // If require.resolve fails (e.g., during Docker build before install), skip
-        console.warn('Could not resolve React packages - they may not be installed yet');
-      }
-
-      // Step 3: Add React to the fallbacks for browser-compatible builds
+      // Step 2: Add React to the fallbacks for browser-compatible builds
       config.resolve.fallback = config.resolve.fallback || {};
       // Ensure we don't use Node.js-specific modules that don't exist in browser
       config.resolve.fallback.fs = false;
       config.resolve.fallback.net = false;
       config.resolve.fallback.tls = false;
     }
+
+    // ========== MODULE CONCATENATION FIX ==========
+    // Disable module concatenation for React packages to prevent build-time issues
+    // This is critical for Next.js 15 + React 19
+    config.optimization = config.optimization || {};
+    config.optimization.concatenateModules = false;
 
     // ========== BUILD CACHE FIX ==========
     // Disable webpack cache in production to prevent stale build artifacts

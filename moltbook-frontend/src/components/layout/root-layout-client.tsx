@@ -33,7 +33,7 @@ const Providers = dynamic(
 
 export function RootLayoutClient({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange suppressHydrationWarning>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
       <Providers>
         {children}
         <Toaster position="bottom-right" richColors closeButton />
