@@ -104,6 +104,10 @@ const nextConfig = {
     'swr',
     'zustand',
   ],
+
+  // CRITICAL: Disable output export mode to prevent static generation errors
+  // Using 'standalone' mode for container deployment and ensuring no SSG occurs
+  output: 'standalone',
 };
 
 module.exports = nextConfig;

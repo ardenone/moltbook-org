@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type TextareaHTMLAttributes, type HTMLAttributes, type Ref, type ElementRef, type ComponentPropsWithoutRef } from 'react';
+import React, { forwardRef, useState, type ButtonHTMLAttributes, type InputHTMLAttributes, type TextareaHTMLAttributes, type HTMLAttributes, type Ref, type ElementRef, type ComponentPropsWithoutRef, type ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import * as AvatarPrimitive from '@radix-ui/react-avatar';
@@ -9,7 +9,10 @@ import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu';
 import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 import { X, ChevronDown, ChevronUp, Check, Circle, Loader2 } from 'lucide-react';
 import * as SwitchPrimitives from '@radix-ui/react-switch';
-import * as TabsPrimitive from '@radix-ui/react-tabs';
+// CRITICAL: @radix-ui/react-tabs is intentionally NOT imported here
+// because it causes "createContext is not a function" errors during Next.js build.
+// The codebase uses custom tab implementations instead - see settings/page.tsx and search/page.tsx
+// import * as TabsPrimitive from '@radix-ui/react-tabs';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import * as SelectPrimitive from '@radix-ui/react-select';
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area';
@@ -252,49 +255,105 @@ export function Separator({ className, orientation = 'horizontal', ...props }: H
   );
 }
 
-// Tabs
-export const Tabs = TabsPrimitive.Root;
-export const TabsList = forwardRef<
-  ElementRef<typeof TabsPrimitive.List>,
-  ComponentPropsWithoutRef<typeof TabsPrimitive.List>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.List
-    ref={ref}
-    className={cn('inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground', className)}
-    {...props}
-  />
-));
-TabsList.displayName = TabsPrimitive.List.displayName;
+// CRITICAL: Custom Tabs implementation to avoid Radix UI createContext errors
+// during Next.js build. The @radix-ui/react-tabs package causes "createContext is not a function"
+// errors when Next.js analyzes components during the build phase.
 
-export const TabsTrigger = forwardRef<
-  ElementRef<typeof TabsPrimitive.Trigger>,
-  ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Trigger
-    ref={ref}
-    className={cn(
-      'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow',
-      className
-    )}
-    {...props}
-  />
-));
-TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
+interface TabsProps {
+  defaultValue: string;
+  children: ReactNode;
+  className?: string;
+}
 
-export const TabsContent = forwardRef<
-  ElementRef<typeof TabsPrimitive.Content>,
-  ComponentPropsWithoutRef<typeof TabsPrimitive.Content>
->(({ className, ...props }, ref) => (
-  <TabsPrimitive.Content
-    ref={ref}
-    className={cn(
-      'mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
-      className
-    )}
-    {...props}
-  />
-));
-TabsContent.displayName = TabsPrimitive.Content.displayName;
+export function Tabs({ defaultValue, children, className }: TabsProps) {
+  const [activeTab, setActiveTab] = useState(defaultValue);
+
+  // Clone children and inject activeTab state and setActiveTab function
+  const enhancedChildren = React.Children.map(children, (child) => {
+    if (React.isValidElement(child)) {
+      if ((child.type as any) === TabsList) {
+        return React.cloneElement(child as React.ReactElement<any>, { activeTab, setActiveTab });
+      }
+      if ((child.type as any) === TabsContent) {
+        return React.cloneElement(child as React.ReactElement<any>, { activeTab });
+      }
+    }
+    return child;
+  });
+
+  return <div className={className}>{enhancedChildren}</div>;
+}
+
+interface TabsListProps extends HTMLAttributes<HTMLDivElement> {
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
+  children: ReactNode;
+}
+
+export const TabsList = forwardRef<HTMLDivElement, TabsListProps>(
+  ({ className, activeTab, setActiveTab, children, ...props }, ref) => (
+    <div
+      ref={ref}
+      className={cn('inline-flex h-9 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground', className)}
+      {...props}
+    >
+      {React.Children.map(children, (child) => {
+        if (React.isValidElement(child) && (child.type as any) === TabsTrigger) {
+          return React.cloneElement(child as React.ReactElement<any>, { activeTab, setActiveTab });
+        }
+        return child;
+      })}
+    </div>
+  )
+);
+TabsList.displayName = 'TabsList';
+
+interface TabsTriggerProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  value: string;
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
+  children: ReactNode;
+}
+
+export const TabsTrigger = forwardRef<HTMLButtonElement, TabsTriggerProps>(
+  ({ className, value, activeTab, setActiveTab, children, ...props }, ref) => (
+    <button
+      ref={ref}
+      className={cn(
+        'inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        activeTab === value ? 'bg-background text-foreground shadow' : '',
+        className
+      )}
+      onClick={() => setActiveTab?.(value)}
+      {...props}
+    >
+      {children}
+    </button>
+  )
+);
+TabsTrigger.displayName = 'TabsTrigger';
+
+interface TabsContentProps extends HTMLAttributes<HTMLDivElement> {
+  value: string;
+  activeTab?: string;
+  children: ReactNode;
+}
+
+export const TabsContent = forwardRef<HTMLDivElement, TabsContentProps>(
+  ({ className, value, activeTab, children, ...props }, ref) => {
+    if (activeTab !== value) return null;
+    return (
+      <div
+        ref={ref}
+        className={cn('mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', className)}
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+TabsContent.displayName = 'TabsContent';
 
 // Popover
 export const Popover = PopoverPrimitive.Root;

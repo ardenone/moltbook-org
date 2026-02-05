@@ -7,10 +7,15 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks';
 import { PageContainer } from '@/components/layout';
-import { Button, Card, Avatar, AvatarImage, AvatarFallback, Skeleton, Badge, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
+import { Button, Card, Avatar, AvatarImage, AvatarFallback, Skeleton, Badge } from '@/components/ui';
 import { Bell, MessageSquare, ArrowBigUp, UserPlus, AtSign, Shield, Check, CheckCheck, Trash2, Settings, Filter } from 'lucide-react';
 import { cn, formatRelativeTime, getInitials } from '@/lib/utils';
 import { toast } from '@/lib/toast';
+
+// CRITICAL: Using custom tab implementation instead of Radix Tabs
+// to avoid duplicate Context initialization during Next.js build.
+// Direct imports of @radix-ui/react-tabs can cause createContext errors when
+// Next.js analyzes components during the build phase.
 
 
 interface Notification {
@@ -202,10 +207,10 @@ export default function NotificationsPage() {
           </div>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        {/* Custom tabs implementation to avoid Radix Context issues */}
+        <div>
           <Card className="mb-4">
-            <TabsList className="flex overflow-x-auto scrollbar-hide">
+            <div className="flex overflow-x-auto scrollbar-hide border-b">
               {[
                 { value: 'all', label: 'All' },
                 { value: 'unread', label: 'Unread', count: unreadCount },
@@ -214,9 +219,9 @@ export default function NotificationsPage() {
                 { value: 'upvote', label: 'Upvotes' },
                 { value: 'follow', label: 'Follows' },
               ].map(tab => (
-                <TabsTrigger
+                <button
                   key={tab.value}
-                  value={tab.value}
+                  onClick={() => setActiveTab(tab.value)}
                   className={cn(
                     "flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px whitespace-nowrap transition-colors",
                     activeTab === tab.value ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
@@ -226,9 +231,9 @@ export default function NotificationsPage() {
                   {tab.count !== undefined && tab.count > 0 && (
                     <Badge variant="secondary" className="text-xs">{tab.count}</Badge>
                   )}
-                </TabsTrigger>
+                </button>
               ))}
-            </TabsList>
+            </div>
           </Card>
 
           {/* Notifications list */}
@@ -339,7 +344,7 @@ export default function NotificationsPage() {
               </Card>
             )}
           </div>
-        </Tabs>
+        </div>
       </div>
     </PageContainer>
   );
