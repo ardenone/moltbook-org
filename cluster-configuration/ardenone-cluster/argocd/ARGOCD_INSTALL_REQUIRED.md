@@ -169,8 +169,11 @@ For questions or issues:
 
 ---
 
-**Last Updated**: 2026-02-05 05:31 UTC
+**Last Updated**: 2026-02-05 12:59 UTC
 **Status**: 🔴 BLOCKER - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
 **Estimated Time**: 5 minutes (one-time setup)
-**Related Beads**: mo-1fgm (current task), mo-1x7x (P0 - cluster-admin action required)
+**Related Beads**:
+- mo-1fbe (P0) - CLUSTER-ADMIN ACTION: Create devpod-argocd-manager ClusterRoleBinding
+- mo-1fgm - CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments
+- mo-17ws - CLUSTER-ADMIN ACTION: Install ArgoCD in ardenone-cluster for mo-1fgm
