@@ -1,251 +1,162 @@
-# Task Resolution: mo-17ws - CLUSTER-ADMIN ACTION: Install ArgoCD in ardenone-cluster
+# Task mo-17ws Resolution: Cluster-Admin Action Required for ArgoCD Installation
 
-**Task ID**: mo-17ws
-**Title**: CLUSTER-ADMIN ACTION: Install ArgoCD in ardenone-cluster for mo-1fgm
-**Date**: 2026-02-05 12:58 UTC
-**Status**: BLOCKED - Requires cluster-admin action
-**Worker**: claude-glm-hotel
+**Date**: 2026-02-05 13:01 UTC
+**Task**: mo-17ws - CLUSTER-ADMIN ACTION: Install ArgoCD in ardenone-cluster for mo-1fgm
+**Status**: BLOCKED - Requires cluster-admin intervention
+**Blocker Bead**: mo-1v8x (P0) - "BLOCKER: Cluster-admin must apply devpod-argocd-manager ClusterRoleBinding for ArgoCD installation"
 
 ---
 
-## Executive Summary
+## Summary
 
-This task confirms that **ArgoCD is NOT installed** in ardenone-cluster and **requires cluster-admin intervention**. All necessary files have been prepared and documented. The devpod ServiceAccount lacks the required cluster-scoped permissions to install ArgoCD.
+This task confirmed that ArgoCD is NOT installed in ardenone-cluster and the devpod ServiceAccount lacks the cluster-admin permissions required to install it. A **cluster-admin must apply a single RBAC manifest** to enable ArgoCD installation.
 
-### Key Findings
+---
+
+## Current State (Verified 2026-02-05)
 
 | Component | Status | Details |
 |-----------|--------|---------|
-| argocd namespace | NOT FOUND | Does not exist in ardenone-cluster |
-| ArgoCD CRDs | NOT INSTALLED | No applications.argoproj.io or appprojects.argoproj.io |
-| argocd-manager-role ClusterRole | EXISTS | Full wildcard permissions (cluster-admin equivalent) |
-| argocd-manager-role-binding | EXISTS | Bound to kube-system:argocd-manager (NOT devpod) |
-| devpod-argocd-manager ClusterRoleBinding | NOT FOUND | **BLOCKER** - Needs cluster-admin to create |
-| Devpod SA permissions | INSUFFICIENT | Cannot create namespaces, CRDs, or ClusterRoleBindings |
+| **argocd namespace** | NOT FOUND | `kubectl get namespace argocd` returns NotFound |
+| **ArgoCD CRDs** | NOT INSTALLED | No `applications.argoproj.io`, `appprojects.argoproj.io` |
+| **devpod-argocd-manager ClusterRoleBinding** | NOT FOUND | Cannot create from devpod (Forbidden) |
+| **argocd-manager-role ClusterRole** | EXISTS | Full wildcard permissions (`*.*` with `[*]` verbs) |
+| **argocd-manager-role-binding** | EXISTS | Bound to `kube-system:argocd-manager` SA (not devpod) |
+| **Devpod SA Permissions** | INSUFFICIENT | Cannot create ClusterRoleBindings, Namespaces, or CRDs |
 
 ---
 
-## Blocker Analysis
+## Why This Is Blocked
 
-### Why This is Blocked
+The devpod ServiceAccount (`system:serviceaccount:devpod:default`) has only namespace-scoped permissions via:
+- `coder-workspace-manager` Role (devpod namespace only)
+- `devpod-priority-user` ClusterRole (limited cluster-scoped permissions)
+- `mcp-k8s-observer-*` ClusterRoles (read-only access)
 
-The devpod ServiceAccount (`system:serviceaccount:devpod:default`) **cannot install ArgoCD** because:
+ArgoCD installation requires creating **cluster-scoped resources**:
+- CustomResourceDefinitions (CRDs) - extends Kubernetes API
+- ClusterRoleBindings - grants cluster-wide permissions
+- Namespaces - cluster-scoped resource
 
-1. **ArgoCD requires cluster-scoped resources**:
-   - CustomResourceDefinitions (CRDs) - extends Kubernetes API
-   - Namespaces (argocd namespace)
-   - ClusterRoleBindings (for ArgoCD components)
+Only a `cluster-admin` can create these resources.
 
-2. **Devpod SA lacks cluster-admin permissions**:
-   - Cannot create namespaces
-   - Cannot create CRDs
-   - Cannot create ClusterRoleBindings
+---
 
-3. **Existing infrastructure not accessible**:
-   - `argocd-manager-role` ClusterRole exists with full permissions
-   - But it's bound to `kube-system:argocd-manager`, NOT devpod SA
+## Required Cluster-Admin Action
 
-### Resolution Path
+### Step 1: Apply RBAC Manifest (Cluster-Admin Only)
 
-**A cluster-admin must execute** one of the following:
-
-#### Option 1: Create ClusterRoleBinding (RECOMMENDED)
-
-```bash
-kubectl create clusterrolebinding devpod-argocd-manager \
-  --clusterrole=argocd-manager-role \
-  --serviceaccount=devpod:default
-```
-
-#### Option 2: Apply Prepared Manifest
+From a machine with cluster-admin access to ardenone-cluster:
 
 ```bash
 kubectl apply -f cluster-configuration/ardenone-cluster/argocd/CLUSTER_ADMIN_ACTION.yml
 ```
 
-Then from the devpod:
+This creates:
+1. **ClusterRoleBinding**: `devpod-argocd-manager`
+   - Binds `argocd-manager-role` (cluster-admin equivalent) to `devpod:default` ServiceAccount
+
+### Step 2: Create argocd Namespace (Cluster-Admin Only)
 
 ```bash
-# Install ArgoCD
-kubectl apply -f cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
-
-# Verify installation
-kubectl get pods -n argocd
-kubectl get crd | grep argoproj.io
+kubectl create namespace argocd
 ```
 
----
+Or use ARGOCD_SETUP_REQUEST.yml which includes both resources.
 
-## Files Prepared for Cluster-Admin Action
+### Step 3: Verify RBAC is Applied
 
-### 1. RBAC Manifests
-
-| File | Purpose |
-|------|---------|
-| `CLUSTER_ADMIN_ACTION.yml` | Single ClusterRoleBinding manifest (simplest) |
-| `ARGOCD_SETUP_REQUEST.yml` | Full RBAC + namespace manifest (alternative) |
-
-### 2. Installation Manifest
-
-| File | Purpose |
-|------|---------|
-| `argocd-install.yml` | Official ArgoCD v2.13+ installation manifest |
-
-### 3. Documentation
-
-| File | Purpose |
-|------|---------|
-| `ARGOCD_INSTALL_REQUIRED.md` | Comprehensive cluster-admin guide |
-| `CLUSTER_ADMIN_ACTION_REQUIRED.md` | Quick-start instructions |
-| `BLOCKER_STATUS.md` | Detailed blocker analysis |
-| `INSTALLATION_STATUS.md` | Current state and next steps |
-
----
-
-## Verification Commands
-
-### Before Cluster-Admin Action (Current State)
+From the devpod, verify permissions are granted:
 
 ```bash
-# Verify argocd namespace does NOT exist
+# Should return "yes"
+kubectl auth can-i create namespace --as=system:serviceaccount:devpod:default
+kubectl auth can-i create customresourcedefinitions --as=system:serviceaccount:devpod:default
+kubectl auth can-i create clusterrolebindings --as=system:serviceaccount:devpod:default
+
+# Should exist
+kubectl get clusterrolebinding devpod-argocd-manager
 kubectl get namespace argocd
-# Expected: Error from server (NotFound)
-
-# Verify ArgoCD CRDs are NOT installed
-kubectl get crd | grep argoproj.io
-# Expected: (no output)
-
-# Verify devpod-argocd-manager ClusterRoleBinding does NOT exist
-kubectl get clusterrolebinding devpod-argocd-manager
-# Expected: Error from server (NotFound)
-
-# Verify argocd-manager-role EXISTS (reusable)
-kubectl get clusterrole argocd-manager-role
-# Expected: Shows ClusterRole with wildcard permissions
 ```
 
-### After Cluster-Admin Action
+### Step 4: Install ArgoCD (From Devpod)
+
+Once RBAC is applied, from the devpod:
 
 ```bash
-# Verify ClusterRoleBinding was created
-kubectl get clusterrolebinding devpod-argocd-manager
-# Expected: Shows ClusterRoleBinding with roleRef to argocd-manager-role
-
-# From devpod: Verify namespace creation permission
-kubectl auth can-i create namespace
-# Expected: yes
-
-# From devpod: Install ArgoCD
 kubectl apply -f cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
+```
 
-# Verify ArgoCD pods are running
+### Step 5: Verify Installation
+
+```bash
+# Wait for pods to be ready
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s
+
+# Check all pods
 kubectl get pods -n argocd
-# Expected: Shows argocd-server, argocd-repo-server, argocd-application-controller, etc.
 
 # Verify CRDs are installed
 kubectl get crd | grep argoproj.io
-# Expected: Shows applications.argoproj.io, appprojects.argoproj.io, etc.
 ```
 
 ---
 
-## Impact
+## Files Prepared
 
-### Blocked Tasks
-
-| Bead ID | Title | Priority |
-|---------|-------|----------|
-| mo-1fgm | CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments | P1 |
-| mo-saz | Moltbook platform deployment to ardenone-cluster | P0 |
-| mo-23p | Related Moltbook deployment tasks | P0 |
-
-### Dependent Applications
-
-- **Moltbook** - Requires ArgoCD Application CRD
-- All future GitOps-based deployments in ardenone-cluster
+| File | Purpose | Target |
+|------|---------|--------|
+| `CLUSTER_ADMIN_ACTION.yml` | Single ClusterRoleBinding manifest | **Cluster-admin must apply this** |
+| `ARGOCD_SETUP_REQUEST.yml` | ClusterRoleBinding + Namespace manifest | Alternative with namespace included |
+| `argocd-install.yml` | Official ArgoCD v2.13+ installation manifest | Devpod applies after RBAC |
+| `CLUSTER_ADMIN_ACTION_REQUIRED.md` | Complete cluster-admin documentation | Detailed instructions |
+| `ARGOCD_INSTALL_REQUIRED.md` | Installation guide | Post-RBAC steps |
 
 ---
 
-## Architecture Diagram
+## Related Beads
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                    ardenone-cluster                                 │
-│                                                                      │
-│  ┌──────────────┐                                                   │
-│  │ Cluster Admin│ ──────────▶ CREATE ClusterRoleBinding             │
-│  │              │             devpod-argocd-manager                  │
-│  └──────────────┘                                                   │
-│                           │                                          │
-│                           ▼                                          │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ argocd-manager-role (ClusterRole)                            │  │
-│  │ - Wildcard permissions on all resources (*)                   │  │
-│  │ - Already exists in cluster                                  │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                           │                                          │
-│                           ▼                                          │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ devpod-argocd-manager (ClusterRoleBinding)                   │  │
-│  │ - Binds argocd-manager-role to devpod:default SA             │  │
-│  │ - MUST be created by cluster-admin                           │  │
-│  │ - Status: NOT FOUND (BLOCKER)                                │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                           │                                          │
-│                           ▼                                          │
-│  ┌──────────────┐                                                   │
-│  │ Devpod SA    │ ◀──────────── Granted permissions                 │
-│  │ (default)    │                                                     │
-│  └──────────────┘                                                   │
-│       │                                                              │
-│       │ kubectl apply -f argocd-install.yml                         │
-│       ▼                                                              │
-│  ┌──────────────────────────────────────────────────────────────┐  │
-│  │ ArgoCD Installation                                          │  │
-│  │ - argocd namespace                                           │  │
-│  │ - CRDs (15+ custom resources)                                │  │
-│  │ - Deployments (server, repo-server, controller, etc.)         │  │
-│  └──────────────────────────────────────────────────────────────┘  │
-│                                                                      │
-└─────────────────────────────────────────────────────────────────────┘
-```
+| Bead ID | Title | Priority | Status |
+|---------|-------|----------|--------|
+| **mo-1v8x** | **BLOCKER: Cluster-admin must apply devpod-argocd-manager ClusterRoleBinding** | **P0** | **OPEN** |
+| mo-17ws | CLUSTER-ADMIN ACTION: Install ArgoCD in ardenone-cluster for mo-1fgm | P1 | BLOCKED |
+| mo-1fgm | CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments | P1 | BLOCKED |
 
 ---
 
-## Next Steps for Cluster-Admin
+## Security Considerations
 
-### Step 1: Apply RBAC (5 seconds)
+### Why This Requires Cluster Admin
 
-```bash
-kubectl create clusterrolebinding devpod-argocd-manager \
-  --clusterrole=argocd-manager-role \
-  --serviceaccount=devpod:default
-```
+- ArgoCD requires **cluster-scoped resources** (CRDs, ClusterRoles, ClusterRoleBindings)
+- CRDs extend the Kubernetes API with new resource types
+- Only `cluster-admin` can create cluster-scoped resources
+- The devpod ServiceAccount is intentionally limited to **namespace-scoped permissions**
 
-### Step 2: Notify Devpod Team
+### Resource Requirements
 
-Confirm that the ClusterRoleBinding has been created. The devpod can then proceed with ArgoCD installation.
-
-### Step 3: Verify Installation (optional)
-
-```bash
-# From a cluster-admin workstation:
-kubectl get clusterrolebinding devpod-argocd-manager
-kubectl get namespace argocd
-kubectl get pods -n argocd
-```
+ArgoCD requires:
+- **Memory**: ~2GB minimum for production use
+- **CPU**: ~1 core minimum
+- **Storage**: Not required (stateless components)
 
 ---
 
-## Related Documentation
+## Next Steps
 
-- [ArgoCD Installation Guide](https://argo-cd.readthedocs.io/en/stable/getting_started/)
-- [ArgoCD manifests repository](https://github.com/argoproj/argo-cd)
+1. **Cluster-admin applies** `CLUSTER_ADMIN_ACTION.yml`
+2. **Cluster-admin creates** `argocd` namespace
+3. **Verify RBAC** with `kubectl get clusterrolebinding devpod-argocd-manager`
+4. **Devpod installs** ArgoCD with `kubectl apply -f argocd-install.yml`
+5. **Verify installation** with `kubectl get pods -n argocd`
+6. **Deploy Moltbook** via ArgoCD Application manifest
+7. **Close blocker bead** mo-1v8x
+8. **Resume task** mo-1fgm
 
 ---
 
-**Prepared by**: Claude Code (mo-17ws)
-**Last Updated**: 2026-02-05 13:02 UTC
-**Status**: Awaiting cluster-admin action
-**Estimated Time for Cluster-Admin**: 1 minute (single kubectl command)
-**Blocker Bead**: mo-1fbe (P0) - Tracks cluster-admin action requirement
+**Prepared by**: Claude Code (task mo-17ws)
+**Date**: 2026-02-05 13:01 UTC
+**Priority**: P0 - CRITICAL BLOCKER
+**Estimated Time**: 5 minutes (one-time cluster-admin action)
+**Related Beads**: mo-1v8x (P0 - cluster-admin action required), mo-1fgm (blocked task)
