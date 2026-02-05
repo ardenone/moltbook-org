@@ -1,9 +1,9 @@
 # Moltbook Deployment Blocker Verification
 
 **Date:** 2026-02-05
-**Bead:** mo-3ttq
+**Bead:** mo-2c67
 **Status:** BLOCKED - Requires Cluster Admin Action
-**Last Verified:** 2026-02-05 09:38 UTC (claude-glm-delta worker)
+**Last Verified:** 2026-02-05 13:40 UTC (claude-glm-charlie worker)
 
 ## Verification Results
 
@@ -113,8 +113,9 @@ This will deploy:
 
 ## Related Beads
 
+- **mo-2c67** - Blocker: Cluster Admin needed - Apply RBAC for Moltbook namespace creation (CURRENT)
 - **mo-1ob3** - Fix: RBAC - create moltbook namespace and ServiceAccount (P0 BLOCKER)
-- **mo-1nen** - Admin: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE
+- **mo-1nen** - Admin: Create moltbook namespace and RBAC (cluster-admin required)
 - **mo-3ttq** - Deploy: Complete Moltbook deployment to ardenone-cluster (waiting for RBAC)
 
 ## Documentation
