@@ -91,7 +91,9 @@ kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
 
 ## Documentation
 
+- `ARGOCD_INSTALLATION_GUIDE.md` - Comprehensive installation guide (created 2026-02-05)
 - `k8s/ARGOCD_INSTALL_REQUEST.yml` - RBAC manifest for cluster-admin
-- `k8s/install-argocd.sh` - Automated installation script
+- `cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml` - Alternative RBAC manifest
+- `cluster-configuration/ardenone-cluster/argocd/argocd-install.yml` - Local ArgoCD installation manifest (1.8MB, 59 resources)
 - `k8s/argocd-application.yml` - ArgoCD Application for Moltbook
 - `MOLTBOOK_RBAC_BLOCKER_STATUS.md` - Related namespace blocker
