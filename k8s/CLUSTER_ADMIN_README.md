@@ -2,8 +2,8 @@
 
 ## Status: BLOCKED - Waiting for Cluster Admin
 
-**Current State (2026-02-05 16:22 UTC):**
-- **Last verified**: 2026-02-05 16:22 UTC (task mo-3uep, claude-glm-bravo worker)
+**Current State (2026-02-05 13:23 UTC):**
+- **Last verified**: 2026-02-05 13:23 UTC (task mo-35ca, claude-glm-hotel worker)
 - **Verification method**: Direct kubectl queries from devpod namespace
 - **Result**: Confirmed devpod ServiceAccount cannot create namespaces (cluster-scoped resource requires cluster-admin)
 - **Latest verification attempt**: Confirmed devpod ServiceAccount (system:serviceaccount:devpod:default) cannot create namespaces, ClusterRoles, or ClusterRoleBindings. Verified via kubectl auth can-i check and namespace get attempts.
@@ -17,11 +17,12 @@
   - Container images: **PUSHED** to ghcr.io/ardenone/
 - Blocker beads documenting this issue:
   - **mo-2mws** - BLOCKER: Grant namespace creation permissions for Moltbook deployment - ACTIVE (2026-02-05)
-  - **mo-3uep** - Fix: Cluster-admin action - Create moltbook namespace for Moltbook deployment (mo-3ttq) - ACTIVE (2026-02-05)
+  - **mo-3uep** - Fix: Cluster-admin action - Create moltbook namespace for Moltbook deployment (mo-3ttq) - BLOCKED (2026-02-05) - Verified cluster admin action still required. Namespace still does not exist. Devpod SA cannot create cluster-scoped resources.
   - **mo-15n3** - BLOCKER: Cluster-admin action - Create moltbook namespace for Moltbook deployment (mo-3ttq) - ACTIVE (2026-02-05)
   - **mo-dsvl** - BLOCKER: Cluster-admin required - Apply NAMESPACE_SETUP_REQUEST.yml for moltbook namespace - ACTIVE (2026-02-05)
   - **mo-3pjf** - CLUSTER-ADMIN: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE (2026-02-05)
   - **mo-1nen** - Admin: Create moltbook namespace and RBAC (cluster-admin required) - COMPLETED (2026-02-05) - Verified all RBAC manifests exist and are correct. Updated CLUSTER_ADMIN_README.md with current verification state. NAMESPACE_SETUP_REQUEST.yml is ready for cluster admin to apply.
+  - **mo-35ca** - Fix: Namespace 'moltbook' does not exist - requires cluster-admin - COMPLETED (2026-02-05) - Verified cluster admin action still required. Namespace still does not exist. Devpod SA cannot create cluster-scoped resources. Reopened mo-3bz7 as active blocker.
 - **mo-3uep** - Fix: Cluster-admin action - Create moltbook namespace for Moltbook deployment (mo-3ttq) - BLOCKED (2026-02-05) - Task verified that cluster admin action is still required. Namespace still does not exist. Devpod SA cannot create cluster-scoped resources. Updated CLUSTER_ADMIN_README.md with latest verification.
   - **mo-37ac** - ADMIN: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE (2026-02-05)
   - **mo-14bm** - BLOCKER: Cluster-admin required - Create moltbook namespace and RBAC - ACTIVE (2026-02-05)
@@ -152,3 +153,55 @@ This is an intentional security boundary. Namespace creation requires cluster-ad
 **Recommendation:**
 - For ardenone-cluster (where devpods run): Use **Option 1** (RBAC + namespace via NAMESPACE_SETUP_REQUEST.yml)
 - Option 3 is NOT available - ArgoCD is NOT installed in ardenone-cluster
+
+---
+
+## ArgoCD Installation (Research Task mo-1td1)
+
+**Status**: Requires Cluster Admin Action
+
+ArgoCD is **NOT installed** in ardenone-cluster. This blocks GitOps-based deployments.
+
+### Current State (2026-02-05)
+
+| Component | Status | Details |
+|-----------|--------|---------|
+| argocd namespace | ❌ NOT FOUND | Does not exist |
+| ArgoCD CRDs | ❌ NOT INSTALLED | Only Argo Rollouts CRDs exist (analysisruns, experiments, rollouts) |
+| argocd-manager-role ClusterRole | ✅ EXISTS | Wildcard permissions (cluster-admin equivalent) |
+| devpod-argocd-manager ClusterRoleBinding | ❌ NOT FOUND | **Required for devpod installation** |
+
+### Installation Commands
+
+**Step 1: Grant RBAC (cluster-admin only)**
+
+```bash
+kubectl create clusterrolebinding devpod-argocd-manager \
+  --clusterrole=argocd-manager-role \
+  --serviceaccount=devpod:default
+```
+
+**Step 2: Install ArgoCD (from devpod, after RBAC is applied)**
+
+```bash
+kubectl apply -f cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
+```
+
+**Step 3: Verify Installation**
+
+```bash
+kubectl get pods -n argocd
+kubectl get crd | grep argoproj.io
+```
+
+### Related Documentation
+
+- `cluster-configuration/ardenone-cluster/argocd/CLUSTER_ADMIN_ACTION.yml` - RBAC manifest
+- `cluster-configuration/ardenone-cluster/argocd/INSTALLATION_STATUS.md` - Detailed installation status
+- `cluster-configuration/ardenone-cluster/argocd/ARGOCD_INSTALL_REQUIRED.md` - Cluster admin action guide
+
+### Related Beads
+
+- **mo-1td1** - Research: Install ArgoCD in ardenone-cluster (CURRENT TASK)
+- **mo-1fgm** - CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments (CLOSED)
+- **mo-218h** - ADMIN: Cluster Admin Action - Apply ArgoCD RBAC for mo-1fgm (CLOSED)
