@@ -1,6 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  // CRITICAL: Disable reactStrictMode for React 19 + Next.js 16
+  // Strict mode double-invocation during build can cause createContext errors
+  reactStrictMode: false,
 
   productionBrowserSourceMaps: false,
 
