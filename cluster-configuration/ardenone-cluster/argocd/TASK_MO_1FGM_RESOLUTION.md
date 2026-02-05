@@ -189,14 +189,14 @@ kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
 
 ---
 
-**Last Updated**: 2026-02-05 05:32 UTC
+**Last Updated**: 2026-02-05 05:33 UTC
 **Status**: 🔴 BLOCKED - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
-**Related Beads**: mo-1fgm (task), mo-1x7x (P0 - cluster-admin action required)
+**Related Beads**: mo-1fgm (task), mo-3ki8 (P0 - cluster-admin action required)
 
-## Latest Verification (2026-02-05 05:32 UTC)
+## Latest Verification (2026-02-05 05:33 UTC)
 
-Created focused blocker bead **mo-1x7x** for cluster-admin action:
+Created focused blocker bead **mo-3ki8** for cluster-admin action:
 - Confirmed argocd namespace does NOT exist
 - Confirmed devpod-argocd-manager ClusterRoleBinding does NOT exist
 - Confirmed devpod SA cannot create namespaces or CRDs
