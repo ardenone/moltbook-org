@@ -1,0 +1,44 @@
+# ArgoCD Token Refresh Request for devpod-readonly
+#
+# PROBLEM: The argocd-readonly secret in devpod namespace contains an expired token.
+# The argocd-proxy deployment cannot authenticate to argocd-manager.ardenone.com.
+# API queries return: 'invalid session: account devpod-readonly does not have token'
+#
+# SOLUTION: Refresh the authentication token from argocd-manager.ardenone.com admin.
+#
+# INSTRUCTIONS FOR CLUSTER ADMIN:
+#
+# Step 1: Login to argocd-manager as admin
+#   argocd login argocd-manager.ardenone.com --username admin --password <ADMIN_PASSWORD>
+#
+# Step 2: Generate a new token for devpod-readonly account
+#   argocd account generate-token --account devpod-readonly
+#
+# Step 3: Update the argocd-readonly secret in devpod namespace
+#   kubectl create secret generic argocd-readonly \
+#     --from-literal=ARGOCD_AUTH_TOKEN=<NEW_TOKEN> \
+#     --dry-run=client -o yaml | kubectl apply -f -
+#
+# ALTERNATIVE: If argocd CLI is not available, use API directly:
+#   1. Get admin session token:
+#      curl -X POST https://argocd-manager.ardenone.com/api/v1/session \
+#        -d '{"username":"admin","password":"<ADMIN_PASSWORD>"}'
+#   2. Generate new readonly token:
+#      curl -X POST https://argocd-manager.ardenone.com/api/v1/accounts/devpod-readonly/tokens \
+#        -H "Authorization: Bearer <ADMIN_TOKEN>"
+#
+# VERIFICATION:
+# After updating the secret, verify argocd-proxy can authenticate:
+#   kubectl rollout restart deployment argocd-proxy -n devpod
+#   curl http://10.43.174.252:8080/healthz
+#
+# CURRENT STATE (2026-02-05):
+# - argocd-proxy pod: argocd-proxy-8686d5cb95-d5tvk (1/1 Ready)
+# - argocd-proxy service: 10.43.174.252:8080
+# - Current token error: "invalid session: account devpod-readonly does not have token"
+# - ARGOCD_SERVER: argocd-manager.ardenone.com (from ConfigMap)
+#
+# RELATED BEADS:
+# - mo-dbl7: Fix: Expired argocd-readonly token in devpod namespace
+# - mo-196j: Research: ArgoCD architecture - external vs local
+# - mo-1ts4: Deployment path decision (PATH 2 selected due to this blocker)
