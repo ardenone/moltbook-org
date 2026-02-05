@@ -91,6 +91,15 @@ rm postgres-superuser-secret.yml
 - `username`: PostgreSQL superuser (default: postgres)
 - `password`: PostgreSQL superuser password
 
+### github-token (Container Registry Authentication)
+- `GITHUB_TOKEN`: GitHub Personal Access Token for ghcr.io authentication
+  - Create at: https://github.com/settings/tokens
+  - Required scopes: `write:packages`, `read:packages`, `delete:packages`
+  - Used by: `build-images.sh` script for pushing images
+- `GITHUB_USERNAME`: GitHub username (default: `ardenone`)
+
+**Note**: The `github-token-secret-template.yml` template is provided for creating this secret as a SealedSecret.
+
 ## Security Notes
 
 - NEVER commit files without `-template.yml` suffix
