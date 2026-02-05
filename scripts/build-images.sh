@@ -2,16 +2,32 @@
 # Moltbook Container Image Build Script
 # Builds and pushes API and Frontend images to ghcr.io
 #
-# IMPORTANT: This script will NOT work in devpod/containerized environments due to
+# ========================================================================
+# IMPORTANT: DEVPOD WORKAROUND REQUIRED
+# ========================================================================
+# This script will NOT work in devpod/containerized environments due to
 # overlay filesystem limitations. Docker/Podman cannot build images inside containers.
 #
-# RECOMMENDED: Use GitHub Actions workflow instead (.github/workflows/build-images.yml)
-# which builds on GitHub's Ubuntu runners with native Docker support.
+# REQUIRED WORKAROUND:
+#   Run this script on a local machine with Docker installed:
 #
-# ALTERNATIVE: For local builds, run this script from a non-containerized environment
-# (your local machine, a VM, or a physical server with Docker/Podman installed).
+#   ./scripts/build-images.sh --push
 #
-# KUBERNETES ALTERNATIVE: See scripts/build-with-kaniko.yml for kaniko-based builds.
+# PREREQUISITES for local build:
+#   1. Docker or Podman installed on your local machine
+#   2. GITHUB_TOKEN environment variable set (with write:packages scope)
+#   3. Clone this repository on your local machine
+#
+# Example:
+#   git clone <repo-url> moltbook-org
+#   cd moltbook-org
+#   export GITHUB_TOKEN=ghp_your_token_here
+#   ./scripts/build-images.sh --push
+#
+# ALTERNATIVES:
+#   - GitHub Actions: .github/workflows/build-images.yml (automatic on push)
+#   - Kaniko: ./scripts/kaniko-build.sh --all (in-cluster builds)
+# ========================================================================
 #
 # Usage:
 #   ./scripts/build-images.sh [OPTIONS]
