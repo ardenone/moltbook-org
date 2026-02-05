@@ -63,6 +63,9 @@ const nextConfig = {
   // CRITICAL: Webpack configuration for Next.js 16
   // Fixes "Cannot read properties of undefined (reading 'issuerLayer')" error
   // that occurs during Docker builds with Next.js 16 + React 19.
+  //
+  // Also handles node: prefixed imports used by Next.js experimental testmode.
+  // This fixes "Reading from node:async_hooks is not handled by plugins" error.
   webpack: (config, { isServer }) => {
     // CRITICAL: Ensure React and React DOM are always bundled and never externalized
     // This prevents useContext errors during server-side rendering/prerendering
@@ -82,6 +85,16 @@ const nextConfig = {
       });
     }
 
+    // CRITICAL: Handle node: prefixed imports for Next.js testmode
+    // Next.js 16 experimental testmode uses require("node:async_hooks") which
+    // webpack cannot handle by default. Map node: prefixed imports to regular imports.
+    config.resolve = config.resolve || {};
+    config.resolve.alias = config.resolve.alias || {};
+    const nodeModules = ['async_hooks', 'fs', 'path', 'crypto', 'stream', 'util', 'url', 'querystring', 'events', 'buffer', 'http', 'https', 'net', 'tls', 'child_process', 'os', 'cluster', 'worker_threads', 'zlib'];
+    nodeModules.forEach(module => {
+      config.resolve.alias[`node:${module}`] = module;
+    });
+
     if (!isServer) {
       // Client-side: disable Node.js polyfills that aren't needed in browser
       config.resolve.fallback = {
@@ -89,6 +102,7 @@ const nextConfig = {
         fs: false,
         path: false,
         crypto: false,
+        async_hooks: false,
       };
     }
 
