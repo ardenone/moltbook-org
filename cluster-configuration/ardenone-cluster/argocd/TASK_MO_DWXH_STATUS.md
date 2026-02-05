@@ -3,8 +3,8 @@
 **Task ID**: mo-dwxh
 **Title**: ADMIN: Cluster-admin - Install ArgoCD in ardenone-cluster
 **Status**: BLOCKED - Requires cluster-admin RBAC
-**Date**: 2026-02-05 12:48 UTC (Re-verified)
-**Worker**: claude-glm-delta
+**Date**: 2026-02-05 13:20 UTC (Re-verified)
+**Worker**: claude-glm-india
 
 ---
 
@@ -108,7 +108,7 @@ kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -
 
 ## Next Steps
 
-1. **Cluster-admin applies RBAC** (mo-1gnb)
+1. **Cluster-admin applies RBAC** (mo-80sx, mo-y3id)
 2. **Devpod verifies permissions**
 3. **Install ArgoCD** from argocd-install.yml
 4. **Verify installation** (pods, CRDs, services)
