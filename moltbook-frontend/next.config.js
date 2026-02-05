@@ -1,6 +1,4 @@
 /** @type {import('next').NextConfig} */
-const path = require('path');
-
 const nextConfig = {
   reactStrictMode: true,
 
@@ -17,16 +15,12 @@ const nextConfig = {
   // - Different memory/CPU constraints
   //
   // Multi-layered Fix Strategy:
-  // 1. Use standalone output mode for better bundling
+  // 1. Disable all static optimization features
   // 2. Prevent React from being externalized during server-side bundling
   // 3. Disable image optimization (requires server-side processing)
   // 4. Disable webpack build cache (prevents stale artifacts)
   // 5. Force all routes to be dynamically rendered
-  // 6. Disable all static optimization features
-
-  // Use standalone output mode for better Docker compatibility
-  // This creates a minimal build with only necessary files
-  output: 'standalone',
+  // 6. Use client-side only rendering for Context-based providers (dynamic imports with ssr: false)
 
   // Disable source maps in production to reduce build size
   productionBrowserSourceMaps: false,
@@ -57,10 +51,13 @@ const nextConfig = {
   // Ensure transpilePackages for zustand, Radix UI, and other packages using React context
   transpilePackages: ['zustand', '@radix-ui', 'next-themes', 'sonner', 'framer-motion'],
 
+  // Fix for multiple lockfiles warning
+  outputFileTracingRoot: process.cwd(),
+
   // CRITICAL: Webpack configuration to prevent React externalization and Context errors
   webpack: (config, { isServer, dev }) => {
-    // ========== RESOLVE CONFIGURATION FIX ==========
-    // Ensure React modules resolve correctly by setting up proper resolution paths
+    // ========== REACT MODULE RESOLUTION FIX (BOTH CLIENT AND SERVER) ==========
+    // Ensure React modules resolve correctly for both client and server bundles
     config.resolve = config.resolve || {};
 
     // Ensure node_modules is in the resolve modules path
@@ -69,64 +66,53 @@ const nextConfig = {
       config.resolve.modules.push('node_modules');
     }
 
-    // Set up React aliases using relative paths to avoid require.resolve issues
-    // The key insight: we need to point to the actual package directories
-    config.resolve.alias = config.resolve.alias || {};
-    config.resolve.alias.react = path.resolve(__dirname, 'node_modules/react');
-    config.resolve.alias['react-dom'] = path.resolve(__dirname, 'node_modules/react-dom');
-    config.resolve.alias['react/jsx-runtime'] = path.resolve(__dirname, 'node_modules/react/jsx-runtime');
-
     // ========== SERVER-SIDE BUNDLING FIX ==========
     // When isServer is true, Next.js bundles code for the Node.js server environment
     // The issue: React packages get marked as "external" (not bundled), expecting them
     // to be provided by the Node.js environment. But Node.js doesn't have React Context!
     if (isServer) {
-      // Step 1: Remove React from externals so it gets bundled with the server code
-      config.externals = config.externals || [];
-      const externalsToRemove = [
+      // CRITICAL FIX: Next.js 15's server-side externalization configuration
+      // Next.js marks React as external to avoid bundling it server-side, but this
+      // breaks when React Context APIs are called during the build phase.
+      // Solution: Filter out React-related externals so they get bundled.
+
+      const originalExternals = config.externals;
+
+      // Packages that should be bundled (not externalized) on the server side
+      const packagesToBundle = [
         'react',
         'react-dom',
         'react/jsx-runtime',
         'react-dom/client',
         'react-dom/server-browser',
         'react-dom/server-edge',
+        'next-themes',
+        'sonner',
+        'zustand',
       ];
 
-      // Handle array-format externals (common in Next.js)
-      if (Array.isArray(config.externals)) {
-        config.externals = config.externals.filter((external) => {
-          if (typeof external === 'string') {
-            return !externalsToRemove.includes(external);
+      // Wrap externals to filter React packages
+      if (typeof originalExternals === 'function') {
+        config.externals = async ({ request, dependencyType, ...args }) => {
+          // Don't externalize React packages - let them be bundled
+          if (packagesToBundle.some(pkg => request === pkg || request?.startsWith(pkg + '/'))) {
+            return false; // false = don't externalize
           }
-          // Keep function and regex externals intact
+          return originalExternals({ request, dependencyType, ...args });
+        };
+      } else if (Array.isArray(originalExternals)) {
+        config.externals = originalExternals.filter((external) => {
+          if (typeof external === 'string') {
+            return !packagesToBundle.some(pkg => external === pkg || external.startsWith(pkg + '/'));
+          }
           return true;
         });
       }
-      // Handle function-format externals
-      else if (typeof config.externals === 'function') {
-        const originalExternals = config.externals;
-        config.externals = ({ request, dependencyType, ...args }, callback) => {
-          // Don't externalize React packages
-          if (externalsToRemove.includes(request)) {
-            return callback(null, false);
-          }
-          return originalExternals({ request, dependencyType, ...args }, callback);
-        };
-      }
 
-      // Step 2: Add React to the fallbacks for browser-compatible builds
-      config.resolve.fallback = config.resolve.fallback || {};
-      // Ensure we don't use Node.js-specific modules that don't exist in browser
-      config.resolve.fallback.fs = false;
-      config.resolve.fallback.net = false;
-      config.resolve.fallback.tls = false;
+      // Disable module concatenation to prevent React build issues
+      config.optimization = config.optimization || {};
+      config.optimization.concatenateModules = false;
     }
-
-    // ========== MODULE CONCATENATION FIX ==========
-    // Disable module concatenation for React packages to prevent build-time issues
-    // This is critical for Next.js 15 + React 19
-    config.optimization = config.optimization || {};
-    config.optimization.concatenateModules = false;
 
     // ========== BUILD CACHE FIX ==========
     // Disable webpack cache in production to prevent stale build artifacts

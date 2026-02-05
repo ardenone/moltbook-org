@@ -308,9 +308,9 @@ export function useEventListener<K extends keyof WindowEventMap>(
 }
 
 // Hover state hook
-export function useHover<T extends HTMLElement>(): [React.RefObject<T>, boolean] {
+export function useHover<T extends HTMLElement>(): [React.RefObject<T | null>, boolean] {
   const [isHovered, setIsHovered] = useState(false);
-  const ref = useRef<T>(null);
+  const ref = useRef<T | null>(null);
 
   useEffect(() => {
     const node = ref.current;

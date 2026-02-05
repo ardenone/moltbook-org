@@ -25,15 +25,12 @@ const Toaster = dynamic(
 
 const Providers = dynamic(
   () => import('@/components/providers').then(mod => ({ default: mod.Providers })),
-  {
-    ssr: false,
-    loading: () => null, // Don't render anything during initial load
-  }
+  { ssr: false }
 );
 
 export function RootLayoutClient({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange suppressHydrationWarning>
       <Providers>
         {children}
         <Toaster position="bottom-right" richColors closeButton />
