@@ -13,10 +13,15 @@ RUN npm install --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Build the application with telemetry disabled and caching disabled
-# Disable Next.js cache to prevent stale build artifacts causing createContext errors
+# Build the application with telemetry disabled
+# ENV variables to prevent createContext errors during Docker build
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NEXT_WEBPACK_USEPOLLING=1
+ENV NODE_OPTIONS="--max-old-space-size=2048"
+
+# Clean any previous build artifacts to ensure fresh build
+RUN rm -rf .next 2>/dev/null || true
+
+# Build the application
 RUN npm run build
 
 # Production stage
