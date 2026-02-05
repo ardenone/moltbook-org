@@ -1,8 +1,8 @@
 # Moltbook Deployment Status - ardenone-cluster
 
-**Last Updated**: 2026-02-04 (verified: namespace does not exist, RBAC not applied)
-**Bead**: mo-cx8
-**Task**: Deploy: Apply Moltbook manifests to ardenone-cluster
+**Last Updated**: 2026-02-05 09:00 UTC (verified: namespace does not exist, RBAC NOT applied)
+**Bead**: mo-3ttq
+**Task**: Deploy: Complete Moltbook deployment to ardenone-cluster (waiting for RBAC)
 **Status**: 🔴 BLOCKED - Awaiting Cluster Admin Action
 
 ---
