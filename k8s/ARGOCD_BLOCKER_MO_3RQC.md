@@ -3,22 +3,25 @@
 **Task ID**: mo-3rqc
 **Status**: BLOCKED - Requires Cluster-Admin Intervention
 **Created**: 2026-02-05
+**Updated**: 2026-02-05 (Verified: External ArgoCD Online, Local Installation Blocked)
 **Priority**: P0 (Critical)
 
 ## Quick Summary
 
 **BLOCKER**: ArgoCD is NOT installed in ardenone-cluster. The devpod ServiceAccount lacks cluster-admin permissions needed to install ArgoCD. A cluster-admin must apply the RBAC grant before installation can proceed.
 
+**IMPORTANT**: External ArgoCD is available at `argocd-manager.ardenone.com` (health: "ok"), but the local ArgoCD Application manifest (`k8s/argocd-application.yml`) requires a LOCAL `argocd` namespace. External ArgoCD cannot create Applications in the local cluster without the CRDs being installed locally.
+
 **Resolution Path**:
 1. Cluster-admin applies `k8s/ARGOCD_INSTALL_REQUEST.yml`
 2. Devpod runs installation script: `./k8s/install-argocd.sh`
 3. Moltbook Application syncs via ArgoCD
 
-## Current State (Verified 2026-02-05)
+## Current State (Verified 2026-02-05 01:35 UTC)
 
 ### ArgoCD Status
-- **argocd namespace**: DOES NOT EXIST
-- **ArgoCD CRDs**: NOT INSTALLED
+- **argocd namespace**: DOES NOT EXIST (verified via kubectl)
+- **ArgoCD CRDs**: NOT INSTALLED (only Argo Rollouts CRDs present)
   - Missing: `applications.argoproj.io` (ArgoCD Application)
   - Missing: `appprojects.argoproj.io` (ArgoCD AppProject)
   - Existing: `rollouts.argoproj.io` (from Argo Rollouts - different product)
@@ -35,6 +38,17 @@
 - Installation script: `k8s/install-argocd.sh`
 - Verification script: `k8s/verify-argocd-ready.sh`
 - Moltbook Application manifest: `k8s/argocd-application.yml`
+
+### External ArgoCD Status (Reference)
+- **argocd-proxy**: RUNNING in devpod namespace (47 days old, READY 1/1)
+- **External endpoint**: https://argocd-manager.ardenone.com
+- **Health check**: Returns "ok" (verified via curl at 2026-02-05 01:35 UTC)
+
+**Why local ArgoCD is still needed**: The current ArgoCD Application manifest (`k8s/argocd-application.yml`) creates an Application CR in the `argocd` namespace. This requires:
+1. `argocd` namespace to exist locally
+2. ArgoCD CRDs (`applications.argoproj.io`, `appprojects.argoproj.io`) installed locally
+
+While external ArgoCD exists, it cannot manage Applications without the CRDs being present in the target cluster.
 
 ## Root Cause
 
@@ -178,6 +192,13 @@ This bead is complete when:
 
 ---
 
-**Last Updated**: 2026-02-05
+**Last Updated**: 2026-02-05 01:35 UTC
 **Status**: BLOCKED - Awaiting cluster-admin action
-**Next Action**: Cluster-admin applies RBAC grant
+**Next Action**: Cluster-admin applies `k8s/ARGOCD_INSTALL_REQUEST.yml`
+
+**Verification Commands Run**:
+- `kubectl get namespace argocd` → NOT FOUND
+- `kubectl get crd | grep argoproj.io` → Only Argo Rollouts CRDs present
+- `kubectl auth can-i create namespaces` → NO (devpod SA lacks permission)
+- `curl -sk https://argocd-manager.ardenone.com/healthz` → "ok" (External ArgoCD online)
+- `kubectl get deployment argocd-proxy -n devpod` → READY 1/1 (proxy running)
