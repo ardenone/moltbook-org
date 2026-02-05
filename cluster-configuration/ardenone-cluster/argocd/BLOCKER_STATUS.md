@@ -1,12 +1,12 @@
 # ArgoCD Installation Blocker Status
 
 **Date**: 2026-02-05 (Updated)
-**Beads**: mo-y3id (P0), mo-2e6h (P1), mo-80sx (P0)
+**Beads**: mo-ku75 (P0), mo-1gnb (P0), mo-1ka7 (P0), mo-dwxh (P1), mo-y3id (P0), mo-2e6h (P1), mo-80sx (P0)
 **Status**: BLOCKED - Requires cluster-admin intervention
-**Blocker Bead**: mo-80sx (P0) - CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding for ArgoCD installation
-**Last Verified**: 2026-02-05 - ClusterRoleBinding STILL NOT APPLIED
+**Blocker Bead**: mo-ku75 (P0) - CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding
+**Last Verified**: 2026-02-05 13:09 UTC - ClusterRoleBinding STILL NOT APPLIED
 
-**Note**: mo-3ki8 was incorrectly closed by a worker agent. The actual cluster-admin action was never performed.
+**Note**: mo-dwxh (ADMIN: Cluster-admin - Install ArgoCD) was attempted from devpod but failed due to insufficient RBAC. Created mo-ku75 as the active blocker bead.
 
 ## Current State
 
@@ -97,10 +97,14 @@ kubectl apply -f k8s/argocd-application.yml
 
 | Bead ID | Title | Priority | Status |
 |---------|-------|----------|--------|
-| **mo-80sx** | **CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding for ArgoCD installation** | **P0** | **OPEN** |
+| **mo-ku75** | **CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding** | **P0** | **OPEN** |
+| mo-1gnb | CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding to enable ArgoCD installation | P0 | OPEN |
+| mo-1ka7 | CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding for ArgoCD installation | P0 | OPEN |
+| mo-dwxh | ADMIN: Cluster-admin - Install ArgoCD in ardenone-cluster | P1 | BLOCKED (requires mo-ku75) |
+| mo-80sx | CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding for ArgoCD installation | P0 | OPEN |
 | mo-y3id | CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding | P0 | OPEN |
 | mo-2e6h | Install ArgoCD in ardenone-cluster after RBAC is applied | P1 | BLOCKED |
-| mo-3ki8 | BLOCKER: ArgoCD installation requires cluster-admin RBAC | P0 | CLOSED (incorrectly - superseded by mo-80sx) |
+| mo-3ki8 | BLOCKER: ArgoCD installation requires cluster-admin RBAC | P0 | CLOSED (incorrectly - superseded) |
 
 ## Verification Script
 
@@ -114,8 +118,9 @@ This will show which prerequisites are met and which are missing.
 
 ## Impact
 
+- **BLOCKS**: mo-dwxh (ADMIN: Cluster-admin - Install ArgoCD in ardenone-cluster)
 - **BLOCKS**: mo-1fgm (Install ArgoCD)
-- **BLOCKS**: Moltbook deployment via ArgoCD GitOps
+- **BLOCKS**: mo-3ttq (Moltbook deployment via ArgoCD GitOps)
 - **BLOCKS**: All future applications using ArgoCD pattern in ardenone-cluster
 
 ## Alternative (Not Recommended)
