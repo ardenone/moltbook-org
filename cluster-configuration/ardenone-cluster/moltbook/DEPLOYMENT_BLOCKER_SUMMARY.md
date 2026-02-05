@@ -3,7 +3,7 @@
 **Task**: mo-3ttq
 **Date**: 2026-02-05
 **Status**: 🔴 BLOCKED - Requires cluster-admin action
-**Verified**: 2026-02-05 06:30 UTC (mo-3ttq by claude-sonnet-bravo)
+**Verified**: 2026-02-05 07:05 UTC (mo-3ttq by claude-glm-bravo)
 
 ---
 
@@ -79,7 +79,8 @@ Deploys:
 ## Related Beads
 
 ### Cluster Admin Action Required (P0)
-- **mo-30pg** (P0): Fix: Cluster-admin action - Create moltbook namespace for Moltbook deployment (mo-3ttq) - **NEW BEAD CREATED**
+- **mo-30pg** (P0): Fix: Cluster-admin action - Create moltbook namespace for Moltbook deployment (mo-3ttq) - **ACTION REQUIRED**
+- **mo-5vd** (P0): Fix: Cluster-admin action - Apply RBAC for devpod namespace management (NEW - created 2026-02-05 07:05 UTC)
 
 ### ArgoCD Installation Blockers
 - **mo-3ki8** (P0): BLOCKER: ArgoCD installation requires cluster-admin RBAC
