@@ -30,6 +30,7 @@
 #   ./scripts/build-images.sh --push                       # Build and push
 #   GITHUB_TOKEN=xxx ./scripts/build-images.sh --push      # With explicit token
 #   ./scripts/build-images.sh --push --tag v1.0.0          # Build with specific tag
+#   ./scripts/build-images.sh --force --push               # Force build in devpod
 
 set -euo pipefail
 

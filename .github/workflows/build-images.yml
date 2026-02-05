@@ -1,4 +1,4 @@
-name: Build and Push Container Images
+name: Build Container Images
 
 on:
   push:
@@ -7,13 +7,14 @@ on:
     paths:
       - 'api/**'
       - 'moltbook-frontend/**'
-      - '.github/workflows/build-push.yml'
+      - '.github/workflows/build-images.yml'
     tags:
       - 'v*'
   pull_request:
     paths:
       - 'api/**'
       - 'moltbook-frontend/**'
+      - '.github/workflows/build-images.yml'
   workflow_dispatch:
     inputs:
       push_images:
