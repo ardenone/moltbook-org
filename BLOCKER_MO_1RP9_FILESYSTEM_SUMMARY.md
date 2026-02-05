@@ -128,6 +128,25 @@ kubectl delete pod coder-jeda-codespace-<pod-id> -n devpod
 - Doesn't fix root cause
 - May hit same corruption elsewhere
 
+## Attempted Workaround: Temp Filesystem Install
+
+Created a workaround script (`scripts/npm-install-workaround.sh`) that installs dependencies to the overlay filesystem (`/tmp`) first, then copies to the PVC. This approach:
+
+**Partial Success:**
+- ✅ npm install works perfectly in `/tmp` (overlay filesystem)
+- ✅ 783 packages installed successfully in 9 seconds
+- ✅ No TAR_ENTRY_ERROR or ENOENT issues in temp directory
+
+**Failure Points:**
+- ❌ Cannot `rm -rf` corrupted directories on PVC: "Directory not empty"
+- ❌ Cannot `mv` from `/tmp` to PVC: "inter-device move failed", "unable to remove target"
+- ❌ Cannot `cp -r` from `/tmp` to PVC: "File exists" errors
+- ❌ Resulting `node_modules` is incomplete and broken
+
+**Conclusion:** The filesystem corruption is so severe that even when we successfully install dependencies elsewhere, we cannot transfer them to the PVC. The directory corruption prevents any file operations from completing successfully.
+
+**Workaround Status:** ❌ NOT VIABLE - Devpod recreation required
+
 ## Related Beads
 
 - **mo-2s69** - BLOCKER: Filesystem corruption on devpod Longhorn PVC (created for tracking)
