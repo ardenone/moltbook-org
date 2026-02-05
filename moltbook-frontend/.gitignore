@@ -49,3 +49,6 @@ public/workbox-*.js
 # npm cache
 .npm-cache/
 /tmp/npm-cache-new/
+
+# Node modules backup
+node_modules.bak/
