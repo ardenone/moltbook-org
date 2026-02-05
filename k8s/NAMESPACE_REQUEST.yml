@@ -1,19 +1,16 @@
 ---
 # Namespace Creation Request for Moltbook Platform
 #
-# This file should be applied by a cluster administrator or user with
-# cluster-scoped namespace creation permissions.
+# BLOCKER: mo-2gd3 - Namespace 'moltbook' does not exist
+# ArgoCD is NOT installed in ardenone-cluster.
+# The devpod ServiceAccount lacks permission to create namespaces.
 #
-# The devpod ServiceAccount (system:serviceaccount:devpod:default) lacks
-# permission to create namespaces at cluster scope.
+# CLUSTER ADMIN ACTION REQUIRED - Choose ONE option:
 #
-# RECOMMENDED APPROACH: Grant devpod namespace creation permissions
-#   kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+# Option 1 (Recommended): Grant devpod namespace creation permissions
+#   kubectl apply -f cluster-configuration/ardenone-cluster/argocd/CLUSTER_ADMIN_ACTION.yml
 #
-# Then from the devpod, create the namespace:
-#   kubectl apply -f k8s/namespace/moltbook-namespace.yml
-#
-# ALTERNATIVE: Create namespace directly as cluster admin:
+# Option 2: Create namespace directly as cluster admin
 #   kubectl apply -f k8s/NAMESPACE_REQUEST.yml
 #
 # After the namespace is created, the main deployment can proceed using:
