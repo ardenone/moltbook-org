@@ -3,6 +3,7 @@
 **Task**: mo-3ttq
 **Date**: 2026-02-05
 **Status**: 🔴 BLOCKED - Requires cluster-admin action
+**Verified**: 2026-02-05 05:42 UTC (mo-3ttq by claude-glm-alpha)
 
 ---
 
@@ -12,6 +13,9 @@
 |-------|--------|----------------|
 | moltbook namespace | ❌ NotFound | `kubectl get namespace moltbook` - does not exist |
 | ArgoCD namespace | ❌ NotFound | ArgoCD not installed |
+| namespace-creator ClusterRole | ❌ NotFound | RBAC not applied |
+| devpod-namespace-creator ClusterRoleBinding | ❌ NotFound | RBAC not applied |
+| devpod SA namespace creation permission | ❌ Forbidden | Cannot create namespaces |
 | Manifests | ✅ Ready | All manifests in `k8s/` directory |
 | Container images | ✅ Pushed | Images available in GHCR |
 
@@ -74,9 +78,16 @@ Deploys:
 
 ## Related Beads
 
-- **mo-3ttq** (P1): Deploy: Complete Moltbook deployment to ardenone-cluster (this task)
+### Cluster Admin Action Required (P0)
+- **mo-30pg** (P0): Fix: Cluster-admin action - Create moltbook namespace for Moltbook deployment (mo-3ttq) - **NEW BEAD CREATED**
+
+### ArgoCD Installation Blockers
+- **mo-3ki8** (P0): BLOCKER: ArgoCD installation requires cluster-admin RBAC
+- **mo-17ws** (P0): CLUSTER-ADMIN ACTION: Install ArgoCD in ardenone-cluster for mo-1fgm
 - **mo-1fgm** (P1): CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments
-- **mo-218h** (P0): ADMIN: Cluster Admin Action - Apply ArgoCD RBAC for mo-1fgm
+
+### Current Task
+- **mo-3ttq** (P1): Deploy: Complete Moltbook deployment to ardenone-cluster (this task)
 
 ---
 
