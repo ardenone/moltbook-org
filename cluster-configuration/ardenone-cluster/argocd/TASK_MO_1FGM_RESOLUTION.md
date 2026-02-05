@@ -139,7 +139,7 @@ kubectl auth can-i use clusterrole/argocd-manager-role
 ## Related Beads
 
 - **mo-1fgm** - Current task: CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments
-- **mo-21wr** (P0) - BLOCKER: ArgoCD installation requires cluster-admin RBAC
+- **mo-1osa** (P0) - BLOCKER: Cluster-admin needed to apply ArgoCD RBAC permissions for ardenone-cluster
 
 ---
 
@@ -189,14 +189,14 @@ kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
 
 ---
 
-**Last Updated**: 2026-02-05 05:33 UTC
+**Last Updated**: 2026-02-05 05:34 UTC
 **Status**: 🔴 BLOCKED - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
-**Related Beads**: mo-1fgm (task), mo-3ki8 (P0 - cluster-admin action required)
+**Related Beads**: mo-1fgm (task), mo-1osa (P0 - cluster-admin action required)
 
-## Latest Verification (2026-02-05 05:33 UTC)
+## Latest Verification (2026-02-05 05:34 UTC)
 
-Created focused blocker bead **mo-3ki8** for cluster-admin action:
+Created focused blocker bead **mo-1osa** for cluster-admin action:
 - Confirmed argocd namespace does NOT exist
 - Confirmed devpod-argocd-manager ClusterRoleBinding does NOT exist
 - Confirmed devpod SA cannot create namespaces or CRDs

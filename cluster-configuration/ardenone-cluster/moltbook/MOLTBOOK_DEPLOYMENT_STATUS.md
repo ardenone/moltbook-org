@@ -1,0 +1,343 @@
+# Moltbook Deployment Status - ardenone-cluster
+
+**Task**: mo-3ttq - Deploy: Complete Moltbook deployment to ardenone-cluster (waiting for RBAC)
+**Date**: 2026-02-05
+**Status**: 🔴 BLOCKED - Requires cluster-admin privileges
+
+---
+
+## Executive Summary
+
+Moltbook deployment manifests are **fully prepared and ready** in the `moltbook-org` repository. The deployment is **blocked** because:
+
+1. **ArgoCD is NOT installed** in ardenone-cluster (see mo-1fgm, mo-218h)
+2. **moltbook namespace does NOT exist** (requires cluster-admin to create)
+3. **RBAC permissions NOT granted** for devpod ServiceAccount to create namespaces
+
+### Impact
+
+- **BLOCKS** Moltbook platform deployment
+- **BLOCKS** Automated GitOps-based deployment workflow
+- **Existing manifests are READY** - waiting for cluster-admin action
+
+---
+
+## Current State Verification
+
+| Check | Status | Details |
+|-------|--------|---------|
+| argocd namespace | ❌ NotFound | ArgoCD not installed |
+| moltbook namespace | ❌ NotFound | `kubectl get namespace moltbook` - does not exist |
+| namespace-creator ClusterRole | ❌ Not Installed | Required for devpod to create namespaces |
+| devpod-namespace-creator ClusterRoleBinding | ❌ Not Installed | Binds ClusterRole to devpod SA |
+| Deployment manifests | ✅ Ready | All manifests in `k8s/` directory |
+| SealedSecrets | ✅ Ready | All secrets encrypted and committed |
+| Container images | ✅ Pushed | `ghcr.io/ardenone/moltbook-api:latest`, `ghcr.io/ardenone/moltbook-frontend:latest` |
+
+---
+
+## Deployment Manifests Inventory
+
+### Location: `/home/coder/Research/moltbook-org/k8s/`
+
+All manifests are **ready and committed**:
+
+```
+k8s/
+├── kustomization.yml                 # Main Kustomize build
+├── argocd-application.yml            # ArgoCD Application manifest (requires ArgoCD)
+├── NAMESPACE_SETUP_REQUEST.yml       # Cluster RBAC + namespace (cluster-admin required)
+├── namespace/
+│   ├── moltbook-namespace.yml        # Namespace definition
+│   ├── moltbook-rbac.yml             # Role/RoleBinding for devpod
+│   └── devpod-namespace-creator-rbac.yml  # ClusterRole/ClusterRoleBinding
+├── secrets/
+│   ├── moltbook-api-sealedsecret.yml
+│   ├── moltbook-postgres-superuser-sealedsecret.yml
+│   └── moltbook-db-credentials-sealedsecret.yml
+├── database/
+│   ├── cluster.yml                   # CloudNativePG cluster
+│   ├── service.yml
+│   ├── schema-configmap.yml
+│   └── schema-init-deployment.yml
+├── redis/
+│   ├── deployment.yml
+│   ├── service.yml
+│   └── configmap.yml
+├── api/
+│   ├── deployment.yml
+│   ├── service.yml
+│   ├── configmap.yml
+│   └── ingressroute.yml
+└── frontend/
+    ├── deployment.yml
+    ├── service.yml
+    ├── configmap.yml
+    └── ingressroute.yml
+```
+
+---
+
+## Deployment Options
+
+### Option 1: Manual kubectl Deployment (Recommended - No ArgoCD Required)
+
+**Best for**: Immediate deployment without waiting for ArgoCD installation
+
+```bash
+# Step 1: Cluster Admin - Create RBAC and namespace
+kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml
+
+# Step 2: Devpod - Deploy all resources
+kubectl apply -k k8s/
+```
+
+**Pros:**
+- Does not require ArgoCD installation
+- Immediate deployment possible
+- Full control over deployment process
+
+**Cons:**
+- Not GitOps (no automatic sync)
+- Manual updates required
+
+### Option 2: ArgoCD GitOps Deployment (BLOCKED - Requires ArgoCD Installation)
+
+**Best for**: Automated GitOps workflow
+
+```bash
+# Step 1: Cluster Admin - Install ArgoCD (see mo-1fgm, mo-218h)
+kubectl apply -f cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
+
+# Step 2: Cluster Admin - Grant devpod ArgoCD management permissions
+kubectl apply -f k8s/ARGOCD_SETUP_REQUEST.yml
+
+# Step 3: Devpod - Deploy ArgoCD Application
+kubectl apply -f k8s/argocd-application.yml
+```
+
+**Pros:**
+- Automated GitOps workflow
+- Automatic sync with Git repository
+- Self-healing and drift detection
+
+**Cons:**
+- **BLOCKED** - ArgoCD not installed
+- Requires two cluster-admin actions
+
+---
+
+## Cluster Admin Action Required
+
+### Action 1: Create Namespace and RBAC (30 seconds)
+
+Run **one** of these commands:
+
+```bash
+# Option A: Apply combined manifest (RECOMMENDED)
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
+
+# Option B: Create namespace only (quickest)
+kubectl create namespace moltbook
+```
+
+### Action 2: (Optional) Install ArgoCD for GitOps
+
+If you want automated GitOps deployments:
+
+```bash
+# Apply ArgoCD installation
+kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml
+```
+
+---
+
+## What Gets Deployed
+
+After cluster-admin creates the namespace, running `kubectl apply -k k8s/` deploys:
+
+### Database & Cache
+- **PostgreSQL**: CloudNativePG cluster (1 primary + replicas)
+- **Redis**: Redis cache for session management
+
+### Application
+- **moltbook-api**: Python FastAPI backend
+- **moltbook-frontend**: React frontend (nginx)
+
+### Configuration
+- **SealedSecrets**: Encrypted secrets (GitHub OAuth, database credentials)
+- **ConfigMaps**: Application configuration
+
+### Networking
+- **Services**: ClusterIP services for API and frontend
+- **IngressRoutes**: Traefik routing for external access
+
+### Ingress Routes
+- **moltbook.ardenone.com** → Frontend
+- **api-moltbook.ardenone.com** → API
+
+---
+
+## Container Images
+
+| Component | Image | Tag |
+|-----------|-------|-----|
+| API | `ghcr.io/ardenone/moltbook-api` | latest (c972c39) |
+| Frontend | `ghcr.io/ardenone/moltbook-frontend` | latest (c972c39) |
+
+Both images are **pushed and ready** for deployment.
+
+---
+
+## Verification Commands
+
+### After Namespace Creation
+
+```bash
+# Verify namespace exists
+kubectl get namespace moltbook
+
+# Verify RBAC
+kubectl get clusterrole namespace-creator
+kubectl get clusterrolebinding devpod-namespace-creator
+```
+
+### After Deployment
+
+```bash
+# Check all resources
+kubectl get all -n moltbook
+
+# Check deployments
+kubectl get deployments -n moltbook
+
+# Check pods
+kubectl get pods -n moltbook
+
+# Check ingress routes
+kubectl get ingressroutes -n moltbook
+
+# Check database cluster
+kubectl get cluster -n moltbook
+```
+
+---
+
+## Related Beads
+
+### ArgoCD Installation Blockers
+- **mo-218h** (P0): ADMIN: Cluster Admin Action - Apply ArgoCD RBAC for mo-1fgm
+- **mo-1fgm** (P1): CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments
+- **mo-hhbp** (P0): BLOCKER: Cluster-admin needed to apply ArgoCD RBAC permissions
+- **mo-34zv** (P0): BLOCKER: Cluster admin must apply devpod-namespace-creator RBAC
+- **mo-1fh2** (P0): BLOCKER: Cluster admin must apply devpod-namespace-creator RBAC
+
+### Current Task
+- **mo-3ttq** (P1): Deploy: Complete Moltbook deployment to ardenone-cluster (this task)
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                         ardenone-cluster                             │
+│                                                                      │
+│  ┌──────────────┐         ┌──────────────────────────────────────┐ │
+│  │ Cluster Admin│ ──────▶ │         Namespace Creation             │ │
+│  │ (Required)   │ apply   │  - NAMESPACE_SETUP_REQUEST.yml        │ │
+│  └──────────────┘         │  - Creates namespace + RBAC           │ │
+│                            └──────────────────────────────────────┘ │
+│                            │                                          │
+│  ┌──────────────┐         ▼                                         │
+│  │ Devpod SA    │ ──────▶ │         moltbook namespace              │ │
+│  │ (limited)   │ apply   │  ┌─────────────────────────────────┐  │ │
+│  └──────────────┘         │  │ kubectl apply -k k8s/           │  │ │
+│                            │  │ - SealedSecrets                 │  │ │
+│                            │  │ - PostgreSQL (CNPG)             │  │ │
+│                            │  │ - Redis                          │  │ │
+│                            │  │ - moltbook-api                   │  │ │
+│                            │  │ - moltbook-frontend              │  │ │
+│                            │  │ - IngressRoutes                  │  │ │
+│                            │  └─────────────────────────────────┘  │ │
+│                            └──────────────────────────────────────┘ │
+│                                                                      │
+│  ┌──────────────┐         ┌──────────────────────────────────────┐ │
+│  │ Cluster Admin│ ──────▶ │         ArgoCD (Optional)              │ │
+│  │ (Optional)   │ apply   │  - argocd-install.yml                 │ │
+│  └──────────────┘         │  - ARGOCD_SETUP_REQUEST.yml           │ │
+│                            └──────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Troubleshooting
+
+### Problem: `kubectl get namespace moltbook` returns `NotFound`
+
+**Solution**: Cluster admin needs to create the namespace:
+```bash
+kubectl create namespace moltbook
+```
+
+### Problem: Still getting "permissions denied" errors
+
+**Solution**: Verify RBAC was applied:
+```bash
+kubectl get clusterrole namespace-creator
+kubectl get clusterrolebinding devpod-namespace-creator
+kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
+```
+
+### Problem: ArgoCD Application not syncing
+
+**Solution**: ArgoCD is not installed. Either:
+1. Install ArgoCD (requires cluster-admin)
+2. Use manual deployment with `kubectl apply -k k8s/`
+
+---
+
+## Next Steps
+
+### Immediate Path (Manual Deployment)
+
+1. **Cluster Admin**: Create namespace
+   ```bash
+   kubectl create namespace moltbook
+   ```
+
+2. **Devpod**: Deploy all resources
+   ```bash
+   kubectl apply -k /home/coder/Research/moltbook-org/k8s/
+   ```
+
+3. **Verify**: Check pods are running
+   ```bash
+   kubectl get pods -n moltbook
+   ```
+
+### GitOps Path (Requires ArgoCD Installation)
+
+1. **Cluster Admin**: Install ArgoCD
+   ```bash
+   kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
+   ```
+
+2. **Cluster Admin**: Apply RBAC
+   ```bash
+   kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
+   ```
+
+3. **Devpod**: Deploy ArgoCD Application
+   ```bash
+   kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
+   ```
+
+---
+
+**Last Updated**: 2026-02-05
+**Verified by**: mo-3ttq (claude-glm-delta worker)
+**Status**: 🔴 BLOCKED - Awaiting cluster-admin action
+**Priority**: P1 (High)
+**Estimated Time**: 2 minutes (one-time setup for manual deployment)
