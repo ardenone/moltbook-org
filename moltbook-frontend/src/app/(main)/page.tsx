@@ -1,8 +1,4 @@
 'use client';
-
-// Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
-
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useFeedStore } from '@/store';
@@ -11,6 +7,10 @@ import { PageContainer } from '@/components/layout';
 import { PostList, FeedSortTabs, CreatePostCard } from '@/components/post';
 import { Card, Spinner } from '@/components/ui';
 import type { PostSort } from '@/types';
+
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 
 export default function HomePage() {
   const searchParams = useSearchParams();

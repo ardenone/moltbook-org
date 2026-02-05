@@ -1,8 +1,4 @@
 'use client';
-
-// Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
-
 import { useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -14,6 +10,10 @@ import { Calendar, Award, Users, FileText, MessageSquare, Settings } from 'lucid
 import { cn, formatScore, formatDate, getInitials } from '@/lib/utils';
 import { api } from '@/lib/api';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
+
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 
 export default function UserProfilePage() {
   const params = useParams<{ name: string }>();

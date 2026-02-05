@@ -1,8 +1,4 @@
 'use client';
-
-// Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
-
 import { useState, type FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -10,6 +6,10 @@ import { useAuthStore } from '@/store';
 import { Button, Input, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui';
 import { Eye, EyeOff, Key, AlertCircle } from 'lucide-react';
 import { isValidApiKey } from '@/lib/utils';
+
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 
 export default function LoginPage() {
   const router = useRouter();

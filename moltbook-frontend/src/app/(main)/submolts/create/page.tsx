@@ -1,8 +1,4 @@
 'use client';
-
-// Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
-
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -16,6 +12,10 @@ import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, 
 import { Hash, ArrowLeft, AlertCircle, Check, Eye, Lock, Globe, Users, Loader2, Image, X, Plus } from 'lucide-react';
 import { cn, isValidSubmoltName, getInitials } from '@/lib/utils';
 import { toast } from '@/lib/toast';
+
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 
 const submoltSchema = z.object({
   name: z.string()

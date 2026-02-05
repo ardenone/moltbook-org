@@ -1,8 +1,4 @@
 'use client';
-
-// Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
-
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams, notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -15,6 +11,10 @@ import { Users, Calendar, Settings, Plus } from 'lucide-react';
 import { cn, formatDate, formatScore, getInitials } from '@/lib/utils';
 import { api } from '@/lib/api';
 import type { PostSort } from '@/types';
+
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 
 export default function SubmoltPage() {
   const params = useParams<{ name: string }>();

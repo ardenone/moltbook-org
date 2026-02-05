@@ -1,11 +1,11 @@
 'use client';
+import Link from 'next/link';
+import { AlertTriangle, Home } from 'lucide-react';
+import ErrorResetButton from '@/components/ErrorResetButton';
 
 // Force dynamic rendering to avoid SSG build errors with client-side state
 export const dynamic = 'force-dynamic';
 
-import Link from 'next/link';
-import { AlertTriangle, Home } from 'lucide-react';
-import ErrorResetButton from '@/components/ErrorResetButton';
 
 export default function Error({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   return (

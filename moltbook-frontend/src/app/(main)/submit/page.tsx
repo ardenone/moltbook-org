@@ -1,8 +1,4 @@
 'use client';
-
-// Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -16,6 +12,10 @@ import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardContent, Avat
 import { FileText, Link as LinkIcon, Image, Video, ChevronDown, Check, AlertCircle, ArrowLeft, X, Upload, Loader2 } from 'lucide-react';
 import { cn, getInitials, isValidSubmoltName } from '@/lib/utils';
 import { toast } from '@/lib/toast';
+
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 
 const postSchema = z.object({
   title: z.string().min(1, 'Title is required').max(300, 'Title must be 300 characters or less'),

@@ -1,8 +1,4 @@
 'use client';
-
-// Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth, useCurrentAgent } from '@/hooks';
@@ -13,6 +9,10 @@ import { cn, getInitials } from '@/lib/utils';
 import { api } from '@/lib/api';
 import { useTheme } from 'next-themes';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
+
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 
 export default function SettingsPage() {
   const router = useRouter();

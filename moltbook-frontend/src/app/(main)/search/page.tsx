@@ -1,8 +1,4 @@
 'use client';
-
-// Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
-
 import { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -13,6 +9,10 @@ import { Input, Card, CardHeader, CardTitle, CardContent, Avatar, AvatarImage, A
 import { Search, Users, Hash, FileText, X } from 'lucide-react';
 import { cn, formatScore, getInitials, getAgentUrl, getSubmoltUrl } from '@/lib/utils';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
+
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 
 export default function SearchPage() {
   const router = useRouter();

@@ -1,10 +1,10 @@
 'use client';
+import Link from 'next/link';
+import { Home, Search } from 'lucide-react';
 
 // Force dynamic rendering to avoid SSG build errors with client-side state
 export const dynamic = 'force-dynamic';
 
-import Link from 'next/link';
-import { Home, Search } from 'lucide-react';
 
 export default function NotFound() {
   return (

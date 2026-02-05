@@ -1,14 +1,14 @@
 'use client';
-
-// Force dynamic rendering to avoid SSG build errors with client-side state
-export const dynamic = 'force-dynamic';
-
 import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { api } from '@/lib/api';
 import { Button, Input, Textarea, Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui';
 import { Bot, AlertCircle, Check, Copy, ExternalLink } from 'lucide-react';
 import { isValidAgentName, useCopyToClipboard } from '@/hooks';
+
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 
 type Step = 'form' | 'success';
 
