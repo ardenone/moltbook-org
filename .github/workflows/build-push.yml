@@ -175,14 +175,34 @@ jobs:
           if ! git diff --staged --quiet; then
             git commit -m "chore: Update image tags to ${{ steps.sha.outputs.short }}"
 
-            # Pull with rebase to handle any concurrent pushes
-            # Use --autostash to preserve local changes during rebase
-            if ! git pull --rebase --autostash; then
-              # If rebase fails, abort and try again with a merge
-              git rebase --abort 2>/dev/null || true
-              git pull --no-rebase
-              git commit -m "chore: Update image tags to ${{ steps.sha.outputs.short }} (merge fix)"
-            fi
+            # Retry loop for git push to handle race conditions
+            MAX_RETRIES=3
+            RETRY_COUNT=0
+            PUSH_SUCCESS=false
 
-            git push
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ] && [ "$PUSH_SUCCESS" = false ]; do
+              # Pull with rebase to handle any concurrent pushes
+              # Use --autostash to preserve local changes during rebase
+              if ! git pull --rebase --autostash 2>/dev/null; then
+                # If rebase fails, abort and try again with a merge
+                git rebase --abort 2>/dev/null || true
+                git reset --hard HEAD 2>/dev/null || true
+                git pull --no-rebase
+              fi
+
+              # Try to push
+              if git push; then
+                PUSH_SUCCESS=true
+                echo "Push succeeded on attempt $((RETRY_COUNT + 1))"
+              else
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                  echo "Push failed, retrying... (attempt $RETRY_COUNT of $MAX_RETRIES)"
+                  sleep 2
+                else
+                  echo "Push failed after $MAX_RETRIES attempts"
+                  exit 1
+                fi
+              fi
+            done
           fi
