@@ -8,8 +8,8 @@ const nextConfig = {
     unoptimized: true,
   },
 
-  // CRITICAL: Disable file tracing to prevent build errors with Next.js 15
-  // Next.js 15 + React 19 may execute client-side code during build phase
+  // CRITICAL: Disable file tracing to prevent build errors with Next.js 16
+  // Next.js 16 + React 19 may execute client-side code during build phase
   // causing createContext errors. This configuration ensures proper isolation.
   outputFileTracingExcludes: {
     '*': [
@@ -30,64 +30,9 @@ const nextConfig = {
     ],
   },
 
-  experimental: {
-    optimizePackageImports: [
-      'lucide-react',
-      '@radix-ui/react-avatar',
-      '@radix-ui/react-dialog',
-      '@radix-ui/react-dropdown-menu',
-      '@radix-ui/react-popover',
-      '@radix-ui/react-scroll-area',
-      '@radix-ui/react-select',
-      '@radix-ui/react-switch',
-      '@radix-ui/react-tabs',
-      '@radix-ui/react-tooltip',
-    ],
-    typedRoutes: false,
-    // CRITICAL: Mark all client-only packages as external for server components
-    // This prevents createContext errors during Docker build when Next.js
-    // tries to analyze client-only packages during the SSG phase
-    serverComponentsExternalPackages: [
-      'next-themes',
-      'sonner',
-      'framer-motion',
-      'react-hot-toast',
-      'swr',
-    ],
-  },
-
-  // Webpack configuration for React 19 + Next.js 15 compatibility
+  // CRITICAL: Use webpack instead of Turbopack for compatibility
+  // Turbopack is default in Next.js 16 but we need webpack for the fallback config
   webpack: (config, { isServer }) => {
-    // CRITICAL FIX: Force all client-only packages to be external on server
-    // This prevents createContext errors during Docker build
-    if (isServer) {
-      config.externals = config.externals || [];
-      // Use object pattern for externals to properly exclude client-only packages
-      const clientOnlyPackages = [
-        'next-themes',
-        'sonner',
-        'framer-motion',
-        'react-hot-toast',
-        'swr',
-      ];
-      if (Array.isArray(config.externals)) {
-        config.externals.push(
-          ...clientOnlyPackages.map(pkg => ({
-            [pkg]: pkg,
-          }))
-        );
-      } else if (typeof config.externals === 'function') {
-        const originalExternals = config.externals;
-        config.externals = ({ context, request }, callback) => {
-          if (clientOnlyPackages.includes(request)) {
-            return callback(null, request);
-          }
-          return originalExternals({ context, request }, callback);
-        };
-      }
-    }
-
-    // Client-side webpack config
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -96,9 +41,38 @@ const nextConfig = {
         crypto: false,
       };
     }
-
     return config;
   },
+
+  // Empty turbopack config to silence the warning about webpack config without turbopack
+  turbopack: {},
+
+  // Next.js 16 moved these from experimental
+  optimizePackageImports: [
+    'lucide-react',
+    '@radix-ui/react-avatar',
+    '@radix-ui/react-dialog',
+    '@radix-ui/react-dropdown-menu',
+    '@radix-ui/react-popover',
+    '@radix-ui/react-scroll-area',
+    '@radix-ui/react-select',
+    '@radix-ui/react-switch',
+    '@radix-ui/react-tabs',
+    '@radix-ui/react-tooltip',
+  ],
+
+  typedRoutes: false,
+
+  // CRITICAL: Mark all client-only packages as external for server components
+  // This prevents createContext errors during Docker build when Next.js
+  // tries to analyze client-only packages during the SSG phase
+  serverExternalPackages: [
+    'next-themes',
+    'sonner',
+    'framer-motion',
+    'react-hot-toast',
+    'swr',
+  ],
 };
 
 module.exports = nextConfig;
