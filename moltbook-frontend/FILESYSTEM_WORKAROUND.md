@@ -70,12 +70,28 @@ npm install --legacy-peer-deps
 
 ## Resolution (2026-02-05)
 
-The issue was resolved by:
-1. Unmounting tmpfs mounts that were interfering with node_modules
-2. Performing a clean npm install in /tmp (tmpfs is clean)
-3. Copying the clean node_modules back to the project
+The issue was resolved through a multi-step approach:
 
-This workaround is now documented and can be reused if the issue recurs.
+1. **Filesystem Workaround**: Used a clean working directory (`/home/coder/npm-install-workaround`) to install packages outside the corrupted filesystem areas
+2. **Package Manager Switch**: Switched from npm to pnpm which handles the corrupted filesystem more gracefully
+3. **Build System Fix**: Switched from webpack to Turbopack to bypass the "Cannot read properties of undefined (reading 'issuerLayer')" webpack bug that occurred with Next.js 16 + React 19
+
+### Changes Made:
+- `next.config.js`: Enabled `turbopack: { root: __dirname }` to use Turbopack instead of webpack
+- `package.json`: Changed `build:next` script from `next build --webpack` to `next build`
+
+This combination of fixes allows the project to build successfully despite the underlying filesystem corruption.
+
+### If Build Fails Again:
+```bash
+# Clean install using pnpm in a clean directory
+rm -rf node_modules
+mkdir -p /tmp/pnpm-clean-install
+cp package.json pnpm-lock.yaml /tmp/pnpm-clean-install/
+cd /tmp/pnpm-clean-install
+npx pnpm install
+cp -r node_modules /home/coder/Research/moltbook-org/moltbook-frontend/
+```
 
 ## Long-term Solution
 
