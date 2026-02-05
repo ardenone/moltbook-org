@@ -1,24 +1,15 @@
 import type { ReactNode } from 'react';
-import dynamic from 'next/dynamic';
+import { MainLayout } from '@/components/layout';
 
-// CRITICAL: Dynamic import with ssr: false prevents createContext errors during Docker build
+// CRITICAL: Direct import of MainLayout for React 19 + Next.js 15
 //
-// Root Cause: MainLayout is a client component that uses React hooks (useState, useEffect, usePathname, etc.)
-// and store hooks (useAuthStore, useUIStore, useNotificationStore). When imported directly in a server component
-// layout, Next.js 15 attempts to execute it during build for optimization, even with 'use client' directive
-// and export const dynamic = 'force-dynamic'. This causes React Context APIs to be called in the Node.js
-// build environment where they're not available.
+// Root Cause: In Next.js 15 with React 19, the 'ssr: false' option for dynamic imports
+// is deprecated and causes build errors. Additionally, naming 'export const dynamic'
+// conflicts with the 'dynamic' import from Next.js.
 //
-// Solution: Use dynamic import with ssr: false to completely skip server-side rendering and prevent
-// MainLayout from being executed during the Docker build phase.
-
-const MainLayout = dynamic(
-  () => import('@/components/layout').then(mod => ({ default: mod.MainLayout })),
-  {
-    ssr: false,
-    loading: () => null,
-  }
-);
+// Solution: Direct imports work correctly with React 19 + Next.js 15 when components
+// are properly marked with 'use client' directive. The MainLayout component has this
+// directive, so it will only render on the client side.
 
 // Force dynamic rendering for all pages in this group to avoid SSG build issues
 export const dynamic = 'force-dynamic';
