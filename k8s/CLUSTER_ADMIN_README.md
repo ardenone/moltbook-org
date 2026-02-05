@@ -13,6 +13,8 @@
   - Container images: **PUSHED** to ghcr.io/ardenone/
 - Blocker beads documenting this issue:
   - **mo-1nen** - Admin: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE
+  - **mo-37ac** - ADMIN: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE (2026-02-05)
+  - **mo-1rgl** - Fix: RBAC for moltbook namespace creation - BLOCKED (waiting for cluster-admin)
   - **mo-3ttq** - Deploy: Complete Moltbook deployment to ardenone-cluster (waiting for RBAC)
   - **mo-s45e** - Blocker: RBAC permissions for Moltbook namespace creation (CLOSED)
   - **mo-3rs** - Fix: Grant devpod namespace creation permissions or create moltbook namespace (CLOSED)
