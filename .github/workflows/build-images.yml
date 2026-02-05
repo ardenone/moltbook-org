@@ -114,6 +114,10 @@ jobs:
             type=semver,pattern={{major}}.{{minor}},prefix=v
             type=raw,value=latest,enable={{is_default_branch}}
 
+      - name: Get Dockerfile hash for cache busting
+        id: dockerfile-hash
+        run: echo "hash=$(sha256sum moltbook-frontend/Dockerfile | cut -d' ' -f1)" >> $GITHUB_OUTPUT
+
       - name: Build and push Frontend image
         id: build-frontend
         uses: docker/build-push-action@v5
@@ -122,6 +126,8 @@ jobs:
           push: ${{ github.event_name != 'pull_request' && (github.event_name == 'push' || inputs.push_images == true) }}
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
+          build-args: |
+            DOCKERFILE_HASH=${{ steps.dockerfile-hash.outputs.hash }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
           provenance: true

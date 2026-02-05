@@ -1,6 +1,9 @@
 # Build stage
 FROM node:20-alpine AS builder
 
+# Cache busting argument - changes to Dockerfile invalidate this layer
+ARG DOCKERFILE_HASH=unknown
+
 WORKDIR /app
 
 # Copy package files
