@@ -1,10 +1,10 @@
 # ArgoCD Installation Blocker - mo-y5o
 
-**Bead ID**: mo-1fgm (task), mo-172o (P0 blocker)
+**Bead ID**: mo-1fgm (task), mo-3ki8 (P0 blocker)
 **Status**: BLOCKED - Requires Cluster Admin Action
 **Priority**: P0 (Critical)
 **Date**: 2026-02-05
-**Updated**: 2026-02-05 05:32 UTC - Created consolidated blocker bead mo-172o
+**Updated**: 2026-02-05 05:33 UTC - Created consolidated blocker bead mo-3ki8
 
 ## Executive Summary
 
@@ -84,6 +84,7 @@ kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
 
 ## Related Blocker Beads
 
+- **mo-3ki8** (P0) - BLOCKER: ArgoCD installation requires cluster-admin RBAC (latest)
 - mo-3oja - CRITICAL: ArgoCD installation blocked - requires cluster-admin
 - mo-12bv - BLOCKER: Cluster-admin must install ArgoCD in ardenone-cluster
 - mo-3200 - Fix: Apply argocd-installer RBAC and install ArgoCD
