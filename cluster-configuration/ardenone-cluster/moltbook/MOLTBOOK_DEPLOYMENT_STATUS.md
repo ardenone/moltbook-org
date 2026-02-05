@@ -642,3 +642,13 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 | 2026-02-06 01:51 UTC | kubectl apply -f NAMESPACE_SETUP_REQUEST.yml | ❌ Blocked (clusterroles/clusterrolebindings/namespaces all forbidden) | mo-3ttq (claude-glm-bravo) |
 | 2026-02-06 01:51 UTC | Existing P0 blockers | ✅ 20+ duplicate P0 blockers confirmed (NOT creating new) | mo-3ttq (claude-glm-bravo) |
 | 2026-02-06 01:51 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-bravo) |
+| 2026-02-06 10:11 UTC | Namespace `moltbook` | ❌ NotFound | mo-3ttq (claude-glm-india) |
+| 2026-02-06 10:11 UTC | ArgoCD namespace | ❌ NotFound | mo-3ttq (claude-glm-india) |
+| 2026-02-06 10:11 UTC | Argo Rollouts CRDs | ✅ Found (argoproj.io - NOT ArgoCD) | mo-3ttq (claude-glm-india) |
+| 2026-02-06 10:11 UTC | SealedSecret CRD | ✅ Installed (sealedsecrets.bitnami.com) | mo-3ttq (claude-glm-india) |
+| 2026-02-06 10:11 UTC | Devpod SA create namespace | ❌ Forbidden (cannot impersonate serviceaccounts) | mo-3ttq (claude-glm-india) |
+| 2026-02-06 10:11 UTC | kubectl kustomize k8s/ | ✅ Validated (21 resources, 1055 lines) | mo-3ttq (claude-glm-india) |
+| 2026-02-06 10:11 UTC | k8s/ manifests verified | ✅ All manifests ready | mo-3ttq (claude-glm-india) |
+| 2026-02-06 10:11 UTC | Resource inventory | ✅ 1 Cluster, 4 ConfigMaps, 4 Deployments, 2 IngressRoutes, 3 Middleware, 1 Namespace, 1 Role, 1 RoleBinding, 3 SealedSecret, 4 Services | mo-3ttq (claude-glm-india) |
+| 2026-02-06 10:11 UTC | Existing P0 blockers | ✅ Confirmed (mo-1nen, mo-2mws, mo-3uep, mo-11z8) | mo-3ttq (claude-glm-india) |
+| 2026-02-06 10:11 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-india) |
