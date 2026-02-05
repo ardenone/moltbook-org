@@ -63,8 +63,13 @@ kubectl auth can-i create namespace --as=system:serviceaccount:devpod:default
 
 ## Related Beads
 
+- **mo-133h**: BLOCKER: ClusterAdmin required - Apply devpod-namespace-creator ClusterRoleBinding for Moltbook (NEW)
 - **mo-3kwh**: BLOCKER: ClusterAdmin required - Apply devpod-namespace-creator ClusterRoleBinding
 - **mo-3n94**: Previous ClusterAdmin RBAC requirement for ArgoCD setup
+
+## Resolution
+
+Once mo-133h is completed (ClusterAdmin applies the RBAC), this blocker will be resolved and deployment can proceed automatically.
 
 ## Security Context
 
