@@ -18,9 +18,35 @@ The Longhorn PVC has filesystem-level corruption where:
 2. Directories cannot be removed because the filesystem reports them as non-empty
 3. This affects both `/home/coder` and `/tmp` directories
 
-## Workaround
+## Workaround (pnpm - RECOMMENDED)
 
-When `npm install` fails, use this workaround:
+This project uses pnpm. The `/tmp` directory workaround is more reliable than npm:
+
+```bash
+# 1. Create a clean working directory in /tmp
+mkdir -p /tmp/npm-install-clean
+
+# 2. Copy package files to clean directory
+cp /home/coder/Research/moltbook-org/moltbook-frontend/package.json /tmp/npm-install-clean/
+cp /home/coder/Research/moltbook-org/moltbook-frontend/pnpm-lock.yaml /tmp/npm-install-clean/
+cp /home/coder/Research/moltbook-org/moltbook-frontend/.npmrc /tmp/npm-install-clean/
+
+# 3. Install in clean directory using pnpm with separate store
+cd /tmp/npm-install-clean
+npx pnpm install --store-dir /tmp/pnpm-store
+
+# 4. Force remove corrupted node_modules and replace
+cd /home/coder/Research/moltbook-org/moltbook-frontend
+find node_modules -delete 2>/dev/null || true
+cp -r /tmp/npm-install-clean/node_modules /home/coder/Research/moltbook-org/moltbook-frontend/
+
+# 5. Verify install works
+npx pnpm install --store-dir /tmp/pnpm-store
+```
+
+## Workaround (npm - ALTERNATIVE)
+
+If npm must be used:
 
 ```bash
 # 1. Create a clean working directory
@@ -28,20 +54,16 @@ mkdir -p /home/coder/npm-install-workaround
 
 # 2. Copy package files to clean directory
 cp /home/coder/Research/moltbook-org/moltbook-frontend/package.json /home/coder/npm-install-workaround/
-cp /home/coder/Research/moltbook-org/moltbook-frontend/package-lock.json /home/coder/npm-install-workaround/
 
-# 3. Install in clean directory (avoids corrupted filesystem areas)
+# 3. Install in clean directory
 cd /home/coder/npm-install-workaround
-npm install --legacy-peer-deps --cache /home/coder/npm-install-workaround/.npm-cache
+npm install --legacy-peer-deps
 
 # 4. Replace the corrupted node_modules
 mv /home/coder/Research/moltbook-org/moltbook-frontend/node_modules /home/coder/Research/moltbook-org/moltbook-frontend/node_modules.failed
 mv /home/coder/npm-install-workaround/node_modules /home/coder/Research/moltbook-org/moltbook-frontend/node_modules
 
-# 5. Copy the working package-lock.json
-cp /home/coder/npm-install-workaround/package-lock.json /home/coder/Research/moltbook-org/moltbook-frontend/
-
-# 6. Verify install works
+# 5. Verify install works
 cd /home/coder/Research/moltbook-org/moltbook-frontend
 npm install --legacy-peer-deps
 ```
