@@ -2,7 +2,7 @@
 
 ## Status: BLOCKED - Waiting for Cluster Admin
 
-**Current State (2026-02-05):**
+**Current State (2026-02-05 13:15 UTC):**
 - Namespace `moltbook`: **Does NOT exist**
 - ClusterRole `namespace-creator`: **Does NOT exist**
 - ClusterRoleBinding `devpod-namespace-creator`: **Does NOT exist**
@@ -12,6 +12,9 @@
   - All Kubernetes manifests: **READY** in k8s/
   - Container images: **PUSHED** to ghcr.io/ardenone/
 - Blocker beads documenting this issue:
+  - **mo-3uep** - Fix: Cluster-admin action - Create moltbook namespace for Moltbook deployment (mo-3ttq) - ACTIVE (2026-02-05)
+  - **mo-15n3** - BLOCKER: Cluster-admin action - Create moltbook namespace for Moltbook deployment (mo-3ttq) - ACTIVE (2026-02-05)
+  - **mo-dsvl** - BLOCKER: Cluster-admin required - Apply NAMESPACE_SETUP_REQUEST.yml for moltbook namespace - ACTIVE (2026-02-05)
   - **mo-3pjf** - CLUSTER-ADMIN: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE (2026-02-05)
   - **mo-1nen** - Admin: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE
   - **mo-37ac** - ADMIN: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE (2026-02-05)
