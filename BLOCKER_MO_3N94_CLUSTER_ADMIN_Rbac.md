@@ -86,14 +86,13 @@ kubectl get namespace moltbook
 - **Created**: 2026-02-05 12:52 UTC
 
 ## Next Steps (After Cluster-Admin Action)
-1. Verify RBAC is applied using verification commands above
-2. Create moltbook namespace (if not created by RBAC_SETUP_REQUEST.yml)
-3. Deploy Moltbook using:
+1. **Verify RBAC is applied** using verification commands above
+2. **Close bead mo-dsvl** after confirming resources exist
+3. **Resume deployment** - The Moltbook deployment can proceed using:
    ```bash
-   kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace.yml
    kubectl apply -k cluster-configuration/ardenone-cluster/moltbook/
    ```
-4. Close bead mo-3n94
+4. **Close bead mo-3n94** after successful deployment
 
 ## Related Files
 - **Setup Manifest**: `/home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/moltbook/namespace/NAMESPACE_SETUP_REQUEST.yml`

@@ -2,7 +2,7 @@
 
 **Bead ID:** mo-2392
 **Date:** 2026-02-05
-**Status:** 🔄 INVESTIGATING - Multiple workarounds available
+**Status:** 🔴 BLOCKER - Local builds not possible in devpod environment
 
 ## Problem Statement
 
@@ -166,7 +166,7 @@ Configure Docker to use VFS storage driver instead of overlayfs.
 
 **Status:** ❌ NOT AVAILABLE - Requires Docker daemon restart and root access
 
-### Workaround 4: External Build Services
+### Workaround 4: External Build Services (RECOMMENDED)
 
 Build images externally and pull them.
 
@@ -203,58 +203,55 @@ docker pull python:3.12-slim
 - ❌ Not always applicable
 - ❌ Can't customize images
 
-## Recommended Solution: Use Buildah
+## Recommended Solution: Use External Build Services
 
-For this devpod environment, **Buildah** is the recommended solution because:
+For this devpod environment, **external builds** are the recommended solution because:
 
-1. **Already installed** at `/usr/bin/buildah`
-2. **Works without nested overlayfs** - doesn't try to create overlayfs mounts
-3. **Dockerfile compatible** - `buildah bud` understands Dockerfile syntax
-4. **No permissions required** - works within devpod constraints
+1. **Docker BuildKit fails** - Nested overlayfs not supported
+2. **Buildah fails** - User namespace restrictions
+3. **Local builds not possible** - Container runtime constraints
 
-### Buildah Quick Reference
+### Recommended Workflows
 
-```bash
-# Build from Dockerfile
-buildah bud -t myimage:latest .
+#### Option 1: CI/CD Pipeline Builds (RECOMMENDED)
 
-# Build with build args
-buildah bud --build-arg NODE_ENV=production -t myimage:latest .
+Use GitHub Actions, GitLab CI, or similar to build images:
 
-# Interactive build
-buildah bud --layers -t myimage:latest .
-
-# Push to registry
-buildah push myimage:latest docker://registry.example.com/myimage:latest
+```yaml
+# .github/workflows/docker-build.yml
+name: Docker Build
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build image
+        run: docker build -t registry.example.com/myimage:${{ github.sha }} .
+      - name: Push image
+        run: docker push registry.example.com/myimage:${{ github.sha }}
 ```
 
-## Verification Tests
+#### Option 2: Pre-built Images
 
-### Test 1: Basic Buildah Build
+Use official or organization pre-built images:
 
 ```bash
-cat > /tmp/Dockerfile.test << 'EOF'
-FROM alpine:3.19
-RUN echo "test" > /tmp/test.txt
-CMD ["cat", "/tmp/test.txt"]
-EOF
-
-buildah bud -f /tmp/Dockerfile.test -t test-build /tmp
+# Pull pre-built images instead of building locally
+docker pull node:20-alpine
+docker pull python:3.12-slim
+docker pull your-registry.com/custom-image:latest
 ```
 
-### Test 2: Buildah Multi-stage Build
+#### Option 3: Remote BuildKit with RBAC (Future)
+
+Request RBAC permissions to use Kubernetes BuildKit driver:
 
 ```bash
-cat > /tmp/Dockerfile.multi << 'EOF'
-FROM alpine:3.19 AS builder
-RUN echo "builder" > /tmp/builder.txt
-
-FROM alpine:3.19
-COPY --from=builder /tmp/builder.txt /tmp/
-CMD ["cat", "/tmp/builder.txt"]
-EOF
-
-buildah bud -f /tmp/Dockerfile.multi -t test-multi /tmp
+# Requires RBAC (currently unavailable)
+kubectl create serviceaccount buildkit -n devpod
+kubectl create rolebinding buildkit --role=buildkit --serviceaccount=devpod:buildkit
+docker buildx create --use --driver=kubernetes --driver-opt=namespace=devpod
 ```
 
 ## Related Issues
@@ -263,34 +260,43 @@ buildah bud -f /tmp/Dockerfile.multi -t test-multi /tmp
 - **mo-11q0:** Docker build overlayfs mount failures
 - **mo-1rp9:** npm install blocker (related to filesystem issues)
 
-## Limitations
+## Summary of Findings
 
-### Docker BuildKit Overlayfs Nesting
-- ❌ **Cannot build images** with Docker BuildKit in devpod
-- ❌ **No native Docker build** experience without external services
-
-### Buildah Workaround
-- ✅ **Can build images** using Buildah
-- ⚠️ **Different CLI** - requires adapting workflows
-- ⚠️ **May not be compatible** with all Dockerfile features
+| Method | Status | Reason |
+|--------|--------|--------|
+| Docker BuildKit | ❌ Fails | Nested overlayfs not supported |
+| Buildah | ❌ Fails | User namespace restrictions |
+| Kubernetes BuildKit | ❌ Blocked | Requires RBAC permissions |
+| External CI/CD | ✅ Works | Use GitHub Actions / GitLab CI |
+| Pre-built images | ✅ Works | Pull from registry |
 
 ## Next Steps
 
-1. ✅ **Use Buildah** for immediate image builds
-2. ⏳ **Request RBAC permissions** for Kubernetes BuildKit driver
-3. ⏳ **Consider external build services** for CI/CD integration
+1. ✅ **Root cause identified** - Nested overlayfs + user namespace issues
+2. ⏳ **Set up CI/CD pipeline** for image builds
+3. ⏳ **Request RBAC permissions** for Kubernetes BuildKit driver
 4. ⏳ **Document build workflows** for the team
 
 ## Success Criteria
 
-- [x] Root cause identified (nested overlayfs in devpod)
-- [x] Workaround documented (use Buildah)
-- [ ] Test Buildah build operations
-- [ ] Update CI/CD workflows to use Buildah or external builds
+- [x] Root cause identified (nested overlayfs + user namespaces)
+- [x] Docker BuildKit overlayfs issue confirmed
+- [x] Buildah tested - fails with user namespace errors
+- [x] Workarounds documented (external CI/CD, pre-built images)
+- [ ] Set up CI/CD pipeline for automated builds
 - [ ] Document team migration guide
 
 ## Conclusion
 
-Docker BuildKit cannot create nested overlayfs mounts in the devpod environment because the devpod itself runs on overlayfs. The recommended workaround is to use **Buildah** for image builds, which doesn't require nested overlayfs and works within the devpod's constraints.
+**Local Docker image builds are not possible** in this devpod environment due to:
 
-**Status:** 🟡 WORKAROUND AVAILABLE - Use Buildah for local builds
+1. **Docker BuildKit** - Cannot create nested overlayfs mounts
+2. **Buildah** - User namespace restrictions prevent image extraction
+
+### Recommended Actions
+
+1. **Immediate:** Use pre-built images for development
+2. **Short-term:** Set up CI/CD pipeline for image builds (GitHub Actions, GitLab CI)
+3. **Long-term:** Request RBAC permissions for Kubernetes BuildKit driver
+
+**Status:** 🔴 LOCAL BUILDS NOT POSSIBLE - Use external CI/CD or pre-built images
