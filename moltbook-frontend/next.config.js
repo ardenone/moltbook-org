@@ -109,9 +109,12 @@ const nextConfig = {
     'zustand',
   ],
 
-  // CRITICAL: Disable output export mode to prevent static generation errors
-  // Using 'standalone' mode for container deployment and ensuring no SSG occurs
-  output: 'standalone',
+  // CRITICAL: Disable standalone output mode to fix Next.js 16 build errors
+  // The standalone mode with Next.js 16 causes file tracing errors during build:
+  // - ENOENT errors for .nft.json files (Next.js File Tracing)
+  // - Missing .next/server/app/*/page.js.nft.json files
+  // The Docker container will use the standard .next build output instead
+  // output: 'standalone', // DISABLED: Causes file tracing errors in Next.js 16
 };
 
 module.exports = nextConfig;
