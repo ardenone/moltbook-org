@@ -154,10 +154,9 @@ The `namespace-creator` ClusterRole follows the principle of least privilege:
 
 ### Related Beads
 
-- **mo-1te** - This task: Fix Moltbook deployment blocked by missing RBAC permissions
-- **mo-eypj** (P0) - Cluster-admin action bead: Apply devpod-namespace-creator ClusterRoleBinding
-- **mo-3ax** - Investigation and verification of RBAC blocker
-- **mo-138** - RBAC blocker verification
+- **mo-11z8** (P0) - CLUSTER-ADMIN ACTION: Create moltbook namespace and RBAC for mo-3ttq
+- **mo-3ttq** (P1) - Deploy: Complete Moltbook deployment to ardenone-cluster
+- **mo-9ndh** (P0) - Fix: Grant namespace creation permissions to devpod ServiceAccount [CLOSED]
 
 ---
 

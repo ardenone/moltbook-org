@@ -225,12 +225,13 @@ kubectl get cluster -n moltbook
 
 ## Related Beads
 
+### Cluster Admin Action Required (P0)
+- **mo-1zeb** (P0): BLOCKER: Cluster-admin needed to create moltbook namespace (created by mo-3ttq)
+
 ### ArgoCD Installation Blockers
-- **mo-218h** (P0): ADMIN: Cluster Admin Action - Apply ArgoCD RBAC for mo-1fgm
+- **mo-3ki8** (P0): BLOCKER: ArgoCD installation requires cluster-admin RBAC
+- **mo-17ws** (P0): CLUSTER-ADMIN ACTION: Install ArgoCD in ardenone-cluster for mo-1fgm
 - **mo-1fgm** (P1): CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments
-- **mo-hhbp** (P0): BLOCKER: Cluster-admin needed to apply ArgoCD RBAC permissions
-- **mo-34zv** (P0): BLOCKER: Cluster admin must apply devpod-namespace-creator RBAC
-- **mo-1fh2** (P0): BLOCKER: Cluster admin must apply devpod-namespace-creator RBAC
 
 ### Current Task
 - **mo-3ttq** (P1): Deploy: Complete Moltbook deployment to ardenone-cluster (this task)
