@@ -20,6 +20,7 @@ const nextConfig = {
   // 3. Disable image optimization (requires server-side processing)
   // 4. Disable webpack build cache (prevents stale artifacts)
   // 5. Force all routes to be dynamically rendered
+  // 6. Use dynamic imports with ssr: false for Context-based providers
 
   // Disable source maps in production to reduce build size
   productionBrowserSourceMaps: false,
@@ -28,6 +29,9 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+
+  // Optimize CSS handling
+  optimizeCss: false,
 
   experimental: {
     // Optimize package imports for better tree-shaking
