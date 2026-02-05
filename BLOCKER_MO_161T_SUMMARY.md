@@ -58,3 +58,9 @@ The `devpod-namespace-creator-rbac.yml` manifest creates:
 
 This blocker is for bead: **mo-161t**
 Title: Admin: Apply devpod-namespace-creator ClusterRoleBinding for Moltbook
+
+New blocker bead created: **mo-2lv0**
+Title: BLOCKER: ClusterAdmin required - Apply devpod-namespace-creator ClusterRoleBinding for Moltbook
+
+## Status
+**BLOCKED** - Waiting for cluster-admin to apply RBAC (mo-2lv0)
