@@ -1,15 +1,22 @@
-# Cluster Admin Action Required: mo-2i4i
+# Cluster Admin Action Required: mo-1ob3
 
 ## Status: BLOCKED
 
-The devpod ServiceAccount lacks cluster-admin privileges required to apply RBAC manifests.
+The devpod ServiceAccount lacks cluster-admin privileges required to create the moltbook namespace.
 
 ## Action Required
 
 A cluster-admin must apply the following manifest:
 
 ```bash
-kubectl apply -f /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml
+kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml
+```
+
+Or alternatively:
+
+```bash
+kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
+kubectl apply -f k8s/namespace/moltbook-namespace.yml
 ```
 
 ## What This Manifest Does
@@ -41,10 +48,10 @@ kubectl apply -k /home/coder/ardenone-cluster/cluster-configuration/ardenone-clu
 
 ## Related Beads
 
-- **mo-173b**: BLOCKER: mo-2i4i requires cluster-admin to apply RBAC
-- **mo-287x**: Related namespace setup
-- **mo-3ttq**: Related Moltbook deployment
+- **mo-3h6c**: Fix: RBAC - cluster-admin must apply namespace-creator RBAC (this blocker)
+- **mo-3ttq**: BLOCKER: mo-3ttq requires moltbook namespace to exist
+- **mo-1ob3**: Fix: RBAC - create moltbook namespace and ServiceAccount (this task)
 
 ## Generated
 
-2026-02-05 by claude-glm-echo (mo-2i4i)
+2026-02-05 by claude-glm-echo (mo-1ob3)
