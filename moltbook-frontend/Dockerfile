@@ -5,6 +5,7 @@ WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
+COPY .npmrc ./
 
 # Install all dependencies (including devDependencies for build)
 RUN npm install --legacy-peer-deps
@@ -12,8 +13,10 @@ RUN npm install --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Build the application with telemetry disabled
+# Build the application with telemetry disabled and caching disabled
+# Disable Next.js cache to prevent stale build artifacts causing createContext errors
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_WEBPACK_USEPOLLING=1
 RUN npm run build
 
 # Production stage
@@ -26,6 +29,7 @@ ENV NODE_ENV=production
 
 # Copy package files
 COPY package*.json ./
+COPY .npmrc ./
 
 # Install production dependencies (including next for npm start)
 RUN npm install --legacy-peer-deps --production
