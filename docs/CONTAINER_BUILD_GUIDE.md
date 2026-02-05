@@ -117,7 +117,7 @@ If you see overlay filesystem errors, use GitHub Actions instead. This is a devp
 
 ## See Also
 
-- [GitHub Actions Workflow](../.github/workflows/build-images.yml)
+- [GitHub Actions Workflow](../.github/workflows/build-push.yml)
 - [API Dockerfile](../api/Dockerfile)
 - [Frontend Dockerfile](../moltbook-frontend/Dockerfile)
 - [Build Instructions](BUILD_INSTRUCTIONS.md)

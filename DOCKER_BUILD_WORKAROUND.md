@@ -2,7 +2,8 @@
 
 **Issue**: mo-jgo - Docker builds fail in devpod environment
 **Date**: 2026-02-04
-**Status**: ✅ **DOCUMENTED** - Local builds blocked, use GitHub Actions instead
+**Updated**: 2026-02-05 - Added Kaniko solution
+**Status**: ✅ **MULTIPLE SOLUTIONS AVAILABLE** - See [DOCKER_BUILD_SOLUTIONS.md](./DOCKER_BUILD_SOLUTIONS.md) for complete guide
 
 ---
 
@@ -61,6 +62,40 @@ gh run watch
 
 ---
 
+## ✅ NEW: Kaniko Solution (Bead mo-3t8p)
+
+**Best for**: Building images directly from devpod without leaving the container
+
+Kaniko is a daemonless container image builder that works in Kubernetes without Docker daemon or nested overlay issues.
+
+### Quick Start
+
+```bash
+# 1. Deploy Kaniko runner (one-time setup)
+kubectl apply -f k8s/kaniko/
+
+# 2. Create GHCR credentials
+kubectl create secret docker-registry ghcr-credentials \
+  --docker-server=ghcr.io \
+  --docker-username=ardenone \
+  --docker-password=<YOUR_GITHUB_TOKEN> \
+  -n moltbook
+
+# 3. Build images using helper script
+./scripts/kaniko-build.sh --all
+
+# Or trigger directly with kubectl
+kubectl exec -it deployment/kaniko-build-runner -n moltbook -- /scripts/build-all.sh
+```
+
+### See Also
+
+- `k8s/kaniko/README.md` - Detailed Kaniko documentation
+- `scripts/kaniko-build.sh` - Helper script for triggering builds
+- [DOCKER_BUILD_SOLUTIONS.md](./DOCKER_BUILD_SOLUTIONS.md) - Complete comparison of all solutions
+
+---
+
 ## Alternative: Build on Host Machine
 
 Build images on your host machine (not in devpod), then push:
@@ -78,7 +113,7 @@ docker push ghcr.io/ardenone/moltbook-frontend:latest
 
 ---
 
-## ✅ NEW: Safe Build Wrapper (Bead mo-1nh)
+## ✅ Safe Build Wrapper (Bead mo-1nh)
 
 A new **safe build wrapper** has been added that automatically detects devpod environments and prevents the overlay filesystem error with helpful guidance.
 
@@ -112,8 +147,9 @@ The wrapper checks for:
 |------|-------|----------|--------|
 | mo-jgo | Docker Hub rate limit (misdiagnosed) | P1 | ✅ Documented |
 | mo-1na | GitHub Actions workflow failures | P1 | ✅ Completed |
-| mo-1nh | Fix: Docker build overlay filesystem error in devpod | P1 | ✅ **COMPLETED** |
-| mo-3bol | Fix: Docker build environment - node_modules ENOTEMPTY error | P1 | ✅ **COMPLETED** |
+| mo-1nh | Fix: Docker build overlay filesystem error in devpod | P1 | ✅ COMPLETED |
+| mo-3bol | Fix: Docker build environment - node_modules ENOTEMPTY error | P1 | ✅ COMPLETED |
+| mo-3t8p | Fix: Docker overlay filesystem prevents image builds in devpod | P1 | ✅ **COMPLETED** |
 
 ---
 
@@ -121,17 +157,21 @@ The wrapper checks for:
 
 - **Problem**: Nested overlayfs prevents Docker builds in devpod
 - **Not the Problem**: Docker Hub rate limits (red herring)
-- **Solution**: Use GitHub Actions (needs fixing) or build on host
+- **Solutions Available**:
+  1. **GitHub Actions** - Automated CI/CD builds (recommended for production)
+  2. **Kaniko** - In-cluster daemonless builds (recommended for devpod)
+  3. **Host Machine** - Manual local builds (for quick testing)
 - **Workaround**: Build on host machine and push manually
-- **NEW**: Safe build wrapper prevents the error automatically (bead mo-1nh)
+- **Safe Build Wrapper**: Prevents the error automatically (bead mo-1nh)
 
 ---
 
 **Created**: 2026-02-04
 **Bead**: mo-jgo
 **Updated**: 2026-02-04 - Added safe build wrapper (bead mo-1nh)
+**Updated**: 2026-02-05 - Added Kaniko solution (bead mo-3t8p)
 **Updated**: 2026-02-05 - Clarified node_modules ENOTEMPTY error (bead mo-3bol)
-**Status**: ✅ **FIXED** - Safe build wrapper prevents overlay filesystem errors
+**Status**: ✅ **MULTIPLE SOLUTIONS AVAILABLE** - See [DOCKER_BUILD_SOLUTIONS.md](./DOCKER_BUILD_SOLUTIONS.md)
 
 ---
 
