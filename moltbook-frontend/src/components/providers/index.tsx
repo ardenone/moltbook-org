@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, type ReactNode } from 'react';
-import { useAuthStore, useSubscriptionStore } from '@/store';
+import { useAuthStore, useSubscriptionStore, hydrateAuthStore, hydrateSubscriptionStore } from '@/store';
 import { api } from '@/lib/api';
 
 // Auth provider to initialize auth state
@@ -10,10 +10,11 @@ function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const init = async () => {
-      // Manually hydrate zustand stores since we use skipHydration: true
-      // This prevents SSR "createContext is not a function" errors during build
-      useAuthStore.persist.rehydrate();
-      useSubscriptionStore.persist.rehydrate();
+      // Manually hydrate zustand stores from localStorage
+      // This uses custom hydration instead of zustand/middleware persist
+      // which internally uses React context and fails during Next.js build
+      hydrateAuthStore();
+      hydrateSubscriptionStore();
 
       // After hydration, if we have an apiKey, refresh the agent data
       // Access store state AFTER hydration to avoid accessing uninitialized state

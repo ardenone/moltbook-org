@@ -1,12 +1,11 @@
 'use client';
 
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import type { Agent, Post, PostSort, TimeRange, Notification } from '@/types';
 import { api } from '@/lib/api';
 
-// SSR-safe storage that implements PersistStorage interface directly
-// This avoids using createJSONStorage which internally uses React context
+// SSR-safe storage utilities - direct localStorage access without React context
+// This avoids the zustand/middleware persist which internally uses React context
 const ssrSafeStorage = {
   getItem: (name: string) => {
     if (typeof window === 'undefined') return null;
@@ -36,6 +35,26 @@ const ssrSafeStorage = {
   },
 };
 
+// Manually save state to localStorage (called manually when state changes)
+const saveAuthState = (apiKey: string | null) => {
+  ssrSafeStorage.setItem('moltbook-auth', { apiKey });
+};
+
+// Manually load state from localStorage (returns null on server)
+const loadAuthState = (): { apiKey: string | null } | null => {
+  return ssrSafeStorage.getItem('moltbook-auth');
+};
+
+// Manually save subscriptions to localStorage
+const saveSubscriptionsState = (subscribedSubmolts: string[]) => {
+  ssrSafeStorage.setItem('moltbook-subscriptions', { subscribedSubmolts });
+};
+
+// Manually load subscriptions from localStorage
+const loadSubscriptionsState = (): { subscribedSubmolts: string[] } | null => {
+  return ssrSafeStorage.getItem('moltbook-subscriptions');
+};
+
 // Auth Store
 interface AuthStore {
   agent: Agent | null;
@@ -50,57 +69,59 @@ interface AuthStore {
   refresh: () => Promise<void>;
 }
 
-export const useAuthStore = create<AuthStore>()(
-  persist(
-    (set, get) => ({
-      agent: null,
-      apiKey: null,
-      isLoading: false,
-      error: null,
+export const useAuthStore = create<AuthStore>((set, get) => ({
+  agent: null,
+  apiKey: null,
+  isLoading: false,
+  error: null,
 
-      setAgent: (agent) => set({ agent }),
-      setApiKey: (apiKey) => {
-        api.setApiKey(apiKey);
-        set({ apiKey });
-      },
+  setAgent: (agent) => set({ agent }),
+  setApiKey: (apiKey) => {
+    api.setApiKey(apiKey);
+    saveAuthState(apiKey);
+    set({ apiKey });
+  },
 
-      login: async (apiKey: string) => {
-        set({ isLoading: true, error: null });
-        try {
-          api.setApiKey(apiKey);
-          const agent = await api.getMe();
-          set({ agent, apiKey, isLoading: false });
-        } catch (err) {
-          api.clearApiKey();
-          set({ error: (err as Error).message, isLoading: false, agent: null, apiKey: null });
-          throw err;
-        }
-      },
-
-      logout: () => {
-        api.clearApiKey();
-        set({ agent: null, apiKey: null, error: null });
-      },
-
-      refresh: async () => {
-        const { apiKey } = get();
-        if (!apiKey) return;
-        try {
-          api.setApiKey(apiKey);
-          const agent = await api.getMe();
-          set({ agent });
-        } catch { /* ignore */ }
-      },
-    }),
-    {
-      name: 'moltbook-auth',
-      partialize: (state) => ({ apiKey: state.apiKey }),
-      storage: ssrSafeStorage,
-      // Skip hydration to prevent SSR issues - will be manually hydrated in AuthProvider
-      skipHydration: true,
+  login: async (apiKey: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      api.setApiKey(apiKey);
+      const agent = await api.getMe();
+      saveAuthState(apiKey);
+      set({ agent, apiKey, isLoading: false });
+    } catch (err) {
+      api.clearApiKey();
+      saveAuthState(null);
+      set({ error: (err as Error).message, isLoading: false, agent: null, apiKey: null });
+      throw err;
     }
-  )
-);
+  },
+
+  logout: () => {
+    api.clearApiKey();
+    saveAuthState(null);
+    set({ agent: null, apiKey: null, error: null });
+  },
+
+  refresh: async () => {
+    const { apiKey } = get();
+    if (!apiKey) return;
+    try {
+      api.setApiKey(apiKey);
+      const agent = await api.getMe();
+      set({ agent });
+    } catch { /* ignore */ }
+  },
+}));
+
+// Export hydration function for AuthProvider
+export function hydrateAuthStore() {
+  const saved = loadAuthState();
+  if (saved?.apiKey) {
+    const store = useAuthStore.getState();
+    store.setApiKey(saved.apiKey);
+  }
+}
 
 // Feed Store
 interface FeedStore {
@@ -259,28 +280,30 @@ interface SubscriptionStore {
   isSubscribed: (name: string) => boolean;
 }
 
-export const useSubscriptionStore = create<SubscriptionStore>()(
-  persist(
-    (set, get) => ({
-      subscribedSubmolts: [],
+export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
+  subscribedSubmolts: [],
 
-      addSubscription: (name) => {
-        if (!get().subscribedSubmolts.includes(name)) {
-          set({ subscribedSubmolts: [...get().subscribedSubmolts, name] });
-        }
-      },
-
-      removeSubscription: (name) => {
-        set({ subscribedSubmolts: get().subscribedSubmolts.filter(s => s !== name) });
-      },
-
-      isSubscribed: (name) => get().subscribedSubmolts.includes(name),
-    }),
-    {
-      name: 'moltbook-subscriptions',
-      storage: ssrSafeStorage,
-      // Skip hydration to prevent SSR issues - will be manually hydrated if needed
-      skipHydration: true,
+  addSubscription: (name) => {
+    if (!get().subscribedSubmolts.includes(name)) {
+      const newSubscriptions = [...get().subscribedSubmolts, name];
+      set({ subscribedSubmolts: newSubscriptions });
+      saveSubscriptionsState(newSubscriptions);
     }
-  )
-);
+  },
+
+  removeSubscription: (name) => {
+    const newSubscriptions = get().subscribedSubmolts.filter(s => s !== name);
+    set({ subscribedSubmolts: newSubscriptions });
+    saveSubscriptionsState(newSubscriptions);
+  },
+
+  isSubscribed: (name) => get().subscribedSubmolts.includes(name),
+}));
+
+// Export hydration function for AuthProvider
+export function hydrateSubscriptionStore() {
+  const saved = loadSubscriptionsState();
+  if (saved?.subscribedSubmolts) {
+    useSubscriptionStore.setState({ subscribedSubmolts: saved.subscribedSubmolts });
+  }
+}

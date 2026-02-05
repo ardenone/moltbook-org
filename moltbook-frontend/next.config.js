@@ -51,6 +51,11 @@ const nextConfig = {
   // Ensure transpilePackages for zustand, Radix UI, and other packages using React context
   transpilePackages: ['zustand', '@radix-ui', 'next-themes', 'sonner', 'framer-motion'],
 
+  // TEMPORARILY DISABLED: standalone output mode
+  // This was causing build errors with routes-manifest.json not being found
+  // The Docker deployment should still work without standalone mode
+  // output: 'standalone',
+
   // Fix for multiple lockfiles warning
   outputFileTracingRoot: process.cwd(),
 
