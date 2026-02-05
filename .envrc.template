@@ -1,0 +1,17 @@
+# Environment configuration for Moltbook development
+# Copy this file to .envrc and configure with your values
+#
+# Setup instructions:
+#   1. Install direnv: https://direnv.net/docs/installation.html
+#   2. Copy this template: cp .envrc.template .envrc
+#   3. Edit .envrc with your actual values
+#   4. Allow direnv: direnv allow
+#
+# GITHUB_TOKEN for pushing container images to ghcr.io
+# Create at: https://github.com/settings/tokens
+# Required scopes: write:packages, read:packages
+export GITHUB_TOKEN="your_github_token_here"
+
+# Optional: GitHub username for registry authentication
+# Default is "github" if not set
+export GITHUB_USERNAME="your_github_username"
