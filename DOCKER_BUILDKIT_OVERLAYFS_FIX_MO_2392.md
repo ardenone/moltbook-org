@@ -73,34 +73,28 @@ The kernel has limits on overlayfs nesting. When Docker BuildKit (running inside
 
 ## Workarounds and Solutions
 
-### Workaround 1: Use Buildah (RECOMMENDED)
+### Workaround 1: Buildah (LIMITED - User Namespace Issues)
 
-**Buildah** doesn't require nested overlayfs and works in this environment.
+**Status:** ❌ NOT WORKING - Buildah fails with user namespace errors in devpod
+
+Buildah is installed but encounters user namespace issues:
 
 ```bash
-# Buildah is already installed
-which buildah
-# /usr/bin/buildah
-
-# Build an image using buildah
 buildah bud -f Dockerfile -t myimage:latest .
-
-# Or use buildah commands directly
-buildah from alpine:3.19
-ctr=$(buildah from alpine:3.19)
-buildah run $ctr -- echo "test"
-buildah commit $ctr myimage:latest
+# Error: insufficient UIDs or GIDs available in user namespace
+# lchown /etc/shadow: invalid argument
 ```
 
-**Pros:**
-- ✅ Works in devpod environment
-- ✅ No nested overlayfs required
-- ✅ Already installed
-- ✅ Compatible with Dockerfile syntax
+**Why Buildah Fails:**
+- Devpod runs in a restricted user namespace
+- Buildah's rootless mode requires `/etc/subuid` and `/etc/subgid` mappings
+- The kernel rejects `lchown` operations for certain UIDs/GIDs when extracting container images
 
-**Cons:**
-- ⚠️ Different CLI than Docker
-- ⚠️ May require workflow changes
+**Container Tools Status:**
+- ✅ `buildah` installed (v1.33.7)
+- ❌ User namespace mappings fail
+- ✅ Docker pull works (image download is fine)
+- ❌ Image extraction/building fails
 
 ### Workaround 2: Remote BuildKit with Kubernetes Driver
 

@@ -1,0 +1,67 @@
+# RBAC Setup Request for Moltbook deployment
+#
+# This manifest grants devpod ServiceAccount permissions to create namespaces
+# and RBAC resources required for deploying Moltbook.
+#
+# A cluster-admin MUST apply this with:
+#   kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/RBAC_SETUP_REQUEST.yml
+#
+# VERIFICATION STATUS (2026-02-05):
+# - devpod-namespace-creator ClusterRole: NOT FOUND
+# - devpod-namespace-creator ClusterRoleBinding: NOT FOUND
+# - devpod ServiceAccount: EXISTS but lacks cluster-admin permissions
+# - BLOCKER: Moltbook deployment REQUIRES cluster-admin to create ClusterRoleBinding
+# - STATUS: AWAITING CLUSTER-ADMIN ACTION
+#
+# INSTALLATION INSTRUCTIONS (for cluster-admin):
+#   kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/RBAC_SETUP_REQUEST.yml
+#
+# Then from devpod, deploy Moltbook:
+#   kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace.yml
+#   kubectl apply -k cluster-configuration/ardenone-cluster/moltbook/
+
+---
+# ClusterRole to allow namespace creation
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: namespace-creator
+  labels:
+    app.kubernetes.io/name: devpod
+    app.kubernetes.io/component: rbac
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["create", "get", "list", "watch"]
+- apiGroups: ["rbac.authorization.k8s.io"]
+  resources: ["roles", "rolebindings"]
+  verbs: ["get", "create", "update", "patch"]
+- apiGroups: ["traefik.io"]
+  resources: ["middlewares"]
+  verbs: ["get", "create", "update", "patch", "delete"]
+---
+# ClusterRoleBinding for devpod ServiceAccount
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: devpod-namespace-creator
+  labels:
+    app.kubernetes.io/name: devpod
+    app.kubernetes.io/component: rbac
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: namespace-creator
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: devpod
+---
+# Create the moltbook namespace
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: moltbook
+  labels:
+    name: moltbook
+    app.kubernetes.io/part-of: moltbook
