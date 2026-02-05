@@ -119,13 +119,6 @@ const nextConfig = {
       config.optimization.concatenateModules = false;
     }
 
-    // ========== BUILD CACHE FIX ==========
-    // Disable webpack cache in production to prevent stale build artifacts
-    // This is critical in Docker where cached .next directory might persist
-    if (!dev) {
-      config.cache = false;
-    }
-
     return config;
   },
 };
