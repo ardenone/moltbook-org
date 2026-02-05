@@ -189,7 +189,18 @@ kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
 
 ---
 
-**Last Updated**: 2026-02-05 05:23 UTC
+**Last Updated**: 2026-02-05 05:30 UTC
 **Status**: 🔴 BLOCKED - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
-**Related Beads**: mo-1fgm (task), mo-21wr (P0 - cluster-admin action required)
+**Related Beads**: mo-1fgm (task), mo-2m9f (P0 - latest verification blocker)
+
+## Latest Verification (2026-02-05 05:27 UTC)
+
+Created focused blocker bead **mo-2m9f** after comprehensive verification:
+- Confirmed argocd namespace does NOT exist
+- Confirmed argocd-installer ClusterRole does NOT exist
+- Confirmed devpod-argocd-installer ClusterRoleBinding does NOT exist
+- Confirmed devpod SA cannot create CRDs, ClusterRoles, or ClusterRoleBindings
+- Confirmed external ArgoCD at argocd-manager.ardenone.com is healthy (returns "ok")
+
+**Simplified Resolution Path**: Use CLUSTER_ADMIN_ACTION.yml which binds the existing `argocd-manager-role` ClusterRole (wildcard permissions) to devpod SA. This is simpler than creating a new ClusterRole.

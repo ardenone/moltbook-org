@@ -113,8 +113,7 @@ ArgoCD requires:
 ### Related Beads
 
 - **mo-1fgm** - Current task: CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments
-- **mo-1l3s** (P0) - ADMIN: Cluster Admin Action - Apply ARGOCD_SETUP_REQUEST.yml for mo-1fgm
-- **mo-2vdb** (P0) - Cluster-admin action bead: Install ArgoCD
+- **mo-21wr** (P0) - BLOCKER: ArgoCD installation requires cluster-admin RBAC
 - **mo-1te** - Fix Moltbook deployment blocked by RBAC permissions
 
 ---
@@ -170,8 +169,8 @@ For questions or issues:
 
 ---
 
-**Last Updated**: 2026-02-05 05:20 UTC
+**Last Updated**: 2026-02-05 05:30 UTC
 **Status**: 🔴 BLOCKER - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
 **Estimated Time**: 5 minutes (one-time setup)
-**Related Beads**: mo-1fgm (current task), mo-1l3s (P0 - cluster-admin action required)
+**Related Beads**: mo-1fgm (current task), mo-21wr (P0 - cluster-admin action required)
