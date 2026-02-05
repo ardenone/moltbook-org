@@ -153,7 +153,7 @@ kubectl auth can-i use clusterrole/argocd-manager-role
 6. Confirmed devpod-argocd-manager ClusterRoleBinding does NOT exist
 7. Verified external ArgoCD at argocd-manager.ardenone.com is healthy (returns "ok")
 8. Updated ARGOCD_SETUP_REQUEST.yml to reuse existing argocd-manager-role
-9. Created bead **mo-21wr** (P0) to track cluster-admin action required
+9. Created bead **mo-1osa** (P0) to track cluster-admin action required
 
 ---
 
