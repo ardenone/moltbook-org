@@ -1,9 +1,9 @@
 # Moltbook Deployment Status - ardenone-cluster
 
 **Task**: mo-3ttq - Deploy: Complete Moltbook deployment to ardenone-cluster (waiting for RBAC)
-**Date**: 2026-02-05 (Updated ~07:30 UTC)
+**Date**: 2026-02-05 (Updated ~08:44 UTC)
 **Status**: 🔴 BLOCKED - Requires cluster-admin privileges
-**Latest Verification**: Confirmed RBAC blocker - devpod SA cannot create namespaces. 30+ P0 blocker beads exist (mo-1nen, mo-2mws, mo-3uep)
+**Latest Verification**: Confirmed RBAC blocker - devpod SA cannot create namespaces. 40+ P0 blocker beads exist (mo-1nen, mo-2mws, mo-3uep, mo-11z8, etc.)
 
 ---
 
@@ -547,3 +547,26 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 | 2026-02-06 00:24 UTC | Container images verified | ✅ ghcr.io/ardenone/moltbook-api:latest, ghcr.io/ardenone/moltbook-frontend:latest | mo-3ttq (claude-glm-bravo) |
 | 2026-02-06 00:24 UTC | Existing P0 blockers | ✅ 30+ duplicate P0 blockers confirmed (mo-35ca, mo-1nen, mo-2mws, mo-3uep, mo-1rgl, mo-2i4i, mo-11z8, etc.) | mo-3ttq (claude-glm-bravo) |
 | 2026-02-06 00:24 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-bravo) |
+| 2026-02-06 00:32 UTC | Namespace `moltbook` | ❌ NotFound | mo-3ttq (claude-glm-india) |
+| 2026-02-06 00:32 UTC | ArgoCD namespace | ❌ NotFound | mo-3ttq (claude-glm-india) |
+| 2026-02-06 00:32 UTC | ClusterRole `namespace-creator` | ❌ NotFound | mo-3ttq (claude-glm-india) |
+| 2026-02-06 00:32 UTC | ClusterRoleBinding `devpod-namespace-creator` | ❌ NotFound | mo-3ttq (claude-glm-india) |
+| 2026-02-06 00:32 UTC | Devpod SA create namespace | ❌ Forbidden (namespaces is forbidden) | mo-3ttq (claude-glm-india) |
+| 2026-02-06 00:32 UTC | SealedSecret CRD | ✅ Installed (sealedsecrets.bitnami.com) | mo-3ttq (claude-glm-india) |
+| 2026-02-06 00:32 UTC | kubectl kustomize k8s/ | ✅ Validated (100+ lines, all resources valid) | mo-3ttq (claude-glm-india) |
+| 2026-02-06 00:32 UTC | k8s/ manifests verified | ✅ All manifests ready | mo-3ttq (claude-glm-india) |
+| 2026-02-06 00:32 UTC | Container images verified | ✅ ghcr.io/ardenone/moltbook-api:f34199a, ghcr.io/ardenone/moltbook-frontend:f34199a | mo-3ttq (claude-glm-india) |
+| 2026-02-06 00:32 UTC | Existing P0 blockers | ✅ mo-1nen, mo-2mws, mo-3uep, mo-11z8 confirmed (4 active P0 blockers) | mo-3ttq (claude-glm-india) |
+| 2026-02-06 00:32 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-india) |
+| 2026-02-05 08:44 UTC | Namespace `moltbook` | ❌ NotFound | mo-3ttq (claude-glm-hotel) |
+| 2026-02-05 08:44 UTC | ArgoCD namespace | ❌ NotFound | mo-3ttq (claude-glm-hotel) |
+| 2026-02-05 08:44 UTC | ClusterRole `namespace-creator` | ❌ NotFound | mo-3ttq (claude-glm-hotel) |
+| 2026-02-05 08:44 UTC | ClusterRoleBinding `devpod-namespace-creator` | ❌ NotFound | mo-3ttq (claude-glm-hotel) |
+| 2026-02-05 08:44 UTC | Devpod SA create namespace | ❌ Forbidden (namespaces is forbidden) | mo-3ttq (claude-glm-hotel) |
+| 2026-02-05 08:44 UTC | kubectl apply -k k8s/ | ❌ Blocked (User cannot create resource "namespaces") | mo-3ttq (claude-glm-hotel) |
+| 2026-02-05 08:44 UTC | kubectl auth can-i create namespaces | ❌ no | mo-3ttq (claude-glm-hotel) |
+| 2026-02-05 08:44 UTC | kubectl kustomize k8s/ | ✅ Validated (all resources valid) | mo-3ttq (claude-glm-hotel) |
+| 2026-02-05 08:44 UTC | k8s/ manifests verified | ✅ All manifests ready (24+ resources) | mo-3ttq (claude-glm-hotel) |
+| 2026-02-05 08:44 UTC | Container images verified | ✅ ghcr.io/ardenone/moltbook-api:f34199a, ghcr.io/ardenone/moltbook-frontend:f34199a | mo-3ttq (claude-glm-hotel) |
+| 2026-02-05 08:44 UTC | Existing P0 blockers | ✅ 40+ duplicate P0 blockers confirmed (NOT creating new) | mo-3ttq (claude-glm-hotel) |
+| 2026-02-05 08:44 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-hotel) |
