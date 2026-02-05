@@ -1,9 +1,11 @@
 # Moltbook Deployment Blocker Summary
 
 **Status:** BLOCKED - Namespace Creation Requires Cluster Admin
-**Date:** 2026-02-04
+**Date:** 2026-02-05 (Updated)
 **Beads:**
-- mo-2s1 (Fix: Create moltbook namespace in ardenone-cluster) - PRIMARY
+- mo-1ywd (BLOCKER: Cluster Admin - Apply Moltbook namespace setup manifest) - ACTIVE
+- mo-1leu (BLOCKER: Cluster Admin Required - Apply Moltbook namespace setup manifest) - NEW (2026-02-05)
+- mo-2s1 (Fix: Create moltbook namespace in ardenone-cluster) - SUPERSEDED
 - mo-3tx (CRITICAL: Install ArgoCD in ardenone-cluster for Moltbook deployment)
 - mo-saz (Moltbook platform deployment)
 
