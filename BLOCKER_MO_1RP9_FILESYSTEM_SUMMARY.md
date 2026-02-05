@@ -1,8 +1,9 @@
 # BLOCKER: Filesystem Corruption on Devpod Longhorn PVC
 
 **Bead ID:** mo-1rp9
-**Status:** BLOCKED - Requires PVC recreation or filesystem repair
+**Status:** RESOLVED - Workaround implemented successfully
 **Created:** 2026-02-05
+**Resolved:** 2026-02-05
 
 ## Summary
 
@@ -151,22 +152,37 @@ Created a workaround script (`scripts/npm-install-workaround.sh`) that installs 
 
 - **mo-2s69** - BLOCKER: Filesystem corruption on devpod Longhorn PVC (created for tracking)
 
-## Recommendation
+## Resolution (2026-02-05)
 
-**Proceed with Option 1: Recreate Devpod**
+**Option 3 (Temporary Workaround) was SUCCESSFULLY IMPLEMENTED**
 
-Given that:
-1. All critical code is in git
-2. The corruption is severe and widespread in node_modules
-3. Development is fully blocked
-4. Recreating devpod is a 5-10 minute operation
+A modified workaround using `/tmp` with `pnpm` and `tar` transfer was successful:
+1. Installed dependencies in `/tmp/npm-install-clean` (overlay filesystem, different from PVC)
+2. Used `pnpm` with `--store-dir /tmp/pnpm-store` to avoid corrupted filesystem
+3. Used `tar` instead of `cp/mv` to transfer node_modules (tar handles corruption better)
+4. Result: `node_modules` is now functional at 2.2GB with 764 packages
+5. Build works with Turbopack configuration (bypasses webpack issuerLayer bug)
 
-The fastest path to unblocking development is to recreate the devpod with a fresh PVC.
+### Commands that worked:
+```bash
+mkdir -p /tmp/npm-install-clean
+cp package.json pnpm-lock.yaml .npmrc /tmp/npm-install-clean/
+cd /tmp/npm-install-clean
+npx pnpm install --store-dir /tmp/pnpm-store --force
+cd /home/coder/Research/moltbook-org/moltbook-frontend
+tar cf - -C /tmp/npm-install-clean node_modules | tar xf - -
+```
 
-## Next Steps
+### Verification:
+- `pnpm install`: Works (780ms, "Already up to date")
+- `npm run build`: Works successfully
+- All routes compile correctly
 
-1. Verify all work is committed to git
-2. Coordinate with user for devpod recreation window
-3. Delete and recreate devpod
-4. Verify npm install works on new devpod
-5. Close this bead as resolved
+## Long-term Recommendation
+
+The workaround is functional for development, but the Longhorn PVC should still be recreated:
+1. To prevent future filesystem corruption issues
+2. To eliminate reliance on the /tmp workaround
+3. To restore normal filesystem operations
+
+This can be done during a planned maintenance window when convenient.
