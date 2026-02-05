@@ -26,7 +26,30 @@ The `build-images.sh` script requires authentication with GitHub Container Regis
 
 ## Configuration Options
 
-### Option 1: Direnv (Recommended for Development)
+### Option 1: Local Environment File (Recommended for Devpods)
+
+Use a `.env.local` file to store the token in your project directory (gitignored).
+
+1. Create the environment file from the template:
+   ```bash
+   cp .env.local.template .env.local
+   ```
+
+2. Edit `.env.local` with your token:
+   ```bash
+   GITHUB_TOKEN=ghp_your_actual_token_here
+   GITHUB_USERNAME=ardenone
+   ```
+
+3. Source the environment before building:
+   ```bash
+   source scripts/load-env.sh
+   ./scripts/build-images.sh --push
+   ```
+
+The `.env.local` file is already in `.gitignore`, so it won't be committed to git.
+
+### Option 2: Direnv (Recommended for Local Development)
 
 Use `direnv` to automatically load the token when entering the project directory.
 
@@ -68,7 +91,7 @@ Use `direnv` to automatically load the token when entering the project directory
 
 The token will now be automatically loaded when you enter the project directory.
 
-### Option 2: Shell Environment Variable
+### Option 3: Shell Environment Variable
 
 Set the token in your shell profile:
 
@@ -80,7 +103,7 @@ export GITHUB_USERNAME="your_github_username"  # Optional
 
 Then reload: `source ~/.bashrc` or `source ~/.zshrc`
 
-### Option 3: Inline Environment Variable
+### Option 4: Inline Environment Variable
 
 Pass the token inline when running the build script:
 
@@ -90,7 +113,7 @@ GITHUB_TOKEN=your_actual_token_here ./scripts/build-images.sh --push
 
 This option doesn't persist the token and must be specified each time.
 
-### Option 4: Kubernetes Secret (For CI/CD)
+### Option 5: Kubernetes Secret (For Cluster Builds)
 
 For automated builds in Kubernetes, use a Kubernetes Secret.
 
