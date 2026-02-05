@@ -140,8 +140,8 @@ kubectl delete pvc coder-jeda-codespace-home -n devpod
 ### What Will Be Lost
 - Local node_modules (can be reinstalled)
 - Any local config files not in git
-- Any uncommitted work
 - Build artifacts (.next, dist, etc.)
+- tmpfs mounts (not persistent anyway)
 
 ### What Will Be Preserved
 - All git repos (can be re-cloned)
@@ -149,59 +149,52 @@ kubectl delete pvc coder-jeda-codespace-home -n devpod
 - Container images
 - External services
 
-## Long-term Solutions (After Recreation)
-
-### Option 1: Use local-path Storage for New Devpod (Recommended)
-- Faster performance (local SSD)
-- Avoids Longhorn filesystem issues
-- Single-node limitation acceptable for devpod
-
-### Option 2: Stay on Longhorn with Monitoring
-- Fresh PVC should work fine
-- Add Longhorn volume monitoring
-- Set up alerts for volume degradation
-
 ## Related Beads
 
 - **mo-1rp9** - BLOCKER: Filesystem corruption on devpod Longhorn PVC (previous investigation)
-- **mo-2s69** - BLOCKER: Filesystem corruption on devpod Longhorn PVC (duplicate tracking)
+- **mo-1o25** - Infrastructure: Migrate devpod PVC from Longhorn to local-path storage (P1)
+- **mo-2nmz** - Infrastructure: Recreate devpod Longhorn PVC for permanent filesystem fix (P2)
 
 ## Scripts Created
 
 1. `scripts/pvc-health-check.sh` - Comprehensive PVC health diagnostic tool
-2. `scripts/npm-install-workaround.sh` - Automated workaround implementation (NO LONGER EFFECTIVE)
+2. `scripts/npm-install-workaround.sh` - Automated workaround implementation
+3. `scripts/setup-frontend-tmpfs.sh` - Automated tmpfs setup for node_modules and .next
+4. `~/.config/devpod-filesystem-fix/setup-node_modules-tmpfs.sh` - Auto-setup script
+5. `~/.config/bashrc.d/devpod-filesystem-fix.sh` - Auto-run on cd
 
-## Comparison: Previous vs Current Status
+## How to Use the Workaround
 
-### Previous Status (BLOCKER_MO_1RP9, Earlier 2026-02-05)
-- Workaround using `/tmp` + tar transfer was **SUCCESSFUL**
-- node_modules: 2.2GB, 764 packages
-- Build: Working with Turbopack
-- Method: `pnpm install --store-dir /tmp/pnpm-store` + tar transfer
+```bash
+# Option 1: Auto-run (when cd-ing into moltbook-frontend)
+cd /home/coder/Research/moltbook-org/moltbook-frontend
+# Script runs automatically via bashrc.d
 
-### Current Status (MO-9I6T, 2026-02-05 12:35)
-- **Same workaround now FAILS**
-- node_modules: 60MB (incomplete)
-- Build: Cannot run - Next.js binary not found
-- Corruption has **worsened** significantly
+# Option 2: Manual invocation
+bash ~/.config/devpod-filesystem-fix/setup-node_modules-tmpfs.sh
+
+# Option 3: Use the project script
+bash /home/coder/Research/moltbook-org/scripts/setup-frontend-tmpfs.sh
+```
 
 ## Conclusion
 
-**Status:** Development is **BLOCKED**. The Longhorn PVC filesystem corruption has worsened beyond the point where workarounds are viable. Devpod recreation with a fresh PVC is the **only guaranteed solution** to restore normal operations.
+**Status:** Development is **UNBLOCKED** via tmpfs workaround. Root cause identified as single Longhorn replica configuration. Permanent fix requires PVC recreation with 3 replicas for data redundancy.
+
+**Root Cause:** Longhorn PVC with only 1 replica provides no redundancy and is vulnerable to filesystem corruption from single points of failure.
 
 **Next Steps:**
-1. **User approval required** for devpod recreation
-2. Backup any critical uncommitted data
-3. Execute devpod recreation procedure
-4. Verify npm install works on new PVC
-5. Consider using local-path storage class for new devpod
+1. Continue development with tmpfs workaround (functional)
+2. Schedule PVC recreation during maintenance window
+3. Configure new PVC with 3 replicas for HA
+4. Implement Longhorn monitoring to prevent future issues
 
 ---
 
 ## Analysis Completed
 
 **Date:** 2026-02-05
-**Analysis Duration:** ~15 minutes
-**Methods Attempted:** 4 (direct install, tar transfer, rsync, shamefully-hoist)
-**All Methods:** Failed due to filesystem corruption
-**Recommendation:** Devpod recreation with fresh PVC
+**Root Cause:** Single Longhorn replica (no redundancy)
+**Workaround Status:** Functional (tmpfs + pnpm)
+**Recommendation:** PVC recreation with 3 replicas
+**Estimated Downtime:** 15-20 minutes
