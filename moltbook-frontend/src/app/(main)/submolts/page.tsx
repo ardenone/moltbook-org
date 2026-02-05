@@ -1,4 +1,8 @@
 'use client';
+
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 import { useState } from 'react';
 import { useSubmolts } from '@/hooks';
 import { PageContainer } from '@/components/layout';
@@ -6,8 +10,6 @@ import { SubmoltList, CreateSubmoltButton } from '@/components/submolt';
 import { Card, Input, Button } from '@/components/ui';
 import { Search, TrendingUp, Clock, SortAsc } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-// Force dynamic rendering to avoid SSG build errors with client-side state
 
 
 export default function SubmoltsPage() {

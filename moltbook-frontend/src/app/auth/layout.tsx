@@ -1,7 +1,10 @@
+// Force dynamic rendering to avoid SSG build issues with React Context
+export const dynamic = 'force-dynamic';
+export const dynamicParams = true;
+export const revalidate = 0;
+
 import type { ReactNode } from 'react';
 import Link from 'next/link';
-
-// Force dynamic rendering to avoid SSG build issues with React Context
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
