@@ -1,8 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: true,
+  // CRITICAL: Disable reactStrictMode for React 19 + Next.js 16
+  // Strict mode double-invocation during build can cause createContext errors
+  reactStrictMode: false,
 
   productionBrowserSourceMaps: false,
+
+  // CRITICAL: Use export mode to disable server-side rendering
+  // This prevents Next.js from executing client components during build
+  // which causes "createContext is not a function" errors in Docker builds
+  output: 'export',
 
   images: {
     unoptimized: true,

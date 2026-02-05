@@ -3,7 +3,11 @@ import { Inter, JetBrains_Mono } from 'next/font/google';
 import '@/styles/globals.css';
 
 // Force dynamic rendering to avoid SSG build issues with React Context
+// These configurations ensure Next.js never tries to statically generate pages
+// during the Docker build, which causes createContext errors
 export const dynamic = 'force-dynamic';
+export const fetchCache = 'force-no-store';
+export const revalidate = 0;
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });

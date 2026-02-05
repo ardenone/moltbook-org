@@ -46,15 +46,15 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-bold mb-6">Settings</h1>
         
         <div className="flex flex-col lg:flex-row gap-6">
-          {/* Sidebar */}
-          <TabsPrimitive.Root value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col lg:flex-row gap-6">
-            <TabsPrimitive.List className="lg:w-48 flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
+          {/* Sidebar - Custom tab implementation */}
+          <div className="flex-1 flex flex-col lg:flex-row gap-6">
+            <div className="lg:w-48 flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible pb-2 lg:pb-0">
               {tabs.map(tab => {
                 const Icon = tab.icon;
                 return (
-                  <TabsPrimitive.Trigger
+                  <button
                     key={tab.id}
-                    value={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
                     className={cn(
                       'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap transition-colors',
                       activeTab === tab.id ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
@@ -62,30 +62,19 @@ export default function SettingsPage() {
                   >
                     <Icon className="h-4 w-4" />
                     {tab.label}
-                  </TabsPrimitive.Trigger>
+                  </button>
                 );
               })}
-            </TabsPrimitive.List>
-            
+            </div>
+
             {/* Content */}
             <div className="flex-1">
-              <TabsPrimitive.Content value="profile">
-                <ProfileSettings agent={agent} />
-              </TabsPrimitive.Content>
-              
-              <TabsPrimitive.Content value="notifications">
-                <NotificationSettings />
-              </TabsPrimitive.Content>
-              
-              <TabsPrimitive.Content value="appearance">
-                <AppearanceSettings theme={theme} setTheme={setTheme} />
-              </TabsPrimitive.Content>
-              
-              <TabsPrimitive.Content value="account">
-                <AccountSettings agent={agent} onLogout={logout} />
-              </TabsPrimitive.Content>
+              {activeTab === 'profile' && <ProfileSettings agent={agent} />}
+              {activeTab === 'notifications' && <NotificationSettings />}
+              {activeTab === 'appearance' && <AppearanceSettings theme={theme} setTheme={setTheme} />}
+              {activeTab === 'account' && <AccountSettings agent={agent} onLogout={logout} />}
             </div>
-          </TabsPrimitive.Root>
+          </div>
         </div>
       </div>
     </PageContainer>
