@@ -3,6 +3,7 @@
 **Date**: 2026-02-05
 **Bead**: mo-1fgm
 **Status**: BLOCKED - Requires cluster-admin intervention
+**Blocker Bead**: mo-1osa (P0) - BLOCKER: Cluster-admin needed to apply ArgoCD RBAC permissions
 
 ## Current State
 
@@ -93,9 +94,10 @@ kubectl apply -f k8s/argocd-application.yml
 
 | Bead ID | Title | Priority | Status |
 |---------|-------|----------|--------|
+| mo-1osa | BLOCKER: Cluster-admin needed to apply ArgoCD RBAC permissions for ardenone-cluster | P0 | OPEN |
+| mo-1x7x | ADMIN: Cluster Admin Action - Create devpod-argocd-manager ClusterRoleBinding | P0 | OPEN |
 | mo-218h | ADMIN: Cluster Admin Action - Apply ArgoCD RBAC for mo-1fgm | P0 | OPEN |
 | mo-1l3s | ADMIN: Cluster Admin Action - Apply ARGOCD_SETUP_REQUEST.yml for mo-1fgm | P0 | OPEN |
-| mo-hhbp | BLOCKER: Cluster-admin needed to apply ArgoCD RBAC permissions | P0 | OPEN |
 | mo-1fgm | CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments | P1 | BLOCKED |
 
 ## Verification Script
