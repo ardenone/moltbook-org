@@ -6,9 +6,15 @@
 
 ## Executive Summary
 
-After evaluating PATH 1 (local ArgoCD GitOps) vs PATH 2 (kubectl manual), **PATH 2 is selected** as the deployment strategy for Moltbook.
+After evaluating PATH 1 (ArgoCD GitOps via external ArgoCD) vs PATH 2 (kubectl manual), **PATH 2 is selected** as the deployment strategy for Moltbook.
 
-**Key Finding:** External ArgoCD already exists at `argocd-manager.ardenone.com` (health check returns "ok"). Installing a local ArgoCD instance is redundant.
+**Key Findings:**
+- External ArgoCD exists at `argocd-manager.ardenone.com` (health check returns "ok")
+- External ArgoCD read-only token is EXPIRED (mo-dbl7) - blocking PATH 1
+- Installing local ArgoCD is redundant with external instance available
+- Both paths require cluster-admin action for namespace creation
+
+**Decision Rationale:** PATH 2 unblocks deployment immediately while PATH 1 remains blocked on expired credentials. Can migrate to external ArgoCD GitOps later when credentials are resolved.
 
 ## Current State
 
@@ -22,41 +28,45 @@ After evaluating PATH 1 (local ArgoCD GitOps) vs PATH 2 (kubectl manual), **PATH
 
 ## PATH Comparison
 
-### PATH 1: Local ArgoCD GitOps (NOT SELECTED)
+### PATH 1: External ArgoCD GitOps (BLOCKED - Not Selected)
 
 **What it provides:**
-- Automated GitOps deployment via local ArgoCD
+- Automated GitOps deployment via external ArgoCD at argocd-manager.ardenone.com
 - Self-healing and sync capabilities
 - Long-term maintainability
 
 **Cluster admin action required:**
 ```bash
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/ARGOCD_INSTALL_REQUEST.yml
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
 ```
 
 **This creates:**
-1. `argocd-installer` ClusterRole (CRD, ClusterRole, namespace permissions)
-2. `devpod-argocd-installer` ClusterRoleBinding
-3. `argocd` namespace
-4. `moltbook` namespace
+1. `namespace-creator` ClusterRole
+2. `devpod-namespace-creator` ClusterRoleBinding
+3. `moltbook` namespace
 
-**After cluster admin applies, devpod runs:**
-```bash
-# Install ArgoCD
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+**After cluster admin applies, devpod would:**
+1. Obtain valid ArgoCD credentials for argocd-manager.ardenone.com
+2. Create Application on external ArgoCD targeting moltbook-org repository
+3. ArgoCD syncs manifests automatically
 
-# Wait for ArgoCD readiness
-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s
+**BLOCKERS:**
+- ❌ ArgoCD read-only token expired (mo-dbl7)
+- ❌ Cannot create Application without valid credentials
+- ⚠️ Requires external ArgoCD admin access
 
-# Deploy Moltbook via ArgoCD
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
-```
+**Advantages:**
+- ✅ GitOps automation (auto-sync on git push)
+- ✅ Drift detection and self-healing
+- ✅ Standard deployment pattern for the organization
 
-**Drawbacks:**
-- Redundant with existing external ArgoCD
-- 2 separate cluster-admin actions (RBAC + namespace, then verify ArgoCD install)
-- Longer time to first deployment
-- Higher complexity
+### PATH 1b: Local ArgoCD Installation (NOT SELECTED - Redundant)
+
+**Why not selected:**
+- External ArgoCD already exists at argocd-manager.ardenone.com
+- Installing local ArgoCD is redundant
+- Additional cluster-admin overhead
+- Not the intended architecture per ARGOCD_ARCHITECTURE_ANALYSIS.md
 
 ### PATH 2: kubectl Manual (SELECTED)
 
