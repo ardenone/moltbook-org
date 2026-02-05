@@ -99,20 +99,20 @@ kubectl apply -k /home/coder/Research/moltbook-org/k8s/
 
 ## Decision Rationale
 
-| Factor | PATH 1 (Local ArgoCD) | PATH 2 (kubectl) | Winner |
-|--------|----------------|------------------|---------|
-| External ArgoCD exists | Redundant | Uses existing | PATH 2 |
-| Cluster admin actions | 2 steps | 1 step | PATH 2 |
-| Time to first deploy | Longer | Immediate | PATH 2 |
-| GitOps eventually | Yes (via migration) | Yes (via migration) | Tie |
-| Setup complexity | High | Low | PATH 2 |
-| Infrastructure reuse | No | Yes (external ArgoCD) | PATH 2 |
+| Factor | PATH 1 (External ArgoCD) | PATH 2 (kubectl) | Winner |
+|--------|-------------------------|------------------|---------|
+| Current blockers | Token expired (mo-dbl7) | Namespace only | PATH 2 |
+| Cluster admin actions | 1 step (same as PATH 2) | 1 step | Tie |
+| Time to first deploy | Blocked on credentials | Immediate after RBAC | PATH 2 |
+| GitOps eventually | Yes | Yes (via migration) | Tie |
+| Setup complexity | High (external coordination) | Low | PATH 2 |
+| Infrastructure reuse | External ArgoCD | N/A | PATH 1 |
 
-**PATH 2 is recommended** because:
-1. External ArgoCD already exists - local installation is redundant
-2. Single cluster-admin action reduces coordination overhead
-3. Faster time to deployment - removes ArgoCD from critical path
-4. Migration path exists - can adopt external ArgoCD GitOps when ready
+**PATH 2 is selected** because:
+1. External ArgoCD token is expired - PATH 1 is blocked
+2. Both paths require cluster-admin for namespace creation
+3. PATH 2 unblocks deployment immediately after RBAC
+4. Migration path exists - can adopt external ArgoCD GitOps when mo-dbl7 is resolved
 5. Simpler troubleshooting during initial deployment
 
 ## Implementation: PATH 2
@@ -154,12 +154,15 @@ Expected endpoints:
 
 ## Future GitOps Migration
 
-Once Moltbook is deployed, it can be migrated to the external ArgoCD at `argocd-manager.ardenone.com`:
+Once Moltbook is deployed via kubectl and the ArgoCD credentials issue is resolved (mo-dbl7):
 
-1. Register ardenone-cluster with external ArgoCD (if not already)
-2. Create ApplicationSet for moltbook-org repository
-3. Enable sync for `k8s/` directory to `moltbook` namespace
-4. Enable auto-sync for ongoing GitOps
+1. Resolve expired ArgoCD token (mo-dbl7)
+2. Verify existing deployment is healthy
+3. Create Application on external ArgoCD targeting moltbook-org repository
+4. ArgoCD discovers existing resources (no disruption)
+5. Enable automated sync for ongoing GitOps
+
+**Note:** See mo-sg2v for creating Moltbook ApplicationSet at external ArgoCD (closed - decided on PATH 2).
 
 ## Next Steps (Cluster Admin)
 
@@ -181,5 +184,14 @@ Once Moltbook is deployed, it can be migrated to the external ArgoCD at `argocd-
 
 - `k8s/NAMESPACE_SETUP_REQUEST.yml` - RBAC + namespace manifest (cluster-admin to apply)
 - `k8s/kustomization.yml` - Main deployment manifest
-- `k8s/argocd-application.yml` - Future GitOps configuration
+- `k8s/argocd-application.yml` - Future GitOps configuration (external ArgoCD)
 - `k8s/ARGOCD_INSTALL_REQUEST.yml` - NOT USED - local ArgoCD path declined
+- `k8s/ARGOCD_ARCHITECTURE_ANALYSIS.md` - External ArgoCD architecture documentation
+
+## Related Beads
+
+- **mo-1ts4** (this task): Deployment path decision
+- **mo-dbl7**: Fix expired argocd-readonly token (blocks PATH 1)
+- **mo-sg2v**: Create Moltbook ApplicationSet at external ArgoCD (closed)
+- **mo-3r0e**: Architecture analysis confirming external ArgoCD usage (closed)
+- **mo-1ctd**: Alternative kubectl approach (closed - selected)
