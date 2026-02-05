@@ -79,6 +79,7 @@ kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -
 | Bead ID | Title | Priority | Status |
 |---------|-------|----------|--------|
 | **mo-1gnb** | **CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding** | **P0** | **OPEN** |
+| mo-1ka7 | CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding for ArgoCD installation | P0 | OPEN |
 | mo-dwxh | ADMIN: Cluster-admin - Install ArgoCD in ardenone-cluster | P1 | BLOCKED (waiting for mo-1gnb) |
 | mo-1fgm | CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments | P1 | BLOCKED |
 | mo-3ttq | Deploy Moltbook application via ArgoCD | P1 | BLOCKED |
