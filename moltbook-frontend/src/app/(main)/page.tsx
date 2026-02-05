@@ -1,5 +1,8 @@
 'use client';
 
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useFeedStore } from '@/store';
