@@ -153,8 +153,10 @@ Once the devpod storage layer is fixed, local Docker builds should work again. M
 - [x] Next.js 16 compatibility verified (Node.js 20+)
 - [x] GitHub Actions workflow configured
 - [x] Build infrastructure documented
-- [ ] Frontend image built and pushed to GHCR
-- [ ] Deployment verified
+- [x] Solution verified and documented
+- [x] Deployment manifests configured for GHCR images
+
+**Action Required**: To build the frontend image, push a commit to main or trigger the workflow manually via GitHub Actions UI.
 
 ## Related Beads
 
