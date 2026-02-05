@@ -1,10 +1,12 @@
 # ArgoCD Installation Blocker Status
 
 **Date**: 2026-02-05 (Updated)
-**Beads**: mo-ku75 (P0), mo-1gnb (P0), mo-1ka7 (P0), mo-dwxh (P1), mo-y3id (P0), mo-2e6h (P1), mo-80sx (P0)
+**Beads**: mo-ku75 (P0), mo-1gnb (P0), mo-1ka7 (P0), mo-dwxh (P1), mo-y3id (P0), mo-2e6h (P1), mo-80sx (P0), mo-1rgl (P1)
 **Status**: BLOCKED - Requires cluster-admin intervention
 **Blocker Bead**: mo-ku75 (P0) - CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding
 **Last Verified**: 2026-02-05 13:09 UTC - ClusterRoleBinding STILL NOT APPLIED
+
+**Note**: mo-1rgl verified that RBAC still not applied. Devpod SA cannot create namespaces or cluster-scoped resources.
 
 **Note**: mo-dwxh (ADMIN: Cluster-admin - Install ArgoCD) was attempted from devpod but failed due to insufficient RBAC. Created mo-ku75 as the active blocker bead.
 
@@ -105,6 +107,22 @@ kubectl apply -f k8s/argocd-application.yml
 | mo-y3id | CLUSTER-ADMIN ACTION: Apply devpod-argocd-manager ClusterRoleBinding | P0 | OPEN |
 | mo-2e6h | Install ArgoCD in ardenone-cluster after RBAC is applied | P1 | BLOCKED |
 | mo-3ki8 | BLOCKER: ArgoCD installation requires cluster-admin RBAC | P0 | CLOSED (incorrectly - superseded) |
+| mo-1rgl | Fix: RBAC for moltbook namespace creation | P1 | BLOCKED - cluster-admin required |
+
+### PATH 2 Note
+
+Per `k8s/DEPLOYMENT_PATH_DECISION.md`, **PATH 2 (kubectl manual)** was selected. For this simpler path, the cluster-admin should apply:
+
+```bash
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
+```
+
+This creates:
+- `namespace-creator` ClusterRole (namespace permissions only)
+- `devpod-namespace-creator` ClusterRoleBinding
+- `moltbook` namespace
+
+After which the devpod can deploy with `kubectl apply -k k8s/`.
 
 ## Verification Script
 

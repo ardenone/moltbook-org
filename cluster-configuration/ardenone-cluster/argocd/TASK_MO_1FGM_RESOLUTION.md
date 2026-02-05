@@ -189,10 +189,10 @@ kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
 
 ---
 
-**Last Updated**: 2026-02-05 05:34 UTC
+**Last Updated**: 2026-02-05 13:12 UTC
 **Status**: 🔴 BLOCKED - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
-**Related Beads**: mo-1fgm (task), mo-1osa (P0 - cluster-admin action required)
+**Related Beads**: mo-1fgm (task), mo-1osa (P0 - cluster-admin action required), mo-dwxh (ADMIN task - closed but action not completed), mo-rn1c (P0 - latest cluster-admin action bead)
 
 ## Latest Verification (2026-02-05 05:34 UTC)
 
