@@ -152,6 +152,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Get short SHA
         id: sha
@@ -168,5 +170,19 @@ jobs:
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add k8s/kustomization.yml
-          git diff --staged --quiet || git commit -m "chore: Update image tags to ${{ steps.sha.outputs.short }}"
-          git push
+
+          # Only commit if there are actual changes
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: Update image tags to ${{ steps.sha.outputs.short }}"
+
+            # Pull with rebase to handle any concurrent pushes
+            # Use --autostash to preserve local changes during rebase
+            if ! git pull --rebase --autostash; then
+              # If rebase fails, abort and try again with a merge
+              git rebase --abort 2>/dev/null || true
+              git pull --no-rebase
+              git commit -m "chore: Update image tags to ${{ steps.sha.outputs.short }} (merge fix)"
+            fi
+
+            git push
+          fi
