@@ -120,12 +120,47 @@ Only for non-performance-critical workloads:
 
 If the above fixes don't work, the devpod needs to be recreated with Docker storage backed by a non-overlayfs filesystem.
 
-## Immediate Actions
+## Resolution Applied (2026-02-05)
 
-1. **DO NOT** recreate the PVC - Longhorn volume is healthy
-2. **DO** try changing Docker storage driver to fuse-overlayfs
-3. **DO** move Docker data-root to /home/coder (direct PVC mount)
-4. **DO NOT** delete the devpod without data backup
+### Fix: Configure Docker to Use PVC Directly
+
+The issue was resolved by configuring Docker to store its data directly on the PVC (`/home/coder/.docker-data`) instead of using the nested overlayfs at `/var/lib/docker`.
+
+**Changes made:**
+
+1. **Created Docker data directory on PVC:**
+   ```bash
+   sudo mkdir -p /home/coder/.docker-data
+   ```
+
+2. **Configured Docker init script:**
+   ```bash
+   # /etc/default/docker
+   DOCKER_OPTS="--data-root=/home/coder/.docker-data --storage-driver=overlay2"
+   ```
+
+3. **Restarted Docker daemon:**
+   ```bash
+   sudo service docker restart
+   ```
+
+### Verification
+
+After the fix:
+- `docker run --rm hello-world` - PASSED
+- `docker build` with BuildKit - PASSED
+- `npm install` with tar extraction - PASSED
+
+**New Docker configuration:**
+- Docker Root Dir: `/home/coder/.docker-data` (on PVC)
+- Storage Driver: `overlay2`
+- Filesystem: ext4 (Longhorn PVC)
+
+This fix is **persistent across devpod restarts** via the `/etc/default/docker` configuration.
+
+### Why This Works
+
+By storing Docker data directly on the ext4 filesystem of the PVC (at `/home/coder/.docker-data`), Docker's overlay2 storage driver can create proper overlayfs mounts without nesting issues. The underlying ext4 filesystem on `/dev/longhorn/pvc-8260aa67-c0ae-49aa-a08e-54fbf98c32c1` supports overlayfs natively.
 
 ## Verification Commands
 
