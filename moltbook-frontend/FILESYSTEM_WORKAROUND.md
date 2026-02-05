@@ -68,6 +68,15 @@ cd /home/coder/Research/moltbook-org/moltbook-frontend
 npm install --legacy-peer-deps
 ```
 
+## Resolution (2026-02-05)
+
+The issue was resolved by:
+1. Unmounting tmpfs mounts that were interfering with node_modules
+2. Performing a clean npm install in /tmp (tmpfs is clean)
+3. Copying the clean node_modules back to the project
+
+This workaround is now documented and can be reused if the issue recurs.
+
 ## Long-term Solution
 
 The Longhorn PVC should be:
