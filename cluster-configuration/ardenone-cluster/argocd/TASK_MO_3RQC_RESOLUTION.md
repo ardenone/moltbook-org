@@ -122,4 +122,42 @@ kubectl get namespace moltbook
 
 ---
 
-**Task Status**: The task cannot be completed autonomously due to RBAC restrictions. Cluster-admin action is required for either resolution path.
+## Resolution Status (2026-02-05)
+
+**Task Status**: BLOCKED - Awaiting cluster-admin action
+
+**Actions Taken**:
+1. Verified current RBAC status - devpod SA lacks cluster-admin permissions
+2. Confirmed argocd-installer ClusterRole does NOT exist
+3. Confirmed devpod-argocd-installer ClusterRoleBinding does NOT exist
+4. Confirmed ArgoCD CRDs (applications.argoproj.io, appprojects.argoproj.io) are NOT installed
+5. Created bead **mo-2zir** (P0) to track cluster-admin action required
+
+**Bead Created**:
+- mo-2zir: "ADMIN: Cluster Admin Action - Apply ARGOCD_SETUP_REQUEST.yml" (Priority 0 - Critical)
+
+## Cluster Admin Instructions
+
+To resolve this blocker, a cluster-admin must:
+
+```bash
+# Step 1: Apply RBAC grant for ArgoCD installation
+kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml
+
+# Step 2: Verify RBAC was applied (from devpod)
+kubectl get clusterrole argocd-installer
+kubectl get clusterrolebinding devpod-argocd-installer
+```
+
+Once RBAC is applied, the devpod can complete the installation:
+
+```bash
+# Step 3: Install ArgoCD (from devpod, after RBAC)
+kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
+
+# Step 4: Wait for ArgoCD to be ready
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=argocd-server -n argocd --timeout=300s
+
+# Step 5: Apply Moltbook Application
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
+```
