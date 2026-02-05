@@ -1,9 +1,9 @@
 # Moltbook Deployment Status - ardenone-cluster
 
 **Task**: mo-3ttq - Deploy: Complete Moltbook deployment to ardenone-cluster (waiting for RBAC)
-**Date**: 2026-02-05 (Updated ~15:00 UTC)
+**Date**: 2026-02-05 (Updated 17:31 UTC)
 **Status**: 🔴 BLOCKED - Requires cluster-admin privileges
-**Latest Verification**: SealedSecret controller installed, namespace still missing, ArgoCD not installed
+**Latest Verification**: SealedSecret CRD installed, namespace still missing, ArgoCD not installed, devpod SA confirmed as `system:serviceaccount:devpod:default`
 
 ---
 
@@ -339,7 +339,7 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 
 ---
 
-**Last Updated**: 2026-02-05 17:13 UTC
+**Last Updated**: 2026-02-05 17:31 UTC
 **Verified by**: mo-3ttq (claude-sonnet-bravo worker)
 **Status**: 🔴 BLOCKED - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
