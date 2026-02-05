@@ -20,8 +20,21 @@ ArgoCD is not installed in `ardenone-cluster`. The devpod ServiceAccount lacks t
 | `argocd` namespace | NOT FOUND | Namespace does not exist |
 | `argocd-manager-role` ClusterRole | EXISTS | Full cluster-admin permissions (wildcard verbs on all resources) |
 | `devpod-argocd-manager` ClusterRoleBinding | NOT FOUND | This is the blocker |
-| ArgoCD CRDs | PARTIAL | 4 argoproj.io CRDs exist, full installation incomplete |
-| devpod SA permissions | INSUFFICIENT | Cannot create ClusterRoleBindings |
+| `argocd-manager-role-binding` ClusterRoleBinding | EXISTS | Bound to `kube-system:argocd-manager`, NOT devpod SA |
+| ArgoCD CRDs | PARTIAL | 4 argoproj.io CRDs exist (Argo Rollouts), full ArgoCD installation incomplete |
+| devpod SA permissions | INSUFFICIENT | Cannot create ClusterRoleBindings (verified) |
+
+**Verified:** 2026-02-05 13:02 UTC
+
+**Existing argoproj.io CRDs (Argo Rollouts, NOT ArgoCD):**
+- analysisruns.argoproj.io
+- analysistemplates.argoproj.io
+- experiments.argoproj.io
+- rollouts.argoproj.io
+
+**Missing ArgoCD-specific CRDs:**
+- applications.argoproj.io
+- appprojects.argoproj.io
 
 ## Cluster Admin Action Required
 
