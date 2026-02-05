@@ -1,189 +1,129 @@
-# Docker Image Build Process
+# Moltbook Build Process Guide
 
-## Problem: Overlay Filesystem Limitations in Devpod
+**Updated**: 2026-02-05
 
-Docker/Podman cannot build container images inside devpod/containerized environments due to overlay filesystem limitations. Linux kernel does not support nested overlay filesystems, causing build failures with errors like:
+---
 
-```
-mount source: overlay... invalid argument
-```
+## Overview
 
-## Solution 1: GitHub Actions Workflow (RECOMMENDED)
+This guide explains how to build Moltbook container images for deployment to Kubernetes.
 
-The preferred method for building Docker images is using GitHub Actions, which runs on GitHub's Ubuntu runners with native Docker support.
+---
 
-### How It Works
+## Quick Reference
 
-- **Automatic**: Builds trigger on push to `main` branch or on pull requests
-- **Cached**: Uses GitHub Actions cache for faster builds
-- **Secure**: Uses GitHub's built-in authentication with `GITHUB_TOKEN`
-- **Multi-platform**: Supports multiple architectures
+| Use Case | Solution | Command |
+|----------|----------|---------|
+| CI/CD Production | GitHub Actions | `git push origin main` |
+| Devpod Development | Kaniko | `./scripts/kaniko-build.sh --all` |
+| Local Testing | Host Machine | `docker build -t ... api/` |
 
-### Usage
+---
 
-1. **Automatic builds**: Simply push to `main` branch
-   ```bash
-   git push origin main
-   ```
+## Solution 1: GitHub Actions (Recommended)
 
-2. **Manual trigger**: Go to Actions tab in GitHub, select "Build Container Images", click "Run workflow"
-
-3. **Tagged releases**: Create a git tag to build with version tags
-   ```bash
-   git tag v1.0.0
-   git push origin v1.0.0
-   ```
-
-### Workflow Location
-
-`.github/workflows/build-images.yml`
-
-### Features
-
-- Builds both API and Frontend images in parallel
-- Pushes to `ghcr.io/ardenone/moltbook-api` and `ghcr.io/ardenone/moltbook-frontend`
-- Tags images with branch name, commit SHA, and `latest`
-- Updates Kubernetes manifests automatically after successful build
-- Provides build summary with image digests
-
-## Solution 2: Local Build (for development)
-
-For local development, build images from your physical machine or VM (not from devpod).
-
-### Prerequisites
-
-- Docker or Podman installed
-- GitHub Personal Access Token with `write:packages` scope
+Builds run on GitHub's Ubuntu runners automatically when you push to main.
 
 ### Usage
 
 ```bash
-# Set your GitHub token
-export GITHUB_TOKEN=ghp_your_token_here
+# Automatic - builds on push to main
+git add .
+git commit -m "feat: My changes"
+git push origin main
 
-# Build and push images
-./scripts/build-images.sh --push
-
-# Build only API
-./scripts/build-images.sh --push --api-only
-
-# Build with custom tag
-./scripts/build-images.sh --push --tag v1.0.0
+# Manual trigger
+gh workflow run build-push.yml
+gh run watch
 ```
 
-### Script Location
+### Output
 
-`scripts/build-images.sh`
+- Images pushed to `ghcr.io/ardenone/moltbook-api:latest`
+- Images pushed to `ghcr.io/ardenone/moltbook-frontend:latest`
+- Kustomization updated with new image tags
 
-### Environment Detection
+---
 
-The script automatically detects if running in a containerized environment and provides helpful error messages with alternative solutions.
+## Solution 2: Kaniko (In-Cluster)
 
-## Solution 3: Kaniko (Kubernetes-based)
+Build images directly from devpod without Docker daemon.
 
-For building images within Kubernetes clusters, use kaniko - a daemonless container image builder.
-
-### Kaniko Configuration
-
-`scripts/build-with-kaniko.yml`
-
-### Usage
+### Setup (One-Time)
 
 ```bash
-# Create docker registry secret
-kubectl create secret docker-registry docker-config \
+# 1. Create GHCR credentials secret
+kubectl create secret docker-registry ghcr-credentials \
   --docker-server=ghcr.io \
   --docker-username=ardenone \
-  --docker-password=YOUR_GITHUB_TOKEN \
-  --namespace=moltbook
+  --docker-password=<GITHUB_TOKEN> \
+  -n moltbook
 
-# Apply kaniko build configuration
-kubectl apply -f scripts/build-with-kaniko.yml
-
-# Scale up the builder deployment
-kubectl scale deployment moltbook-kaniko-builder --replicas=1 -n moltbook
-
-# Watch the build
-kubectl logs -f deployment/moltbook-kaniko-builder -n moltbook
-
-# Scale down when done
-kubectl scale deployment moltbook-kaniko-builder --replicas=0 -n moltbook
+# 2. Deploy Kaniko runner
+kubectl apply -f k8s/kaniko/
 ```
 
-**NOTE**: Per project constraints, Kubernetes Jobs are not recommended. Use the Deployment pattern instead for ArgoCD compatibility.
-
-## Image Registry
-
-All images are stored in GitHub Container Registry (GHCR):
-
-- **API**: `ghcr.io/ardenone/moltbook-api:latest`
-- **Frontend**: `ghcr.io/ardenone/moltbook-frontend:latest`
-
-### Viewing Images
-
-- [API Package](https://github.com/ardenone?tab=packages&name=moltbook-api)
-- [Frontend Package](https://github.com/ardenone?tab=packages&name=moltbook-frontend)
-
-## Kubernetes Deployment
-
-After images are built and pushed, update your Kubernetes deployment:
+### Build Commands
 
 ```bash
-# The GitHub Actions workflow automatically updates k8s/kustomization.yml
-# Or manually update the image tag:
+# Build both images
+./scripts/kaniko-build.sh --all
 
-kubectl set image deployment/moltbook-api \
-  api=ghcr.io/ardenone/moltbook-api:latest \
-  -n moltbook
+# Build API only
+./scripts/kaniko-build.sh --api-only
 
-kubectl set image deployment/moltbook-frontend \
-  frontend=ghcr.io/ardenone/moltbook-frontend:latest \
-  -n moltbook
+# Build with custom tag
+./scripts/kaniko-build.sh --tag v1.0.0 --all
+
+# Deploy and build in one command
+./scripts/kaniko-build.sh --deploy --all
 ```
 
-## Troubleshooting
+---
 
-### Build fails with overlay error
+## Solution 3: Host Machine
 
-**Cause**: Running Docker/Podman inside a containerized environment
+Build on your physical workstation outside devpod.
 
-**Solution**: Use one of the recommended build methods above
+### Commands
 
-### Authentication fails
+```bash
+# Build API
+docker build -t ghcr.io/ardenone/moltbook-api:latest api/
 
-**Cause**: Missing or invalid `GITHUB_TOKEN`
+# Build Frontend
+docker build -t ghcr.io/ardenone/moltbook-frontend:latest moltbook-frontend/
 
-**Solution**: 
-- Create Personal Access Token at https://github.com/settings/tokens
-- Required scopes: `write:packages`, `read:packages`
-- Set as environment variable: `export GITHUB_TOKEN=your_token`
+# Login
+echo $GITHUB_TOKEN | docker login ghcr.io -u github --password-stdin
 
-### Image not found in GHCR
+# Push
+docker push ghcr.io/ardenone/moltbook-api:latest
+docker push ghcr.io/ardenone/moltbook-frontend:latest
+```
 
-**Cause**: Build succeeded but push failed
+---
 
-**Solution**: 
-- Check GitHub Actions logs
-- Verify token has `write:packages` scope
-- Ensure image name matches: `ghcr.io/ardenone/moltbook-*`
+## File Structure
 
-## Comparison of Solutions
+```
+moltbook-org/
+├── .github/workflows/build-push.yml    # GitHub Actions workflow
+├── k8s/kaniko/                          # Kaniko manifests
+│   ├── build-runner-deployment.yml
+│   ├── build-scripts-configmap.yml
+│   └── README.md
+├── scripts/
+│   ├── kaniko-build.sh                  # Kaniko helper
+│   ├── build-images.sh                  # Docker script (host)
+│   └── build-images-safe.sh             # Safe wrapper
+├── api/Dockerfile
+└── moltbook-frontend/Dockerfile
+```
 
-| Solution | Ease of Use | Performance | Cost | Best For |
-|----------|-------------|-------------|------|----------|
-| GitHub Actions | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | Free (public) | Production, CI/CD |
-| Local Build | ⭐⭐⭐ | ⭐⭐⭐⭐⭐ | Free | Development, testing |
-| Kaniko | ⭐⭐ | ⭐⭐⭐ | Cluster resources | Kubernetes-native builds |
-
-## Recommendations
-
-1. **Production**: Use GitHub Actions for automated builds on push
-2. **Development**: Build locally from your machine for quick iteration
-3. **Emergency**: Use kaniko for cluster-based builds when other methods aren't available
+---
 
 ## See Also
 
-- [GitHub Actions Workflow](/.github/workflows/build-images.yml)
-- [Build Script](/scripts/build-images.sh)
-- [Kaniko Configuration](/scripts/build-with-kaniko.yml)
-- [Dockerfiles](/api/Dockerfile, /moltbook-frontend/Dockerfile)
+- [DOCKER_BUILD_SOLUTIONS.md](../DOCKER_BUILD_SOLUTIONS.md) - Complete solution comparison
+- [k8s/kaniko/README.md](../k8s/kaniko/README.md) - Kaniko detailed guide
