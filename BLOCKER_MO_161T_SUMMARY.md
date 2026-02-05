@@ -67,4 +67,12 @@ Current bead: **mo-2mi3**
 Title: Admin: Apply devpod-namespace-creator ClusterRoleBinding
 
 ## Status
-**BLOCKED** - Waiting for cluster-admin to apply RBAC (mo-1q4w)
+**BLOCKED** - Waiting for cluster-admin to apply RBAC
+
+All beads blocked on the same cluster-admin action:
+- mo-161t, mo-2mi3, mo-2lv0, mo-1q4w, mo-jima, mo-sfj9, mo-133h, mo-119y, mo-3kwh, mo-2j6u, mo-dsvl, mo-yc8c, mo-2zr2, mo-tkbd, mo-3m3k, mo-3hfy, mo-3vap, mo-b7pu, mo-3ff2, mo-1log, mo-2nwc, mo-2xo0, mo-2rci (and many duplicates)
+
+**Required action:**
+```bash
+kubectl apply -f /home/coder/ardenone-cluster/cluster-configuration/ardenone-cluster/moltbook/namespace/devpod-namespace-creator-rbac.yml
+```
