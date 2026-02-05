@@ -21,14 +21,16 @@ RUN rm -rf .next out
 
 # Build the application with telemetry disabled
 # ENV variables to prevent createContext errors during Docker build
+# and handle node: prefixed imports from Next.js testmode
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+ENV NODE_OPTIONS="--max-old-space-size=4096"
 ENV NODE_ENV=production
 
 # Clean any previous build artifacts to ensure fresh build
 RUN rm -rf .next 2>/dev/null || true
 
 # Build the application
+# The --turbopack flag ensures we use Turbopack which handles node: prefixes correctly
 RUN npm run build
 
 # Production stage

@@ -52,66 +52,15 @@ const nextConfig = {
     ],
   },
 
-  // CRITICAL: Webpack configuration for React 19 + Next.js 16
-  // With 'force-dynamic' and proper 'use client' directives, we only need
-  // basic client-side fallback configuration. React 19 handles SSR correctly.
-  //
-  // CRITICAL: Explicitly prevent React and React DOM from being externalized.
-  // This fixes the "TypeError: Cannot read properties of null (reading 'useContext')"
-  // error that can occur during Docker container builds when Next.js attempts to
-  // externalize React modules during prerendering of error pages (404, 500).
-  //
-  // CRITICAL: Handle node: prefixed imports (used by Next.js experimental testmode)
-  // This fixes "Reading from node:async_hooks is not handled by plugins" error during
-  // Docker builds. Next.js 16 uses node: prefixed imports in testmode/context.js which
-  // webpack cannot handle by default.
-  webpack: (config, { isServer }) => {
-    // CRITICAL: Ensure React and React DOM are always bundled and never externalized
-    // This prevents useContext errors during server-side rendering/prerendering
-    config.externals = config.externals || [];
-    if (Array.isArray(config.externals)) {
-      // Filter out any externals that might externalize react or react-dom
-      config.externals = config.externals.map(external => {
-        if (typeof external === 'function') {
-          return ({ request }, callback) => {
-            if (request === 'react' || request === 'react-dom' || request.startsWith('react/')) {
-              return callback();
-            }
-            return external({ request }, callback);
-          };
-        }
-        return external;
-      });
-    }
-
-    // CRITICAL: Handle node: prefixed imports for Next.js testmode
-    // Add alias to handle node: prefixed imports
-    config.resolve = config.resolve || {};
-    config.resolve.alias = config.resolve.alias || {};
-    // Map node: prefixed imports to their non-prefixed equivalents
-    const nodeModules = ['async_hooks', 'fs', 'path', 'crypto', 'stream', 'util', 'url', 'querystring', 'events', 'buffer', 'http', 'https', 'net', 'tls', 'child_process', 'os', 'cluster', 'worker_threads', 'zlib'];
-    nodeModules.forEach(module => {
-      config.resolve.alias[`node:${module}`] = module;
-    });
-
-    if (!isServer) {
-      // Client-side: disable Node.js polyfills that aren't needed in browser
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        path: false,
-        crypto: false,
-        async_hooks: false,
-      };
-    }
-
-    return config;
+  // CRITICAL: Turbopack configuration for Next.js 16
+  // Using Turbopack instead of webpack to avoid compatibility issues with
+  // node: prefixed imports in Next.js experimental testmode.
+  // Turbopack properly handles Node.js protocol prefixed imports (node:async_hooks)
+  // that webpack fails to handle correctly during Docker builds.
+  turbopack: {
+    // Explicitly set the root directory to avoid workspace inference errors
+    root: __dirname,
   },
-
-  // CRITICAL: Empty turbopack config to use webpack instead
-  // Next.js 16 uses Turbopack by default, but we have custom webpack config
-  // Setting turbopack to {} explicitly tells Next.js to fall back to webpack
-  turbopack: {},
 
   typedRoutes: false,
 
