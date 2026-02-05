@@ -5,14 +5,18 @@ import Link from 'next/link';
 import { useAgent, useAuth } from '@/hooks';
 import { PageContainer } from '@/components/layout';
 import { PostList } from '@/components/post';
-import { Button, Card, CardHeader, CardTitle, CardContent, Avatar, AvatarImage, AvatarFallback, Skeleton, Badge, Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui';
+import { Button, Card, CardHeader, CardTitle, CardContent, Avatar, AvatarImage, AvatarFallback, Skeleton, Badge } from '@/components/ui';
 import { Calendar, Award, Users, FileText, MessageSquare, Settings } from 'lucide-react';
 import { cn, formatScore, formatDate, getInitials } from '@/lib/utils';
 import { api } from '@/lib/api';
-import * as TabsPrimitive from '@radix-ui/react-tabs';
 
 // Force dynamic rendering to avoid SSG build errors with client-side state
 export const dynamic = 'force-dynamic';
+
+// CRITICAL: Using custom tab implementation instead of Radix Tabs
+// to avoid duplicate Context initialization during Next.js build.
+// Direct imports of @radix-ui/react-tabs can cause createContext errors when
+// Next.js analyzes components during the build phase.
 
 export default function UserProfilePage() {
   const params = useParams<{ name: string }>();
@@ -133,39 +137,47 @@ export default function UserProfilePage() {
               </div>
             </Card>
             
-            {/* Tabs */}
-            <TabsPrimitive.Root value={activeTab} onValueChange={setActiveTab}>
+            {/* Custom tabs implementation to avoid Radix Context issues */}
+            <div>
               <Card className="mb-4">
-                <TabsPrimitive.List className="flex border-b">
-                  <TabsPrimitive.Trigger value="posts" className={cn('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors', activeTab === 'posts' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}>
+                <div className="flex border-b">
+                  <button
+                    onClick={() => setActiveTab('posts')}
+                    className={cn('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors', activeTab === 'posts' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}
+                  >
                     <FileText className="h-4 w-4" />
                     Posts
-                  </TabsPrimitive.Trigger>
-                  <TabsPrimitive.Trigger value="comments" className={cn('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors', activeTab === 'comments' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}>
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('comments')}
+                    className={cn('flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 -mb-px transition-colors', activeTab === 'comments' ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground')}
+                  >
                     <MessageSquare className="h-4 w-4" />
                     Comments
-                  </TabsPrimitive.Trigger>
-                </TabsPrimitive.List>
+                  </button>
+                </div>
               </Card>
-              
-              <TabsPrimitive.Content value="posts">
-                {data?.recentPosts && data.recentPosts.length > 0 ? (
-                  <PostList posts={data.recentPosts} />
-                ) : (
-                  <Card className="p-8 text-center">
-                    <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
-                    <p className="text-muted-foreground">No posts yet</p>
-                  </Card>
-                )}
-              </TabsPrimitive.Content>
-              
-              <TabsPrimitive.Content value="comments">
+
+              {activeTab === 'posts' && (
+                <>
+                  {data?.recentPosts && data.recentPosts.length > 0 ? (
+                    <PostList posts={data.recentPosts} />
+                  ) : (
+                    <Card className="p-8 text-center">
+                      <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
+                      <p className="text-muted-foreground">No posts yet</p>
+                    </Card>
+                  )}
+                </>
+              )}
+
+              {activeTab === 'comments' && (
                 <Card className="p-8 text-center">
                   <MessageSquare className="h-12 w-12 mx-auto text-muted-foreground/50 mb-3" />
                   <p className="text-muted-foreground">Comments coming soon</p>
                 </Card>
-              </TabsPrimitive.Content>
-            </TabsPrimitive.Root>
+              )}
+            </div>
           </div>
           
           {/* Sidebar */}
