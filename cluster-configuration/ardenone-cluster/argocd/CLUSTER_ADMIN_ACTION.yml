@@ -1,0 +1,32 @@
+# CRITICAL: Cluster Admin Action Required to Install ArgoCD
+#
+# This manifest binds the existing argocd-manager-role (cluster-admin equivalent)
+# to the devpod ServiceAccount, enabling ArgoCD installation from devpods.
+#
+# INSTRUCTIONS FOR CLUSTER ADMIN:
+#   kubectl apply -f cluster-configuration/ardenone-cluster/argocd/CLUSTER_ADMIN_ACTION.yml
+#
+# AFTER THIS IS APPLIED:
+# From the devpod, ArgoCD can be installed with:
+#   kubectl apply -f cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
+#
+# VERIFICATION:
+# After applying, verify with:
+#   kubectl get clusterrolebinding devpod-argocd-manager
+#   kubectl auth can-i create namespace --as=system:serviceaccount:devpod:default
+#
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: devpod-argocd-manager
+  annotations:
+    description: "Binds argocd-manager-role to devpod ServiceAccount for ArgoCD installation"
+subjects:
+- kind: ServiceAccount
+  name: default
+  namespace: devpod
+roleRef:
+  kind: ClusterRole
+  name: argocd-manager-role
+  apiGroup: rbac.authorization.k8s.io

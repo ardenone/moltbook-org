@@ -7,7 +7,7 @@
 
 **Verified**: 2026-02-05 05:20 UTC
 
-**New Blocker Bead Created**: mo-1l3s (P0) - "ADMIN: Cluster Admin Action - Apply ARGOCD_SETUP_REQUEST.yml for mo-1fgm"
+**New Blocker Bead Created**: mo-2dpt (P0) - "ADMIN: Cluster Admin Action - Install ArgoCD in ardenone-cluster"
 
 ---
 
@@ -56,9 +56,10 @@ kubectl apply -f cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQU
 ```
 
 This creates:
-- `argocd-installer` ClusterRole with all necessary permissions
-- `devpod-argocd-installer` ClusterRoleBinding granting devpod ServiceAccount access
+- `devpod-argocd-manager` ClusterRoleBinding granting devpod ServiceAccount access to existing `argocd-manager-role`
 - `argocd` namespace
+
+Note: The existing `argocd-manager-role` ClusterRole already has all necessary permissions (wildcard permissions).
 
 ### Step 2: Install ArgoCD (from devpod)
 ```bash
@@ -133,17 +134,23 @@ kubectl get pods -n argocd
 # Output: No resources found in argocd namespace.
 ```
 
-### Check Existing ClusterRole (Not Bound to devpod)
+### Check Existing ClusterRole (Can Be Used With New Binding)
 ```bash
 # ✅ ArgoCD manager role exists (full cluster-admin)
 kubectl get clusterrole argocd-manager-role -o yaml
-# BUT: Bound to argocd-manager SA in kube-system, NOT devpod's default SA
+# Has wildcard permissions that can be used for ArgoCD installation
 
+# ✅ Existing binding is for kube-system:argocd-manager
 kubectl get clusterrolebinding argocd-manager-role-binding -o yaml
 # subjects:
 # - kind: ServiceAccount
 #   name: argocd-manager
 #   namespace: kube-system
+
+# SOLUTION: Create new ClusterRoleBinding for devpod:default
+# kubectl create clusterrolebinding devpod-argocd-manager \
+#   --clusterrole=argocd-manager-role \
+#   --serviceaccount=devpod:default
 ```
 
 ## After Installation, Verify With:
@@ -175,8 +182,7 @@ kubectl get applications -n argocd
 
 ## Related Issues
 - Bead: mo-1fgm - "CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments" (Current task)
-- Bead: mo-1l3s (P0) - "ADMIN: Cluster Admin Action - Apply ARGOCD_SETUP_REQUEST.yml for mo-1fgm" (Cluster-admin action required)
-- Bead: mo-2fwe (P0) - "BLOCKER: Cluster-admin must apply ArgoCD RBAC before installation"
+- Bead: mo-2dpt (P0) - "ADMIN: Cluster Admin Action - Install ArgoCD in ardenone-cluster" (Cluster-admin action required)
 - ArgoCD Application: k8s/argocd-application.yml (cannot sync without ArgoCD installed)
 
 ## ArgoCD Version

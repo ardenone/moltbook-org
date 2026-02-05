@@ -5,89 +5,40 @@
 #   kubectl apply -f cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml
 #
 # After this RBAC is applied, from the devpod run:
-#   kubectl apply -f ../../k8s/argocd-install-manifest.yaml
+#   kubectl apply -f cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
 #
-# The argocd-install-manifest.yaml contains the official ArgoCD installation manifest from:
+# The argocd-install.yml contains the official ArgoCD installation manifest from:
 # https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 #
-# VERIFICATION STATUS (2026-02-04 22:35 UTC):
+# VERIFICATION STATUS (2026-02-05 05:23 UTC):
 # - ArgoCD namespace: NOT FOUND (confirmed via kubectl get namespace argocd)
-# - argocd-installer ClusterRole: NOT FOUND (requires creation)
-# - devpod ServiceAccount permissions: INSUFFICIENT
+# - argocd-manager-role ClusterRole: EXISTS (wildcard permissions, reusable)
+# - argocd-manager-role-binding: EXISTS but bound to kube-system:argocd-manager
+# - devpod ServiceAccount permissions: INSUFFICIENT for creating ClusterRoleBindings
 #   - Cannot create namespaces (cluster-scoped resource)
 #   - Cannot create customresourcedefinitions (cluster-scoped resource)
-#   - Cannot create clusterroles (cluster-scoped resource)
-# - Existing argocd-manager-role: EXISTS but bound to kube-system:argocd-manager (not reusable)
-# - ArgoCD CRDs: NOT INSTALLED (only Argo Rollouts CRDs present)
-# - BLOCKER: Installation REQUIRES cluster-admin to apply ARGOCD_SETUP_REQUEST.yml
+#   - Cannot create clusterrolebindings (cluster-scoped resource)
+# - BLOCKER: Installation REQUIRES cluster-admin to create ClusterRoleBinding
 #
 # INSTALLATION INSTRUCTIONS (for cluster-admin):
 #   kubectl apply -f cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml
 #
 # Then from devpod:
-#   kubectl apply -f k8s/argocd-install-manifest.yaml
+#   kubectl apply -f cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
 
 ---
-# Step 1: Grant devpod ServiceAccount permission to manage ArgoCD resources
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: argocd-installer
-rules:
-# Namespace management
-- apiGroups: [""]
-  resources: ["namespaces"]
-  verbs: ["create", "get", "list", "watch"]
-
-# Custom Resource Definitions (for ArgoCD CRDs)
-- apiGroups: ["apiextensions.k8s.io"]
-  resources: ["customresourcedefinitions"]
-  verbs: ["create", "get", "list", "watch", "patch", "update"]
-
-# ArgoCD namespace resources (deployments, services, configmaps, secrets, etc.)
-- apiGroups: [""]
-  resources: ["configmaps", "secrets", "services", "serviceaccounts", "persistentvolumeclaims"]
-  verbs: ["create", "get", "list", "watch", "patch", "update", "delete"]
-
-- apiGroups: ["apps"]
-  resources: ["deployments", "statefulsets", "daemonsets"]
-  verbs: ["create", "get", "list", "watch", "patch", "update", "delete"]
-
-- apiGroups: ["batch"]
-  resources: ["cronjobs"]
-  verbs: ["create", "get", "list", "watch", "patch", "update", "delete"]
-
-- apiGroups: ["networking.k8s.io"]
-  resources: ["networkpolicies", "ingresses"]
-  verbs: ["create", "get", "list", "watch", "patch", "update", "delete"]
-
-# RBAC for ArgoCD service accounts
-- apiGroups: ["rbac.authorization.k8s.io"]
-  resources: ["roles", "rolebindings", "clusterroles", "clusterrolebindings"]
-  verbs: ["create", "get", "list", "watch", "patch", "update", "delete", "escalate", "bind"]
-
-# ArgoCD CRs
-- apiGroups: ["argoproj.io"]
-  resources: ["applications", "appprojects", "applicationsets", "argocds"]
-  verbs: ["create", "get", "list", "watch", "patch", "update", "delete"]
-
-# Scheduling for priority class
-- apiGroups: ["scheduling.k8s.io"]
-  resources: ["priorityclasses"]
-  verbs: ["create", "get", "list", "watch", "patch", "update"]
-
----
+# Step 1: Create ClusterRoleBinding to grant devpod access to existing argocd-manager-role
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: devpod-argocd-installer
+  name: devpod-argocd-manager
 subjects:
 - kind: ServiceAccount
   name: default
   namespace: devpod
 roleRef:
   kind: ClusterRole
-  name: argocd-installer
+  name: argocd-manager-role
   apiGroup: rbac.authorization.k8s.io
 
 ---
