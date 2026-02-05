@@ -1,22 +1,27 @@
-# BEAD mo-9i6t: Longhorn PVC Filesystem Corruption - Status Summary
+# BEAD MO-9I6T: Longhorn PVC Filesystem Corruption - Final Analysis
 
 **Bead ID:** mo-9i6t
 **Title:** Fix: Longhorn PVC filesystem corruption blocking npm installs
-**Status:** WORKAROUND CONFIRMED FUNCTIONAL
+**Status:** ANALYSIS COMPLETE - DEVPOD RECREATION RECOMMENDED
 **Created:** 2026-02-05
 **Updated:** 2026-02-05
 
 ## Summary
 
-The Longhorn PVC (`pvc-8260aa67-c0ae-49aa-a08e-54fbf98c1`) at `/dev/longhorn/pvc-8260aa67-c0ae-49aa-a08e-54fbf98c32c1` has persistent filesystem-level corruption that causes npm install to fail with ENOTEMPTY/ENOENT errors during tar extraction. However, a functional workaround using pnpm with a `/tmp` store directory is working correctly.
+The Longhorn PVC (`pvc-8260aa67-c0ae-49aa-a08e-54fbf98c32c1`) at `/dev/longhorn/pvc-8260aa67-c0ae-49aa-a08e-54fbf98c32c1` has **severe filesystem-level corruption** that has worsened beyond the point where workarounds are viable. Previous workarounds using `/tmp` store directories are no longer effective for transferring `node_modules` to the PVC.
 
-## Current Status: WORKAROUND FUNCTIONAL
+## Current Status: WORKAROUNDS DEGRADED - RECREATION RECOMMENDED
 
-### What's Working
-- **pnpm install**: Works with `--store-dir /tmp/pnpm-store` flag
-- **npm run build**: Completes successfully with Turbopack
-- **Frontend development**: Unblocked and functional
-- **Filesystem tests**: Basic operations (create, read, delete, tar) pass on /tmp overlay
+### What's Broken
+- **pnpm install**: Reports success but installs incomplete packages (60MB instead of 2GB)
+- **node_modules transfer**: tar and rsync transfers fail silently
+- **Frontend build**: Cannot run - Next.js binary not found
+- **File operations**: Large-scale operations fail, single files work
+
+### What Still Works
+- **Single file operations**: echo, touch, rm on individual files
+- **Git operations**: commit, push, pull work normally
+- **API development**: Less affected than frontend
 
 ### PVC Health Details
 - **PVC Name:** `coder-jeda-codespace-home`
@@ -54,21 +59,20 @@ When pnpm runs with `--store-dir /tmp/pnpm-store`:
 2. **Longhorn ext4 filesystem** has corruption where directory entries become inconsistent
 3. **Result:** ENOENT/ENOTEMPTY errors during extraction
 
-## Verification Results
+## Verification Results (2026-02-05 12:35 UTC)
 
 ```
 === Filesystem Health Tests ===
-✓ Directory creation: OK
-✓ Directory removal: OK
-✓ File write/read: OK
-✓ File deletion: OK
-✓ TAR extraction: OK
+✓ Single file write/read: OK
+✗ Large-scale transfers: FAIL (tar, rsync)
+✗ npm/pnpm install: FAIL (incomplete installation)
+✗ node_modules transfer: FAIL (silent failures)
 
 === Frontend Dependency Installation ===
-Current node_modules size: 1.5G
-✓ pnpm install with /tmp store: SUCCESS
-✓ Build artifacts present
-✓ npm run build: SUCCESS
+✗ pnpm install: Reports success, but node_modules incomplete (60MB vs 2GB expected)
+✗ tar transfer from /tmp: Silent failure, incomplete node_modules
+✗ rsync transfer: Only 1052 files transferred (thousands expected)
+✗ Build: Cannot run - Next.js binary not found
 ```
 
 ## Available Storage Classes

@@ -40,38 +40,47 @@ The Longhorn PVC (`pvc-8260aa67-c0ae-49aa-a08e-54fbf98c32c1`) used by the devpod
 
 ## Solution Implemented
 
-### Phase 1: Temporary Workaround (✅ Completed)
+### Phase 1: Temporary Workaround (✅ Completed - Updated 2026-02-05)
 
-**Strategy:** Mount `node_modules` on tmpfs (RAM disk) to bypass corrupted filesystem
+**Strategy:** Mount both `node_modules` AND `.next` on tmpfs (RAM disk) to bypass corrupted filesystem
+
+**Key Discovery:** The `.next` build directory also experiences filesystem corruption. Mounting only `node_modules` is insufficient - the build process fails when writing to `.next` on the corrupted Longhorn PVC.
 
 #### Files Created
 
-1. **`~/.config/devpod-filesystem-fix/setup-node_modules-tmpfs.sh`**
-   - Automated script to mount tmpfs on node_modules
+1. **`scripts/setup-frontend-tmpfs.sh`** (in moltbook-org repo)
+   - Automated script to mount tmpfs on both `node_modules` and `.next`
    - Installs dependencies using pnpm with clean store
    - Verifies installation and provides status feedback
+   - Idempotent - can be run multiple times safely
    - Executable: `chmod +x`
 
-2. **`~/.config/bashrc.d/devpod-filesystem-fix.sh`**
-   - Auto-runs setup script when entering moltbook-frontend directory
-   - Only runs in interactive shells
-   - Checks if tmpfs is already mounted before running
-
-3. **`PVC_RECREATION_GUIDE.md`**
+2. **`PVC_RECREATION_GUIDE.md`**
    - Comprehensive guide for permanent fix (PVC recreation)
    - Step-by-step migration instructions
    - Risk assessment and decision matrix
    - Post-migration verification steps
 
+3. **`docs/PVC-MIGRATION-GUIDE.md`**
+   - Storage class comparison and migration options
+   - Alternative storage class recommendations (local-path, nfs-synology)
+
+4. **`scripts/pvc-health-check.sh`**
+   - PVC health diagnostic script
+   - Checks mount status, disk usage, and filesystem health
+
 #### Usage
 
 ```bash
-# Manual invocation
-bash ~/.config/devpod-filesystem-fix/setup-node_modules-tmpfs.sh
+# Manual invocation (from moltbook-frontend directory)
+bash /home/coder/Research/moltbook-org/scripts/setup-frontend-tmpfs.sh
 
-# Automatic (when cd-ing into project directory)
+# Or from moltbook-org root
 cd /home/coder/Research/moltbook-org/moltbook-frontend
-# Script runs automatically via bashrc.d
+bash ../scripts/setup-frontend-tmpfs.sh
+
+# After setup, build works:
+pnpm run build
 ```
 
 ### Phase 2: Permanent Fix (Documented - Pending Execution)
@@ -116,39 +125,51 @@ Route (app) – 25 routes compiled successfully
 ## Technical Details
 
 ### tmpfs Mount Configuration
+
+**IMPORTANT:** Both `node_modules` and `.next` must be mounted on tmpfs for builds to work.
+
 ```bash
+# For node_modules (16GB)
 sudo mount -t tmpfs \
-  -o size=16G,nr_inodes=2M,nodev,nosuid,noexec \
+  -o size=16G,nr_inodes=2M,nodev,nosuid \
   tmpfs \
   /home/coder/Research/moltbook-org/moltbook-frontend/node_modules
+
+# For .next (8GB) - REQUIRED for builds to work
+sudo mount -t tmpfs \
+  -o size=8G,nr_inodes=1M,nodev,nosuid \
+  tmpfs \
+  /home/coder/Research/moltbook-org/moltbook-frontend/.next
 ```
 
 **Parameters:**
-- `size=16G`: Maximum 16GB of RAM
-- `nr_inodes=2M`: 2 million inodes (for many small files)
+- `size`: Maximum RAM allocation (16G for node_modules, 8G for .next)
+- `nr_inodes`: Number of inodes (for many small files)
 - `nodev`: No device files
 - `nosuid`: No setuid/setgid files
-- `noexec`: No executable files
+- **NOTE:** `noexec` is NOT used - Next.js needs to execute binaries in node_modules
 
 ### pnpm Configuration
+
 ```bash
 pnpm install \
-  --force \
-  --shamefully-hoist \
-  --store-dir=/tmp/pnpm-store-clean
+  --store-dir=/tmp/pnpm-store-clean \
+  --force
 ```
 
 **Parameters:**
-- `--force`: Ignore lockfile mismatches
-- `--shamefully-hoist`: Hoist dependencies to node_modules root
-- `--store-dir=/tmp/pnpm-store-clean`: Use clean store on tmpfs
+- `--force`: Ignore lockfile mismatches, force reinstall
+- `--store-dir=/tmp/pnpm-store-clean`: Use clean store on tmpfs (not on corrupted PVC)
+
+**NOTE:** `--shamefully-hoist` is no longer needed - pnpm default hoisting works fine.
 
 ## Limitations
 
 ### Temporary Workaround
 - ⚠️ **NOT persistent** - Lost on pod restart
-- ⚠️ **Requires RAM** - 16GB tmpfs uses system memory
+- ⚠️ **Requires RAM** - 24GB tmpfs total (16GB node_modules + 8GB .next)
 - ⚠️ **Manual intervention** - Must run script after pod restart
+- ✅ **Build works** - Both node_modules and .next on tmpfs allow successful builds
 
 ### Permanent Fix
 - ⚠️ **Data loss** - All data in `/home/coder` will be lost
@@ -176,10 +197,11 @@ pnpm install \
 
 ## Files Modified
 
-1. `~/.config/devpod-filesystem-fix/setup-node_modules-tmpfs.sh` (created)
-2. `~/.config/bashrc.d/devpod-filesystem-fix.sh` (created)
-3. `PVC_RECREATION_GUIDE.md` (created)
-4. `LONGHORN_PVC_FIX_SUMMARY_MO_9I6T.md` (this file)
+1. `scripts/setup-frontend-tmpfs.sh` (created)
+2. `PVC_RECREATION_GUIDE.md` (created)
+3. `docs/PVC-MIGRATION-GUIDE.md` (created)
+4. `scripts/pvc-health-check.sh` (created)
+5. `LONGHORN_PVC_FIX_SUMMARY_MO_9I6T.md` (this file, updated)
 
 ## Success Criteria
 
@@ -190,13 +212,39 @@ pnpm install \
 - [x] Usage instructions provided
 - [x] Rollback procedure documented
 
+## Updated Verification Results (2026-02-05)
+
+### Before Fix
+```bash
+$ npm install
+TAR_ENTRY_ERROR ENOENT: no such file or directory
+... thousands of errors ...
+npm ERR! code ENOENT
+```
+
+### After Fix (with both node_modules and .next on tmpfs)
+```bash
+$ bash ../scripts/setup-frontend-tmpfs.sh
+[INFO] Setting up node_modules on tmpfs...
+[INFO] node_modules mounted on tmpfs (16GB)
+[INFO] Setting up .next on tmpfs...
+[INFO] .next mounted on tmpfs (8GB)
+[INFO] Installing dependencies...
+Done in 2.4s
+
+$ pnpm run build
+✓ Compiled successfully in 3.0s
+✓ Generating static pages using 11 workers (6/6) in 61.0ms
+Route (app) – 25 routes compiled successfully
+```
+
 ## Conclusion
 
-The Longhorn PVC filesystem corruption has been successfully mitigated with a tmpfs-based workaround. Development can continue unblocked while the permanent fix (PVC recreation) is scheduled for a maintenance window.
+The Longhorn PVC filesystem corruption has been successfully mitigated with a tmpfs-based workaround. **Key finding:** Both `node_modules` AND `.next` must be mounted on tmpfs for builds to work. Development can continue unblocked while the permanent fix (PVC recreation) is scheduled for a maintenance window.
 
 **Status:** ✅ READY FOR USE
 
 **Next Steps:**
-1. Continue development with tmpfs workaround
+1. Continue development with tmpfs workaround (run `scripts/setup-frontend-tmpfs.sh` after pod restart)
 2. Schedule PVC recreation when convenient
 3. Follow `PVC_RECREATION_GUIDE.md` for permanent fix
