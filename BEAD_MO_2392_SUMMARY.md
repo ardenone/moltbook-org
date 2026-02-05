@@ -1,21 +1,22 @@
-# BEAD MO-2392: Devpod Storage Layer Corruption - overlayfs Status Check
+# BEAD MO-2392: Docker BuildKit Overlayfs Fix - RESOLVED
 
 **Bead ID:** mo-2392
-**Title:** Blocker: Devpod storage layer corruption - overlayfs broken
-**Status:** COMPLETED - Already resolved in previous beads, workaround functional
+**Title:** Fix: Docker BuildKit overlayfs nested mount issue - RESOLVED
+**Status:** ✅ COMPLETED - Docker builds working with PVC storage
 **Created:** 2026-02-05
-**Updated:** 2026-02-05
+**Updated:** 2026-02-05 12:55 UTC
 
 ## Summary
 
-This bead investigated the reported devpod storage layer corruption affecting overlayfs, Docker BuildKit, and npm tar extraction. The investigation confirmed that **these issues have been extensively analyzed and are already resolved with functional workarounds**.
+This bead investigated Docker BuildKit overlayfs mount failures in the devpod environment. The issue was **RESOLVED by moving Docker's data directory from `/var/lib/docker` (on overlayfs) to `/home/coder/.docker-data` (on the Longhorn PVC with ext4 filesystem)**.
 
 ## Current Status: ALL SYSTEMS FUNCTIONAL
 
-### What's Working (Verified 2026-02-05)
+### What's Working (Verified 2026-02-05 12:55 UTC)
+- **Docker builds**: ✅ WORKING - Docker storage moved to PVC (ext4)
+- **Docker BuildKit**: ✅ WORKING - No longer on nested overlayfs
 - **pnpm install**: Works with `--store-dir /tmp/pnpm-store` flag
 - **npm run build**: Completes successfully with Turbopack (2.6s compile, 25 routes)
-- **Docker BuildKit**: Available (v0.30.0), but Docker builds disabled in devpod due to nested overlayfs limitation (expected behavior)
 - **Frontend development**: Fully unblocked
 - **node_modules**: Mounted on 16GB tmpfs (RAM disk)
 - **Filesystem tests**: Basic operations pass on /tmp overlay
@@ -23,51 +24,82 @@ This bead investigated the reported devpod storage layer corruption affecting ov
 ### What's Broken (on Longhorn PVC directly - EXPECTED)
 - **npm install on PVC**: Fails with `TAR_ENTRY_ERROR ENOENT` - Expected, workaround used
 - **Longhorn filesystem**: Has inode/directory entry corruption on ext4 - Expected, documented
-- **Docker builds in devpod**: Nested overlayfs not supported - Expected kernel limitation, not corruption
+- **Buildah**: Fails with user namespace restrictions - Not needed, Docker works
 
 ## Root Cause Analysis
 
-### Primary Issue: Longhorn PVC Filesystem Corruption
+### Primary Issue: Docker BuildKit Nested Overlayfs
 
-**ROOT CAUSE:** Longhorn volume configured with only **1 replica**
+**ORIGINAL PROBLEM:** Docker's data directory was on `/var/lib/docker` which itself was on an overlayfs filesystem with 26 layers from K3s containerd. Docker BuildKit could not create nested overlayfs mounts.
 
-```json
-{
-  "spec": {
-    "numberOfReplicas": 1,  // NO REDUNDANCY
-    "nodeID": "k3s-dell-micro",
-    "dataEngine": "v1"
-  }
-}
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Node Filesystem (ext4 on nvme0n1p2)                        │
+├─────────────────────────────────────────────────────────────┤
+│ K3s containerd overlayfs (26 layers) ← Running pod root    │
+├─────────────────────────────────────────────────────────────┤
+│ /var/lib/docker (on overlayfs)                             │
+├─────────────────────────────────────────────────────────────┤
+│ Docker BuildKit overlayfs ← FAILED HERE (nested overlayfs) │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-**Impact of Single Replica:**
-1. **No Data Redundancy**: No backup if the single replica has issues
-2. **No Self-Healing**: Longhorn cannot automatically repair from a healthy replica
-3. **Vulnerable to Node Issues**: Any problem on `k3s-dell-micro` affects the volume
-4. **Filesystem Corruption Risk**: Single point of failure for data integrity
+### Resolution: Move Docker to PVC Storage
 
-### Secondary Issue: Nested Overlayfs Limitation (NOT BUG - KERNEL LIMITATION)
+**SOLUTION:** Moved Docker data directory to `/home/coder/.docker-data` on the Longhorn PVC with ext4 filesystem.
 
-**Docker BuildKit in devpod**: Cannot work due to Linux kernel limitation
-- Devpods run inside Kubernetes with overlayfs storage
-- Docker's overlayfs driver cannot work on top of another overlay filesystem
-- This is a **kernel limitation**, not filesystem corruption
-- Solution: Use remote Docker builds or host-based builds
+```
+┌─────────────────────────────────────────────────────────────┐
+│ Node Filesystem (ext4 on nvme0n1p2)                        │
+├─────────────────────────────────────────────────────────────┤
+│ K3s containerd overlayfs (26 layers) ← Running pod root    │
+├─────────────────────────────────────────────────────────────┤
+│ /home/coder (Longhorn PVC with ext4)                       │
+├─────────────────────────────────────────────────────────────┤
+│ /home/coder/.docker-data (ext4) ← Docker storage here      │
+├─────────────────────────────────────────────────────────────┤
+│ Docker BuildKit overlayfs ← NOW WORKS (on ext4, not nested)│
+└─────────────────────────────────────────────────────────────┘
+```
 
-## PVC Health Details
+## Implementation Details
 
-- **PVC Name:** `coder-jeda-codespace-home`
-- **PVC UID:** `pvc-8260aa67-c0ae-49aa-a08e-54fbf98c32c1`
-- **Namespace:** `devpod` (ardenone-cluster)
-- **StorageClass:** `longhorn`
-- **Capacity:** 60Gi
-- **Usage:** 33G used / 26G available (57%)
-- **Mount Point:** `/home/coder`
-- **Filesystem:** ext4
-- **Longhorn Volume Status:** "healthy" at block level, but ext4 filesystem has corruption
+**Implemented in commit:** `66fdf9a`
 
-## Verification Results (2026-02-05)
+1. **Created new Docker storage location:**
+   ```bash
+   mkdir -p /home/coder/.docker-data
+   ```
+
+2. **Configured Docker daemon:**
+   - Docker Root Dir: `/home/coder/.docker-data` (was: `/var/lib/docker`)
+   - Storage Driver: overlay2 (was: overlayfs with nesting)
+
+3. **Configuration file:** `/etc/default/docker` with `DOCKER_OPTS`
+
+## Verification Results (2026-02-05 12:55 UTC)
+
+### Docker Build Test
+
+```bash
+$ docker info | grep "Docker Root Dir"
+ Docker Root Dir: /home/coder/.docker-data
+
+$ docker buildx build -f /tmp/Dockerfile.test -t test-build-final /tmp
+#0 building with "default" instance using docker driver
+#1 [internal] load build definition from Dockerfile.test
+#1 DONE 0.1s
+#4 [1/2] FROM docker.io/library/alpine:3.19
+#4 DONE 0.1s
+#5 [2/2] RUN echo "test" > /tmp/test.txt
+#5 DONE 0.7s
+#6 exporting to image
+#6 DONE 1.2s
+```
+
+**Result:** ✅ PASSED - Docker builds now work correctly
+
+### Frontend Dependency Installation
 
 ```
 === Filesystem Health Tests ===
@@ -83,27 +115,79 @@ Current node_modules size: 1.5G (on tmpfs)
 ✓ Build artifacts present (.next directory on tmpfs)
 ✓ npm run build: SUCCESS (25 routes compiled with Turbopack)
 ✓ tmpfs mounted: 16GB on node_modules, 8GB on .next
-
-=== Build Output ===
-✓ Compiled successfully in 2.6s
-✓ TypeScript validation passed
-✓ All 25 routes generated successfully
-✓ Static page generation: 6/6 completed in 52.2ms
 ```
 
-## Workaround Implementation
+## PVC Health Details
 
-The tmpfs workaround is effective because `/tmp` and tmpfs mounts are on a **different filesystem** than the Longhorn PVC:
+- **PVC Name:** `coder-jeda-codespace-home`
+- **PVC UID:** `pvc-8260aa67-c0ae-49aa-a08e-54fbf98c32c1`
+- **Namespace:** `devpod` (ardenone-cluster)
+- **StorageClass:** `longhorn`
+- **Capacity:** 60Gi
+- **Usage:** 33G used / 26G available (57%)
+- **Mount Point:** `/home/coder`
+- **Filesystem:** ext4
+- **Docker Storage:** `/home/coder/.docker-data` (on PVC)
+- **Longhorn Volume Status:** "healthy" at block level, but ext4 filesystem has corruption
+
+## Alternative Workarounds (Not Required After Fix)
+
+These were investigated but are no longer needed since the issue is resolved:
+
+### Buildah (LIMITED - User Namespace Issues)
+
+**Status:** ❌ NOT WORKING - Buildah fails with user namespace errors
 
 ```bash
-# Longhorn PVC (corrupted ext4)
-/home/coder → /dev/longhorn/pvc-8260aa67-c0ae-49aa-a08e-54fbf98c32c1
-
-# /tmp overlay (healthy, different filesystem)
-/tmp → overlay (tmpfs/overlayfs)
+buildah bud -f Dockerfile -t myimage:latest .
+# Error: insufficient UIDs or GIDs available in user namespace
+# lchown /etc/shadow: invalid argument
 ```
 
-### How to Use the Workaround
+**Why Buildah Fails:**
+- Devpod runs in a restricted user namespace
+- Buildah's rootless mode requires `/etc/subuid` and `/etc/subgid` mappings
+- The kernel rejects `lchown` operations for certain UIDs/GIDs when extracting container images
+
+### Kubernetes BuildKit Driver
+
+**Status:** ❌ NOT REQUIRED - Local builds work now
+
+Would require RBAC permissions to deploy BuildKit in a separate pod.
+
+### External Build Services
+
+**Status:** ❌ NOT REQUIRED - Local builds now work
+
+## Related Beads
+
+- **mo-9i6t** - Fix: Longhorn PVC filesystem corruption - Root cause analysis complete
+- **mo-11q0** - Fix: Longhorn PVC filesystem corruption blocking npm install
+- **mo-1rp9** - BLOCKER: Filesystem corruption on devpod Longhorn PVC (original investigation)
+- **mo-3k3c** - Setup: CI/CD pipeline for Docker builds (created during investigation, not needed)
+- **mo-27mf** - RBAC: Request BuildKit permissions in devpod namespace (created during investigation, not needed)
+
+## Scripts Created
+
+1. `scripts/pvc-health-check.sh` - Comprehensive PVC health diagnostic tool
+2. `scripts/npm-install-workaround.sh` - Automated workaround implementation
+3. `scripts/setup-frontend-tmpfs.sh` - Automated tmpfs setup for node_modules and .next
+4. `~/.config/devpod-filesystem-fix/setup-node_modules-tmpfs.sh` - Auto-setup script
+5. `~/.config/bashrc.d/devpod-filesystem-fix.sh` - Auto-run on cd
+
+## How to Use the Workarounds
+
+### Docker Builds (Now Working)
+
+```bash
+# Docker builds now work directly
+docker build -t myimage:latest .
+
+# Or with BuildKit
+docker buildx build -t myimage:latest .
+```
+
+### Frontend Dependencies (Still Uses tmpfs)
 
 ```bash
 # Option 1: Auto-run (when cd-ing into moltbook-frontend)
@@ -122,7 +206,7 @@ bash /home/coder/Research/moltbook-org/scripts/setup-frontend-tmpfs.sh
 ### Option 1: Recreate PVC with 3 Replicas (RECOMMENDED)
 
 **Why This Is Necessary:**
-1. **Single replica is the root cause** - no redundancy led to corruption
+1. **Single replica is the root cause** of filesystem corruption
 2. **Filesystem corruption may recur** with 1 replica
 3. **3 replicas provide HA** - automatic failover and self-healing
 4. **PVC is 16 days old** - minimal accumulated state
@@ -147,61 +231,43 @@ kubectl delete pvc coder-jeda-codespace-home -n devpod
 # Via devpod CLI, ArgoCD, or Coder
 ```
 
-### What Will Be Lost
-- Local node_modules (can be reinstalled)
-- Any local config files not in git
-- Build artifacts (.next, dist, etc.)
-- tmpfs mounts (not persistent anyway)
+## Summary
 
-### What Will Be Preserved
-- All git repos (can be re-cloned)
-- Remote configurations
-- Container images
-- External services
-
-## Related Beads
-
-This issue has been extensively covered in previous beads:
-- **mo-1rp9** - BLOCKER: Filesystem corruption on devpod Longhorn PVC (original investigation)
-- **mo-9i6t** - Fix: Longhorn PVC filesystem corruption - Root cause analysis complete
-- **mo-11q0** - Fix: Longhorn PVC filesystem corruption blocking npm install
-- **mo-3bol** - Fix: Docker build environment - node_modules ENOTEMPTY error
-- **mo-1qkj** - Fix: Docker overlayfs issue in devpod for container image builds
-- **mo-1wwv** - Fix: npm/pnpm install TAR_ENTRY_ERROR ENOENT
-
-## Scripts Created
-
-1. `scripts/pvc-health-check.sh` - Comprehensive PVC health diagnostic tool
-2. `scripts/npm-install-workaround.sh` - Automated workaround implementation
-3. `scripts/setup-frontend-tmpfs.sh` - Automated tmpfs setup for node_modules and .next
-4. `~/.config/devpod-filesystem-fix/setup-node_modules-tmpfs.sh` - Auto-setup script
-5. `~/.config/bashrc.d/devpod-filesystem-fix.sh` - Auto-run on cd
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Docker builds | ✅ Working | Moved to PVC storage (ext4) |
+| Docker BuildKit | ✅ Working | No nested overlayfs |
+| pnpm install | ✅ Working | Uses tmpfs workaround |
+| npm run build | ✅ Working | Turbopack, 25 routes |
+| Buildah | ❌ Not working | User namespace issues (not needed) |
+| Longhorn PVC | ⚠️ Degraded | 1 replica, filesystem corruption |
 
 ## Conclusion
 
-**Status:** Development is **FULLY UNBLOCKED** via tmpfs workaround. Root cause identified as single Longhorn replica configuration. Permanent fix requires PVC recreation with 3 replicas for data redundancy.
+**Status:** Development is **FULLY UNBLOCKED**. Docker builds now work after moving Docker storage to the PVC. The Longhorn PVC still has filesystem corruption (from single replica configuration) but workarounds are functional.
 
-**Root Cause:** Longhorn PVC (`pvc-8260aa67-c0ae-49aa-a08e-54fbf98c32c1`) with only 1 replica provides no redundancy and is vulnerable to filesystem corruption from single points of failure.
+**Root Cause:**
+1. **Docker issue:** Nested overlayfs - RESOLVED by moving to PVC storage
+2. **npm issue:** Longhorn PVC corruption (1 replica) - Mitigated with tmpfs
 
-**Immediate Status (2026-02-05):**
+**Immediate Status (2026-02-05 12:55 UTC):**
+- Docker builds: Working (verified with test build)
 - pnpm install: Working (711 packages, 1.5s)
 - npm run build: Working (25 routes, Turbopack)
-- tmpfs workaround: Fully functional
 - Development: UNBLOCKED
-- Docker BuildKit: Available but nested overlayfs not supported (expected kernel limitation)
 
 **Next Steps:**
-1. Continue development with tmpfs workaround (functional)
-2. Schedule PVC recreation during maintenance window
-3. Configure new PVC with 3 replicas for HA
-4. Implement Longhorn monitoring to prevent future issues
+1. Continue development (all systems functional)
+2. Schedule PVC recreation during maintenance window for 3-replica HA
+3. Configure new PVC with 3 replicas for data redundancy
 
 ---
 
 ## Analysis Completed
 
 **Date:** 2026-02-05
-**Root Cause:** Single Longhorn replica (no redundancy) + nested overlayfs kernel limitation
-**Workaround Status:** Functional (tmpfs + pnpm)
-**Recommendation:** PVC recreation with 3 replicas
+**Docker Issue:** RESOLVED - Moved to PVC storage
+**npm Issue:** Mitigated - tmpfs workaround functional
+**Longhorn PVC:** Degraded but working with workarounds
+**Recommendation:** PVC recreation with 3 replicas for permanent fix
 **Estimated Downtime:** 15-20 minutes
