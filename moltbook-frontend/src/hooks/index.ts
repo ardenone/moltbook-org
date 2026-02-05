@@ -250,7 +250,7 @@ export function useToggle(initialValue = false): [boolean, () => void, (value: b
 
 // Previous value hook
 export function usePrevious<T>(value: T): T | undefined {
-  const ref = useRef<T>();
+  const ref = useRef<T | undefined>(undefined);
   useEffect(() => { ref.current = value; });
   return ref.current;
 }
