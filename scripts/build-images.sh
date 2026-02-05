@@ -2,6 +2,17 @@
 # Moltbook Container Image Build Script
 # Builds and pushes API and Frontend images to ghcr.io
 #
+# IMPORTANT: This script will NOT work in devpod/containerized environments due to
+# overlay filesystem limitations. Docker/Podman cannot build images inside containers.
+#
+# RECOMMENDED: Use GitHub Actions workflow instead (.github/workflows/build-images.yml)
+# which builds on GitHub's Ubuntu runners with native Docker support.
+#
+# ALTERNATIVE: For local builds, run this script from a non-containerized environment
+# (your local machine, a VM, or a physical server with Docker/Podman installed).
+#
+# KUBERNETES ALTERNATIVE: See scripts/build-with-kaniko.yml for kaniko-based builds.
+#
 # Usage:
 #   ./scripts/build-images.sh [OPTIONS]
 #
@@ -98,6 +109,29 @@ log_error() {
 # Check prerequisites
 check_prerequisites() {
   log_info "Checking prerequisites..."
+
+  # Check if running in a containerized environment
+  if [[ -f /.dockerenv ]] || grep -qa docker /proc/1/cgroup 2>/dev/null; then
+    log_error "=========================================="
+    log_error "ERROR: Running inside a Docker container!"
+    log_error "=========================================="
+    log_error ""
+    log_error "Docker/Podman cannot build images inside containers due to overlay"
+    log_error "filesystem limitations (nested overlayfs is not supported)."
+    log_error ""
+    log_error "RECOMMENDED SOLUTIONS:"
+    log_error "  1. Use GitHub Actions: .github/workflows/build-images.yml (automatic on push)"
+    log_error "  2. Build locally from your machine (not from devpod/container)"
+    log_error "  3. Use kaniko: kubectl apply -f scripts/build-with-kaniko.yml"
+    log_error ""
+    log_error "To build images, run this script from a non-containerized environment:"
+    log_error "  - Your local machine with Docker/Podman installed"
+    log_error "  - A VM or physical server"
+    log_error "  - GitHub Actions runner (automatic workflow)"
+    log_error ""
+    log_error "See documentation for more details."
+    exit 1
+  fi
 
   # Check for podman or docker
   if command -v podman &> /dev/null; then
@@ -238,6 +272,16 @@ main() {
   log_info "Tag: ${TAG}"
   log_info "Dry run: ${DRY_RUN}"
   log_info "Push: ${DO_PUSH}"
+
+  # Warning about environment
+  if [[ -f /.dockerenv ]] || grep -qa docker /proc/1/cgroup 2>/dev/null; then
+    log_warning "=========================================="
+    log_warning "WARNING: Possible containerized environment"
+    log_warning "=========================================="
+    log_warning "Docker builds may fail due to overlay filesystem limitations."
+    log_warning "If build fails, use GitHub Actions or build from a non-containerized environment."
+    log_warning "See .github/workflows/build-images.yml for automated builds."
+  fi
   echo ""
 
   check_prerequisites
