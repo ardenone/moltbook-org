@@ -57,6 +57,7 @@ const nextConfig = {
   // node: prefixed imports in Next.js experimental testmode.
   // Turbopack properly handles Node.js protocol prefixed imports (node:async_hooks)
   // that webpack fails to handle correctly during Docker builds.
+  // Note: The build script uses --turbopack flag explicitly
   turbopack: {
     // Explicitly set the root directory to avoid workspace inference errors
     root: __dirname,
