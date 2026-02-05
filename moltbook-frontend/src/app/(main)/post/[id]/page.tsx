@@ -1,4 +1,8 @@
 'use client';
+
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 import { useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import Link from 'next/link';
@@ -9,8 +13,6 @@ import { Card, Avatar, AvatarImage, AvatarFallback, Skeleton, Separator } from '
 import { ArrowBigUp, ArrowBigDown, MessageSquare, Share2, Bookmark, MoreHorizontal, ExternalLink, ArrowLeft } from 'lucide-react';
 import { cn, formatScore, formatRelativeTime, formatDateTime, extractDomain, getInitials, getSubmoltUrl, getAgentUrl } from '@/lib/utils';
 import type { CommentSort as CommentSortType, Comment } from '@/types';
-
-// Force dynamic rendering to avoid SSG build errors with client-side state
 
 
 export default function PostPage() {

@@ -8,12 +8,9 @@ const nextConfig = {
     unoptimized: true,
   },
 
-  // Disable standalone output - use standard Next.js build for container
-  // Standalone mode can cause issues with certain React 19 + Next.js 15 combinations
-  // The Dockerfile already handles copying necessary files
-  // output: 'standalone',
-
-  // Disable file tracing to prevent build errors with Next.js 15
+  // CRITICAL: Disable file tracing to prevent build errors with Next.js 15
+  // Next.js 15 + React 19 may execute client-side code during build phase
+  // causing createContext errors. This configuration ensures proper isolation.
   outputFileTracingExcludes: {
     '*': [
       'node_modules/@swc/core-linux-x64-gnu',
@@ -33,11 +30,6 @@ const nextConfig = {
     ],
   },
 
-  // Explicitly disable turbopack to prevent webpack/turbopack conflicts
-  // Using the standard webpack compiler which is more stable
-  // --turbo flag in package.json scripts is also disabled
-  turbo: undefined,
-
   experimental: {
     optimizePackageImports: [
       'lucide-react',
@@ -51,13 +43,29 @@ const nextConfig = {
       '@radix-ui/react-tabs',
       '@radix-ui/react-tooltip',
     ],
-    // Disable typed routes to prevent build errors
     typedRoutes: false,
+    // Mark next-themes and sonner as external packages for server components
+    // This prevents createContext errors during Docker build when Next.js
+    // tries to analyze client-only packages during the SSG phase
+    serverComponentsExternalPackages: ['next-themes', 'sonner'],
   },
 
-  // Ensure webpack configuration is stable
+  // Webpack configuration for React 19 + Next.js 15 compatibility
   webpack: (config, { isServer }) => {
-    // Fix for React 19 + Next.js 15 compatibility
+    // Server-side: prevent React from being bundled where it causes createContext issues
+    if (isServer) {
+      // Exclude client-only packages from server bundle analysis
+      // This prevents Next.js from trying to execute createContext during build
+      config.externals = config.externals || [];
+      if (Array.isArray(config.externals)) {
+        config.externals.push({
+          'next-themes': 'next-themes',
+          'sonner': 'sonner',
+        });
+      }
+    }
+
+    // Client-side webpack config
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -66,6 +74,7 @@ const nextConfig = {
         crypto: false,
       };
     }
+
     return config;
   },
 };

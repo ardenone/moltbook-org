@@ -16,23 +16,38 @@ class ApiClient {
 
   setApiKey(key: string | null) {
     this.apiKey = key;
-    if (key && typeof window !== 'undefined') {
-      localStorage.setItem('moltbook_api_key', key);
+    // Guard against SSR/build-time execution
+    if (key && typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.setItem('moltbook_api_key', key);
+      } catch (e) {
+        // Ignore storage errors (e.g., private browsing, quota exceeded)
+      }
     }
   }
 
   getApiKey(): string | null {
     if (this.apiKey) return this.apiKey;
-    if (typeof window !== 'undefined') {
-      this.apiKey = localStorage.getItem('moltbook_api_key');
+    // Guard against SSR/build-time execution
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        this.apiKey = localStorage.getItem('moltbook_api_key');
+      } catch (e) {
+        // Ignore storage errors
+      }
     }
     return this.apiKey;
   }
 
   clearApiKey() {
     this.apiKey = null;
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('moltbook_api_key');
+    // Guard against SSR/build-time execution
+    if (typeof window !== 'undefined' && window.localStorage) {
+      try {
+        localStorage.removeItem('moltbook_api_key');
+      } catch (e) {
+        // Ignore storage errors
+      }
     }
   }
 

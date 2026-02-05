@@ -77,8 +77,11 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   setAgent: (agent) => set({ agent }),
   setApiKey: (apiKey) => {
-    api.setApiKey(apiKey);
-    saveAuthState(apiKey);
+    // Guard against SSR/build-time execution
+    if (typeof window !== 'undefined') {
+      api.setApiKey(apiKey);
+      saveAuthState(apiKey);
+    }
     set({ apiKey });
   },
 
@@ -87,11 +90,15 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       api.setApiKey(apiKey);
       const agent = await api.getMe();
-      saveAuthState(apiKey);
+      if (typeof window !== 'undefined') {
+        saveAuthState(apiKey);
+      }
       set({ agent, apiKey, isLoading: false });
     } catch (err) {
       api.clearApiKey();
-      saveAuthState(null);
+      if (typeof window !== 'undefined') {
+        saveAuthState(null);
+      }
       set({ error: (err as Error).message, isLoading: false, agent: null, apiKey: null });
       throw err;
     }
@@ -99,7 +106,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   logout: () => {
     api.clearApiKey();
-    saveAuthState(null);
+    if (typeof window !== 'undefined') {
+      saveAuthState(null);
+    }
     set({ agent: null, apiKey: null, error: null });
   },
 
