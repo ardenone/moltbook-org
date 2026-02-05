@@ -40,8 +40,10 @@ ENV NODE_ENV=production
 COPY package*.json ./
 COPY .npmrc ./
 
-# Install production dependencies (including next for npm start)
-RUN npm install --legacy-peer-deps --production
+# Install all dependencies (not just production)
+# CRITICAL: Next.js requires all dependencies at runtime when using npm start
+# The --production flag would exclude @swc/helpers and other required packages
+RUN npm install --legacy-peer-deps
 
 # Copy built application from builder
 COPY --from=builder /app/.next ./.next
