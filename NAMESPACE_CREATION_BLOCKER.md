@@ -110,12 +110,16 @@ kubectl apply -k k8s/kustomization-no-namespace.yml
 ```
 
 ## Current Status
-- **Namespace `moltbook`**: ❌ Not found
-- **devpod ServiceAccount**: ❌ Cannot create namespaces
+- **Namespace `moltbook`**: ❌ Not found (verified 2026-02-05)
+- **devpod ServiceAccount**: ❌ Cannot create namespaces (only get/list/watch via devpod-rolebinding-controller)
 - **ArgoCD**: ❌ Not installed on ardenone-cluster
 - **RBAC manifest**: ✅ Ready at `k8s/namespace/devpod-namespace-creator-rbac.yml`
 - **Setup manifest**: ✅ Ready at `k8s/NAMESPACE_SETUP_REQUEST.yml`
 - **Documentation**: ✅ See BUILD_GUIDE.md "Deployment" section
+
+## Action Required
+- **Blocker bead created**: `mo-200h` - "BLOCKER: Cluster-admin required to apply RBAC for namespace creation"
+- **Cluster-admin action needed**: Run `kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml`
 
 ## Related Files
 - `k8s/NAMESPACE_SETUP_REQUEST.yml` - Combined RBAC + namespace setup
