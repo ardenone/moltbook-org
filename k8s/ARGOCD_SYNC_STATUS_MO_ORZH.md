@@ -253,6 +253,7 @@ spec:
 |---------|-------|----------|--------|
 | mo-orzh | Verify: ArgoCD sync for Moltbook deployment | 1 | BLOCKED - This task |
 | mo-3ttq | Deploy: Complete Moltbook deployment to ardenone-cluster | 1 | BLOCKED - Namespace creation |
+| mo-2c67 | Blocker: Cluster Admin needed - Apply RBAC for Moltbook namespace creation | 0 | NEW - Created by mo-3ttq |
 | mo-1fgm | CRITICAL: Install ArgoCD in ardenone-cluster | 1 | BLOCKED - RBAC |
 
 ---
@@ -274,6 +275,6 @@ spec:
 
 ---
 
-**Last Updated**: 2026-02-05
-**Verified by**: mo-orzh (claude-glm-zai-bravo)
-**Status**: 🔴 BLOCKED - Requires fresh ArgoCD credentials
+**Last Updated**: 2026-02-05 09:50 UTC
+**Verified by**: mo-orzh (claude-glm-zai-bravo), mo-3ttq (claude-glm-bravo)
+**Status**: 🔴 BLOCKED - Requires fresh ArgoCD credentials AND RBAC for namespace creation
