@@ -1,8 +1,8 @@
 # Cluster Admin Action Required: mo-1ob3
 
-## Status: BLOCKED
+## Status: BLOCKED - Requiring cluster-admin action
 
-The devpod ServiceAccount lacks cluster-admin privileges required to create the moltbook namespace.
+The devpod ServiceAccount lacks cluster-admin privileges required to create the moltbook namespace and set up RBAC.
 
 ## Action Required
 
@@ -18,6 +18,16 @@ Or alternatively:
 kubectl apply -f k8s/namespace/devpod-namespace-creator-rbac.yml
 kubectl apply -f k8s/namespace/moltbook-namespace.yml
 ```
+
+## Quick One-Liner Alternative
+
+For the fastest setup, cluster-admin can run just:
+
+```bash
+kubectl create namespace moltbook
+```
+
+Then the devpod can apply the RBAC bindings afterward.
 
 ## What This Manifest Does
 
@@ -48,10 +58,27 @@ kubectl apply -k /home/coder/ardenone-cluster/cluster-configuration/ardenone-clu
 
 ## Related Beads
 
-- **mo-3h6c**: Fix: RBAC - cluster-admin must apply namespace-creator RBAC (this blocker)
+- **mo-1ob3**: Fix: RBAC - create moltbook namespace and ServiceAccount (this task - BLOCKED)
 - **mo-3ttq**: BLOCKER: mo-3ttq requires moltbook namespace to exist
-- **mo-1ob3**: Fix: RBAC - create moltbook namespace and ServiceAccount (this task)
+- Multiple existing blocker beads: mo-1ge8, mo-3grc, mo-3h6c, mo-2idh, mo-dtul, mo-bc16, mo-3rw5
+
+## Verification Steps (After Cluster-Admin Action)
+
+```bash
+# Verify namespace exists
+kubectl get namespace moltbook
+
+# Verify RBAC permissions
+kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
+
+# Verify ClusterRole exists
+kubectl get clusterrole namespace-creator
+
+# Verify ClusterRoleBinding exists
+kubectl get clusterrolebinding devpod-namespace-creator
+```
 
 ## Generated
 
-2026-02-05 by claude-glm-echo (mo-1ob3)
+2026-02-05 13:33 by claude-glm-alpha (mo-1ob3)
+Status: BLOCKED - Awaiting cluster-admin action to create moltbook namespace
