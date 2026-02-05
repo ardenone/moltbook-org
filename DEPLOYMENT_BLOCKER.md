@@ -57,29 +57,52 @@ kubectl get clusterrolebinding devpod-namespace-creator
 - Confirmed Forbidden error for ClusterRoleBinding creation
 - Verified resources still do not exist in cluster
 
+**Re-verified by**: mo-1e6t bead (claude-glm, zai-bravo worker, 2026-02-05)
+**Result**: CONFIRMED - Blocker still requires cluster-admin action
+
+**Re-verification**:
+- Confirmed moltbook namespace does NOT exist
+- Confirmed namespace-creator ClusterRole does NOT exist
+- Confirmed devpod-namespace-creator ClusterRoleBinding does NOT exist
+- Confirmed devpod:default SA has only read-only access via mcp-k8s-observer-cluster-resources
+- Verified cannot create ClusterRole (Forbidden)
+- Verified cannot create ClusterRoleBinding (Forbidden)
+- Checked rolebinding-controller SA - cannot create cluster-scoped resources
+- Checked apexalgo-iad cluster - moltbook namespace also does NOT exist there
+
 ## Required Action (Cluster Admin Only)
 
-### Quick Start - One Command Setup
+### Deployment Path Decision - PATH 1 (ArgoCD) SELECTED
+
+**Bead mo-1ts4** evaluated both deployment paths and selected PATH 1 (ArgoCD GitOps).
+
+**See `k8s/DEPLOYMENT_PATH_DECISION.md`** for detailed comparison and rationale.
+
+### Quick Start - PATH 1: ArgoCD GitOps (Recommended)
 
 A cluster administrator should run:
 
 ```bash
-# Option 1: From moltbook-org repo
-kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
-
-# Option 2: From ardenone-cluster repo
-kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/namespace/NAMESPACE_SETUP_REQUEST.yml
+# Apply ArgoCD installation RBAC and create both namespaces
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/ARGOCD_INSTALL_REQUEST.yml
 ```
 
-**From outside the cluster** (with cluster-admin credentials):
+This creates:
+- **ClusterRole**: `argocd-installer` (CRD, ClusterRole, namespace permissions)
+- **ClusterRoleBinding**: `devpod-argocd-installer`
+- **Namespace**: `argocd` (for ArgoCD installation)
+- **Namespace**: `moltbook` (with ArgoCD management labels)
+
+### Alternative: PATH 2 (kubectl manual only)
+
 ```bash
-# Apply using your cluster-admin kubectl context
-kubectl apply -f NAMESPACE_SETUP_REQUEST.yml
+# Apply namespace creation RBAC only (no ArgoCD)
+kubectl apply -f /home/coder/Research/moltbook-org/k8s/NAMESPACE_SETUP_REQUEST.yml
 ```
 
 This creates:
 - **ClusterRole**: `namespace-creator` (create/get/list/watch namespaces)
-- **ClusterRoleBinding**: `devpod-namespace-creator` (binds to devpod ServiceAccount)
+- **ClusterRoleBinding**: `devpod-namespace-creator`
 - **Namespace**: `moltbook` with ArgoCD labels
 
 **📖 Detailed Guide**: See [cluster-configuration/ardenone-cluster/moltbook/CLUSTER_ADMIN_ACTION_REQUIRED.md](cluster-configuration/ardenone-cluster/moltbook/CLUSTER_ADMIN_ACTION_REQUIRED.md) for comprehensive documentation including verification, troubleshooting, and security considerations.
