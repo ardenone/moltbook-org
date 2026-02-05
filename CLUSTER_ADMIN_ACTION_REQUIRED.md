@@ -1,6 +1,8 @@
 # Cluster Admin Action Required
 
-## Bead: mo-3n94
+## Related Beads
+- mo-1rgl: Fix: RBAC for moltbook namespace creation
+- mo-3n94: Original RBAC blocker for moltbook namespace
 
 ### Summary
 The Moltbook deployment requires cluster-level RBAC permissions that cannot be granted by the devpod ServiceAccount.
@@ -8,8 +10,19 @@ The Moltbook deployment requires cluster-level RBAC permissions that cannot be g
 ### Required Action
 Apply the RBAC setup manifest:
 ```bash
-kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/RBAC_SETUP_REQUEST.yml
+kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml
 ```
+
+### Task mo-1rgl Status (2026-02-05)
+- **Namespace `moltbook`**: ❌ Not found
+- **devpod SA permissions**: ❌ Cannot create namespaces (Forbidden)
+- **RBAC attempt**: ❌ Failed - cluster-admin required
+- **Action required**: Cluster-admin must apply `k8s/NAMESPACE_SETUP_REQUEST.yml`
+
+### Existing Blocker Beads
+- mo-200h: Original blocker for namespace RBAC
+- mo-3kx0: RBAC for moltbook namespace creation (mo-1rgl)
+- mo-2cln: Cluster-admin action needed - RBAC for moltbook namespace
 
 ### What This Creates
 1. **ClusterRole**: `namespace-creator` - Permissions to create namespaces and RBAC resources

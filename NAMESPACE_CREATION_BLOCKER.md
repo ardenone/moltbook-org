@@ -119,6 +119,7 @@ kubectl apply -k k8s/kustomization-no-namespace.yml
 
 ## Action Required
 - **Blocker bead created**: `mo-200h` - "BLOCKER: Cluster-admin required to apply RBAC for namespace creation"
+- **Task mo-1rgl**: "Fix: RBAC for moltbook namespace creation" - Status: Blocked, cluster-admin action required
 - **Cluster-admin action needed**: Run `kubectl apply -f k8s/NAMESPACE_SETUP_REQUEST.yml`
 
 ## Related Files
