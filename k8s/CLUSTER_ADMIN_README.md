@@ -15,6 +15,7 @@
   - **mo-3pjf** - CLUSTER-ADMIN: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE (2026-02-05)
   - **mo-1nen** - Admin: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE
   - **mo-37ac** - ADMIN: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE (2026-02-05)
+  - **mo-14bm** - BLOCKER: Cluster-admin required - Create moltbook namespace and RBAC - ACTIVE (2026-02-05)
   - **mo-1rgl** - Fix: RBAC for moltbook namespace creation - BLOCKED (waiting for cluster-admin)
   - **mo-3ttq** - Deploy: Complete Moltbook deployment to ardenone-cluster (waiting for RBAC)
   - **mo-s45e** - Blocker: RBAC permissions for Moltbook namespace creation (CLOSED)
