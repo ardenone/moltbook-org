@@ -52,6 +52,12 @@ const nextConfig = {
     ],
   },
 
+  // CRITICAL: Disable Turbopack to use webpack instead
+  // Turbopack has workspace inference issues in certain environments
+  // that cause "Next.js inferred your workspace root" errors.
+  // By setting turbopack to null, we force Next.js to use webpack.
+  turbopack: null,
+
   typedRoutes: false,
 
   // CRITICAL: Webpack configuration for Next.js 16
