@@ -1,9 +1,24 @@
 # Moltbook Deployment Status - ardenone-cluster
 
 **Task**: mo-3ttq - Deploy: Complete Moltbook deployment to ardenone-cluster (waiting for RBAC)
-**Date**: 2026-02-05 (Updated 10:20 UTC)
+**Date**: 2026-02-06 (Updated 10:32 UTC)
 **Status**: 🔴 BLOCKED - Requires cluster-admin privileges
-**Latest Verification**: Namespace/ArgoCD not exist, RBAC block confirmed. 30+ duplicate P0 blockers exist. Cluster-admin action required. k8s/ manifests validated (1055 lines, 21+ resources).
+**Latest Verification**: Namespace/ArgoCD not exist, RBAC block confirmed. 24+ duplicate P0 blockers exist. Cluster-admin action required. k8s/ manifests validated (1055 lines, 21+ resources).
+
+---
+
+## ArgoCD Sync Verification Status (Task: mo-orzh)
+
+| Verification Method | Result | Details |
+|---------------------|--------|---------|
+| ArgoCD ApplicationSet check | ❌ Cannot verify | devpod-observer SA cannot view argoproj.io CRDs |
+| ArgoCD Applications check | ❌ Cannot verify | CRD not accessible: `the server doesn't have a resource type "applications"` |
+| API check (argocd-manager.ardenone.com) | ❌ No auth | Returns "no session information" - requires auth token |
+| moltbook namespace check | ✅ Completed | Namespace does NOT exist in ardenone-cluster |
+
+**Blocker Created**: `mo-9tl9` - "Blocker: Cannot verify ArgoCD sync - RBAC limits ApplicationSet visibility"
+
+**Conclusion**: Cannot verify if ArgoCD synced the Moltbook ApplicationSet from devpods. Manual verification required at https://argocd-manager.ardenone.com UI or provide ArgoCD API token access.
 
 ---
 

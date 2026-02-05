@@ -295,7 +295,9 @@ spec:
 
 | Bead ID | Title | Priority | Status |
 |---------|-------|----------|--------|
+| mo-sg2v | Create: Moltbook ApplicationSet at external ArgoCD | P0 | OPEN |
 | mo-dbl7 | Fix: Expired argocd-readonly token in devpod namespace | P0 | OPEN |
+| mo-2c67 | Blocker: Cluster Admin needed - Apply RBAC for Moltbook namespace creation | P0 | OPEN |
 | mo-23u2 | Fix: Cluster Admin required - create moltbook namespace | P0 | OPEN |
 | mo-1ob3 | Fix: RBAC - create moltbook namespace and ServiceAccount | P0 | OPEN |
 | mo-35ca | Fix: Namespace 'moltbook' does not exist - requires cluster-admin | P0 | OPEN |
@@ -312,6 +314,14 @@ The ArgoCD sync status verification confirms:
 1. The external ArgoCD at `argocd-manager.ardenone.com` is healthy and running
 2. The local argocd-proxy is healthy but uses an expired token (blocker bead mo-dbl7 exists)
 3. The moltbook namespace does not exist, indicating ArgoCD has not synced the application
-4. Multiple P0 beads already exist for both the token issue and namespace creation issue
+4. Multiple P0 beads already exist for all identified issues:
+   - **mo-sg2v**: Create Moltbook ApplicationSet at external ArgoCD
+   - **mo-dbl7**: Fix expired argocd-readonly token
+   - **mo-2c67**: Apply RBAC for namespace creation
 
 **No new beads needed** - The required blocker beads already exist in the system.
+
+---
+
+**Last Updated**: 2026-02-05 (re-verified by mo-orzh claude-glm-echo)
+**Verification Run**: 3rd verification attempt confirms same blockers remain
