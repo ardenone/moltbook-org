@@ -60,6 +60,11 @@ const nextConfig = {
   // This fixes the "TypeError: Cannot read properties of null (reading 'useContext')"
   // error that can occur during Docker container builds when Next.js attempts to
   // externalize React modules during prerendering of error pages (404, 500).
+  //
+  // CRITICAL: Handle node: prefixed imports (used by Next.js experimental testmode)
+  // This fixes "Reading from node:async_hooks is not handled by plugins" error during
+  // Docker builds. Next.js 16 uses node: prefixed imports in testmode/context.js which
+  // webpack cannot handle by default.
   webpack: (config, { isServer }) => {
     // CRITICAL: Ensure React and React DOM are always bundled and never externalized
     // This prevents useContext errors during server-side rendering/prerendering
@@ -79,6 +84,16 @@ const nextConfig = {
       });
     }
 
+    // CRITICAL: Handle node: prefixed imports for Next.js testmode
+    // Add alias to handle node: prefixed imports
+    config.resolve = config.resolve || {};
+    config.resolve.alias = config.resolve.alias || {};
+    // Map node: prefixed imports to their non-prefixed equivalents
+    const nodeModules = ['async_hooks', 'fs', 'path', 'crypto', 'stream', 'util', 'url', 'querystring', 'events', 'buffer', 'http', 'https', 'net', 'tls', 'child_process', 'os', 'cluster', 'worker_threads', 'zlib'];
+    nodeModules.forEach(module => {
+      config.resolve.alias[`node:${module}`] = module;
+    });
+
     if (!isServer) {
       // Client-side: disable Node.js polyfills that aren't needed in browser
       config.resolve.fallback = {
@@ -86,6 +101,7 @@ const nextConfig = {
         fs: false,
         path: false,
         crypto: false,
+        async_hooks: false,
       };
     }
 
