@@ -192,9 +192,18 @@ authenticate() {
   # Check for GITHUB_TOKEN
   if [[ -z "${GITHUB_TOKEN:-}" ]]; then
     log_error "GITHUB_TOKEN environment variable not set"
-    log_error "Please set it with: export GITHUB_TOKEN=your_token_here"
-    log_error "Or create a Personal Access Token at: https://github.com/settings/tokens"
+    log_error ""
+    log_error "To authenticate with ghcr.io, you need to provide a GitHub Personal Access Token."
+    log_error ""
+    log_error "OPTIONS:"
+    log_error "  1. Set environment variable: export GITHUB_TOKEN=your_token_here"
+    log_error "  2. Pass inline: GITHUB_TOKEN=your_token $0 --push"
+    log_error "  3. Mount Kubernetes secret (see docs/github-token-setup.md)"
+    log_error ""
+    log_error "Create a token at: https://github.com/settings/tokens"
     log_error "Required scopes: write:packages, read:packages"
+    log_error ""
+    log_error "For detailed setup instructions, see: docs/github-token-setup.md"
     exit 1
   fi
 
@@ -205,6 +214,7 @@ authenticate() {
     log_success "Authenticated to ${REGISTRY}"
   else
     log_error "Authentication failed"
+    log_error "Verify your GITHUB_TOKEN has the correct scopes: write:packages, read:packages"
     exit 1
   fi
 }
