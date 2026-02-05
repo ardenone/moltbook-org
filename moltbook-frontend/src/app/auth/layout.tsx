@@ -1,6 +1,9 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 
+// Force dynamic rendering to avoid SSG build issues with React Context
+export const dynamic = 'force-dynamic';
+
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-muted/30 p-4">

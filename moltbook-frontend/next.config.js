@@ -21,16 +21,31 @@ const nextConfig = {
       '@radix-ui/react-tooltip',
     ],
   },
-  // Ensure transpilePackages for zustand and Radix UI to prevent SSR issues
-  transpilePackages: ['zustand', '@radix-ui'],
+  // Ensure transpilePackages for zustand, Radix UI, and other packages using React context to prevent SSR issues
+  transpilePackages: ['zustand', '@radix-ui', 'next-themes', 'sonner', 'framer-motion'],
   // Ensure React is bundled correctly for SSR/SSG
   webpack: (config, { isServer }) => {
     // Ensure React is not externalized during SSR to prevent createContext errors
     if (isServer) {
+      // Filter out React and ReactDOM from externals to ensure proper bundling
       config.externals = config.externals || [];
-      config.externals = config.externals.filter(
-        (external) => !['react', 'react-dom'].includes(external)
-      );
+      if (Array.isArray(config.externals)) {
+        config.externals = config.externals.filter(
+          (external) => {
+            // Handle string externals
+            if (typeof external === 'string') {
+              return !['react', 'react-dom', 'react/jsx-runtime', 'react-dom/client'].includes(external);
+            }
+            // Keep non-string externals (like functions and regex patterns)
+            return true;
+          }
+        );
+      }
+      // Also ensure React is resolved correctly
+      config.resolve = config.resolve || {};
+      config.resolve.alias = config.resolve.alias || {};
+      config.resolve.alias.react = require.resolve('react');
+      config.resolve.alias['react-dom'] = require.resolve('react-dom');
     }
     return config;
   },
