@@ -53,15 +53,19 @@ Error from server (Forbidden): User cannot impersonate serviceaccounts
 
 ### Action Bead Created
 
-**Bead ID**: `mo-218h`
+**Bead ID**: `mo-21wr`
 **Priority**: 0 (Critical)
-**Title**: ADMIN: Cluster Admin Action - Apply ArgoCD RBAC for mo-1fgm
+**Title**: BLOCKER: ArgoCD installation requires cluster-admin RBAC
 
 ### Commands for Cluster Admin
 
+**Simplified approach** (reuse existing argocd-manager-role ClusterRole):
+
 ```bash
-# Step 1: Apply RBAC grant (enables devpod to install ArgoCD)
-kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml
+# Step 1: Create ClusterRoleBinding to bind devpod SA to existing argocd-manager-role
+kubectl create clusterrolebinding devpod-argocd-manager \
+  --clusterrole=argocd-manager-role \
+  --serviceaccount=devpod:default
 
 # Step 2: (Alternative) Direct installation by cluster-admin
 kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
@@ -138,7 +142,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 
 ### Blockers Created by This Task
 
-- **mo-218h** (P0): ADMIN: Cluster Admin Action - Apply ArgoCD RBAC for mo-1fgm
+- **mo-21wr** (P0): BLOCKER: ArgoCD installation requires cluster-admin RBAC
 
 ### Related Beads (Blocked)
 
@@ -247,9 +251,7 @@ kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller
 
 ## Related Blocker Beads (2026-02-05)
 
-- **mo-218h** (P0): ADMIN: Cluster Admin Action - Apply ArgoCD RBAC for mo-1fgm - OPEN
-- **mo-1l3s** (P0): ADMIN: Cluster Admin Action - Apply ARGOCD_SETUP_REQUEST.yml for mo-1fgm - OPEN
-- **mo-hhbp** (P0): BLOCKER: Cluster-admin needed to apply ArgoCD RBAC permissions - OPEN
+- **mo-21wr** (P0): BLOCKER: ArgoCD installation requires cluster-admin RBAC - OPEN
 - **mo-1fgm** (P1): CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments - BLOCKED
 
 **Documentation**: See `BLOCKER_STATUS.md` for detailed blocker resolution steps.
