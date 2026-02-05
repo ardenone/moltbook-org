@@ -245,6 +245,7 @@ kubectl get pods -n argocd
 ---
 
 **Prepared by**: Claude Code (mo-17ws)
-**Last Updated**: 2026-02-05 12:58 UTC
+**Last Updated**: 2026-02-05 13:02 UTC
 **Status**: Awaiting cluster-admin action
 **Estimated Time for Cluster-Admin**: 1 minute (single kubectl command)
+**Blocker Bead**: mo-1fbe (P0) - Tracks cluster-admin action requirement
