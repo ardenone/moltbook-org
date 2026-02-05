@@ -29,10 +29,10 @@ resources:
 images:
   - name: ghcr.io/ardenone/moltbook-api
     newName: ghcr.io/ardenone/moltbook-api
-    newTag: 7fc9e53
+    newTag: 6a24679
   - name: ghcr.io/ardenone/moltbook-frontend
     newName: ghcr.io/ardenone/moltbook-frontend
-    newTag: 7fc9e53
+    newTag: 6a24679
 
 labels:
   - pairs:
