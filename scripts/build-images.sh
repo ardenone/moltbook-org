@@ -281,10 +281,32 @@ build_image() {
   )
 
   # Build
-  if $CONTAINER_CMD build "${build_args[@]}" "${context}"; then
+  local build_output
+  if build_output=$($CONTAINER_CMD build "${build_args[@]}" "${context}" 2>&1); then
     log_success "Built ${image_tag}"
   else
-    log_error "Failed to build ${image_tag}"
+    # Check for overlay filesystem error
+    if echo "$build_output" | grep -q "overlay.*invalid argument"; then
+      log_error "Failed to build ${image_tag}"
+      log_error ""
+      log_error "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      log_error "DETECTED: Overlay filesystem error (nested overlayfs not supported)"
+      log_error "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      log_error ""
+      log_error "You are likely in a containerized environment (devpod, Kubernetes, etc.)"
+      log_error "where Docker-in-Docker cannot create nested overlay filesystems."
+      log_error ""
+      log_error "RECOMMENDED SOLUTIONS:"
+      log_error "  1. ./scripts/build-images-devpod.sh --watch (triggers GitHub Actions)"
+      log_error "  2. gh workflow run build-push.yml (GitHub Actions directly)"
+      log_error "  3. ./scripts/kaniko-build.sh --all (in-cluster Kaniko builds)"
+      log_error "  4. Run on your local machine with Docker installed"
+      log_error ""
+      log_error "See DOCKER_BUILD_SOLUTIONS.md for complete documentation."
+      log_error "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    else
+      log_error "Failed to build ${image_tag}"
+    fi
     exit 1
   fi
 
