@@ -84,32 +84,58 @@ When pnpm runs with `--store-dir /tmp/pnpm-store`:
 | `nfs-synology` | synology-nfs | Network storage, shared across nodes |
 | `proxmox-local-lvm` | csi.proxmox.sinextra.dev | Proxmox LVM, high performance |
 
-## Long-term Solutions (Not Implemented)
+## Recommended Solution: Devpod Recreation (REQUIRED)
 
-### Option 1: Migrate to local-path Storage (Recommended)
+### Why This Is Necessary
+
+1. **Filesystem corruption is irreversible** without offline fsck
+2. **Workarounds have degraded** - previous methods no longer work
+3. **PVC is only 16 days old** - minimal data to lose
+4. **All code is in git** - can be re-cloned
+5. **Longhorn volume healthy at block level** - new PVC will be fine
+
+### Steps to Recreate Devpod
+
+```bash
+# 1. Ensure all work is committed to git
+cd /home/coder/Research/moltbook-org
+git status
+git add .
+git commit -m "WIP: Saving state before devpod recreation"
+
+# 2. Delete the devpod deployment (stops the pod)
+kubectl delete deployment coder-jeda-codespace -n devpod
+
+# 3. Delete the PVC (WARNING: Deletes ALL data in /home/coder)
+kubectl delete pvc coder-jeda-codespace-home -n devpod
+
+# 4. Recreate devpod via devpod CLI or ArgoCD
+# The new devpod will get a fresh PVC with clean filesystem
+```
+
+### What Will Be Lost
+- Local node_modules (can be reinstalled)
+- Any local config files not in git
+- Any uncommitted work
+- Build artifacts (.next, dist, etc.)
+
+### What Will Be Preserved
+- All git repos (can be re-cloned)
+- Remote configurations
+- Container images
+- External services
+
+## Long-term Solutions (After Recreation)
+
+### Option 1: Use local-path Storage for New Devpod (Recommended)
 - Faster performance (local SSD)
 - Avoids Longhorn filesystem issues
 - Single-node limitation acceptable for devpod
 
-### Option 2: Migrate to proxmox-local-lvm
-- High performance via Proxmox LVM
-- Better I/O characteristics
-- Proxmox-native storage
-
-### Option 3: Recreate Longhorn PVC
-- Fresh filesystem may resolve corruption
-- Risk of corruption recurring
-- Requires devpod recreation
-
-## Action Items Created
-
-1. **mo-9i6u** - Infrastructure: Migrate devpod PVC from Longhorn to local-path storage
-   - Priority: 1 (High)
-   - Description: Plan and execute migration to eliminate Longhorn filesystem issues
-
-2. **mo-9i6v** - Infrastructure: Document Longhorn vs local-path storage class comparison
-   - Priority: 2 (Normal)
-   - Description: Create decision matrix for storage class selection
+### Option 2: Stay on Longhorn with Monitoring
+- Fresh PVC should work fine
+- Add Longhorn volume monitoring
+- Set up alerts for volume degradation
 
 ## Related Beads
 
@@ -119,21 +145,39 @@ When pnpm runs with `--store-dir /tmp/pnpm-store`:
 ## Scripts Created
 
 1. `scripts/pvc-health-check.sh` - Comprehensive PVC health diagnostic tool
-2. `scripts/npm-install-workaround.sh` - Automated workaround implementation
+2. `scripts/npm-install-workaround.sh` - Automated workaround implementation (NO LONGER EFFECTIVE)
 
-## How to Use the Workaround
+## Comparison: Previous vs Current Status
 
-```bash
-# In moltbook-frontend directory
-cd /home/coder/Research/moltbook-org/moltbook-frontend
+### Previous Status (BLOCKER_MO_1RP9, Earlier 2026-02-05)
+- Workaround using `/tmp` + tar transfer was **SUCCESSFUL**
+- node_modules: 2.2GB, 764 packages
+- Build: Working with Turbopack
+- Method: `pnpm install --store-dir /tmp/pnpm-store` + tar transfer
 
-# Use pnpm with /tmp store
-npx pnpm install --store-dir /tmp/pnpm-store
-
-# Or use the health check script with --fix flag
-./scripts/pvc-health-check.sh --fix
-```
+### Current Status (MO-9I6T, 2026-02-05 12:35)
+- **Same workaround now FAILS**
+- node_modules: 60MB (incomplete)
+- Build: Cannot run - Next.js binary not found
+- Corruption has **worsened** significantly
 
 ## Conclusion
 
-**Status:** Development is UNBLOCKED via workaround. The underlying Longhorn PVC filesystem corruption remains unresolved but does not prevent development work. Migration to a different storage class (local-path or proxmox-local-lvm) is recommended during the next maintenance window.
+**Status:** Development is **BLOCKED**. The Longhorn PVC filesystem corruption has worsened beyond the point where workarounds are viable. Devpod recreation with a fresh PVC is the **only guaranteed solution** to restore normal operations.
+
+**Next Steps:**
+1. **User approval required** for devpod recreation
+2. Backup any critical uncommitted data
+3. Execute devpod recreation procedure
+4. Verify npm install works on new PVC
+5. Consider using local-path storage class for new devpod
+
+---
+
+## Analysis Completed
+
+**Date:** 2026-02-05
+**Analysis Duration:** ~15 minutes
+**Methods Attempted:** 4 (direct install, tar transfer, rsync, shamefully-hoist)
+**All Methods:** Failed due to filesystem corruption
+**Recommendation:** Devpod recreation with fresh PVC
