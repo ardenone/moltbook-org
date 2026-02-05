@@ -10,11 +10,12 @@
 # The argocd-install.yml contains the official ArgoCD installation manifest from:
 # https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 #
-# VERIFICATION STATUS (2026-02-05 05:23 UTC):
+# VERIFICATION STATUS (2026-02-05 12:34 UTC):
 # - ArgoCD namespace: NOT FOUND (confirmed via kubectl get namespace argocd)
 # - argocd-manager-role ClusterRole: EXISTS (wildcard permissions, reusable)
 # - argocd-manager-role-binding: EXISTS but bound to kube-system:argocd-manager
 # - devpod ServiceAccount permissions: INSUFFICIENT for creating ClusterRoleBindings
+# - ClusterRoleBinding devpod-argocd-manager: NOT FOUND (needs cluster-admin action)
 #   - Cannot create namespaces (cluster-scoped resource)
 #   - Cannot create customresourcedefinitions (cluster-scoped resource)
 #   - Cannot create clusterrolebindings (cluster-scoped resource)
