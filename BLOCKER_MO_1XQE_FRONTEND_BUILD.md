@@ -163,6 +163,9 @@ kubectl get pods -n moltbook -l app=moltbook-frontend -w
 |------|---------|
 | `moltbook-frontend/package.json` | Dependencies and build config |
 | `moltbook-frontend/Dockerfile` | Container image build |
+| `moltbook-frontend/BUILD_INSTRUCTIONS.md` | Frontend-specific build instructions |
+| `moltbook-frontend/build-local.sh` | Local build script (no Docker required) |
+| `moltbook-frontend/README.md` | Project README with Node.js 20+ requirements |
 | `.github/workflows/build-images.yml` | GitHub Actions CI/CD |
 | `scripts/kaniko-build.sh` | Kaniko build helper |
 | `k8s/frontend/deployment.yml` | Kubernetes deployment |
