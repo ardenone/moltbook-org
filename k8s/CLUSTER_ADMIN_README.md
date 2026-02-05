@@ -12,6 +12,7 @@
   - All Kubernetes manifests: **READY** in k8s/
   - Container images: **PUSHED** to ghcr.io/ardenone/
 - Blocker beads documenting this issue:
+  - **mo-3pjf** - CLUSTER-ADMIN: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE (2026-02-05)
   - **mo-1nen** - Admin: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE
   - **mo-37ac** - ADMIN: Create moltbook namespace and RBAC (cluster-admin required) - ACTIVE (2026-02-05)
   - **mo-1rgl** - Fix: RBAC for moltbook namespace creation - BLOCKED (waiting for cluster-admin)
