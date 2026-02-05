@@ -91,8 +91,9 @@ const nextConfig = {
     return config;
   },
 
-  // Turbopack configuration for Next.js 16
-  // Note: Using empty turbopack config to maintain webpack compatibility
+  // CRITICAL: Empty turbopack config to use webpack instead
+  // Next.js 16 uses Turbopack by default, but we have custom webpack config
+  // Setting turbopack to {} explicitly tells Next.js to fall back to webpack
   turbopack: {},
 
   typedRoutes: false,
