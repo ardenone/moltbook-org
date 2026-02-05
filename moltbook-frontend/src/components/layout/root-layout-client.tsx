@@ -7,7 +7,7 @@ import { Providers } from '@/components/providers';
 
 export function RootLayoutClient({ children }: { children: ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange suppressHydrationWarning>
       <Providers>
         {children}
         <Toaster position="bottom-right" richColors closeButton />
