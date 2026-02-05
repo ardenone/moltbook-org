@@ -12,7 +12,11 @@ import { User, Bell, Palette, Shield, LogOut, Save, Trash2, AlertTriangle } from
 import { cn, getInitials } from '@/lib/utils';
 import { api } from '@/lib/api';
 import { useTheme } from 'next-themes';
-import * as TabsPrimitive from '@radix-ui/react-tabs';
+
+// CRITICAL: Using custom tab implementation instead of Radix Tabs
+// to avoid duplicate Context initialization during Next.js build.
+// Direct imports of @radix-ui/react-tabs can cause createContext errors when
+// Next.js analyzes components during the build phase.
 
 
 export default function SettingsPage() {

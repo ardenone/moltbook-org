@@ -46,10 +46,35 @@ const nextConfig = {
     ],
   },
 
-  // CRITICAL: Use webpack instead of Turbopack for compatibility
-  // Turbopack is default in Next.js 16 but we need webpack for the fallback config
+  // CRITICAL: Webpack configuration to prevent createContext errors during Docker build
+  // The issue occurs because Next.js tries to analyze client-only packages during
+  // the SSG build phase, which use React Context internally.
   webpack: (config, { isServer }) => {
-    if (!isServer) {
+    if (isServer) {
+      // CRITICAL: On server build, exclude all client-only packages from being bundled
+      // This prevents Next.js from trying to execute createContext during build
+      config.externals = config.externals || [];
+      const clientOnlyPackages = [
+        'next-themes',
+        'sonner',
+        'framer-motion',
+        'react-hot-toast',
+        'swr',
+        'zustand',
+      ];
+      if (Array.isArray(config.externals)) {
+        config.externals.push(...clientOnlyPackages);
+      } else if (typeof config.externals === 'function') {
+        const originalExternals = config.externals;
+        config.externals = ({ context, request }, callback) => {
+          if (clientOnlyPackages.some(pkg => request === pkg || request.startsWith(pkg + '/'))) {
+            return callback(null, 'commonjs ' + request);
+          }
+          return originalExternals({ context, request }, callback);
+        };
+      }
+    } else {
+      // Client-side: disable Node.js polyfills that aren't needed in browser
       config.resolve.fallback = {
         ...config.resolve.fallback,
         fs: false,
@@ -74,6 +99,7 @@ const nextConfig = {
     'framer-motion',
     'react-hot-toast',
     'swr',
+    'zustand',
   ],
 };
 
