@@ -128,9 +128,11 @@ kubectl auth can-i use clusterrole/argocd-manager-role
 
 ## Files Prepared
 
-1. **ARGOCD_SETUP_REQUEST.yml** - Simplified RBAC instructions (reuse existing argocd-manager-role)
-2. **argocd-install.yml** - Official ArgoCD v2.13+ installation manifest (1.8MB)
-3. **ARGOCD_INSTALL_REQUIRED.md** - Cluster admin action guide
+1. **CLUSTER_ADMIN_ACTION.yml** - Single ClusterRoleBinding manifest (simplified approach)
+2. **CLUSTER_ADMIN_ACTION_REQUIRED.md** - Detailed cluster admin instructions
+3. **ARGOCD_SETUP_REQUEST.yml** - Alternative RBAC setup (creates new ClusterRole)
+4. **argocd-install.yml** - Official ArgoCD v2.13+ installation manifest (1.8MB)
+5. **ARGOCD_INSTALL_REQUIRED.md** - Cluster admin action guide
 
 ---
 
@@ -160,7 +162,10 @@ kubectl auth can-i use clusterrole/argocd-manager-role
 To resolve this blocker, a cluster-admin must:
 
 ```bash
-# Step 1: Create ClusterRoleBinding to bind devpod SA to existing argocd-manager-role
+# Step 1: Create ClusterRoleBinding (simplified approach - recommended)
+kubectl apply -f cluster-configuration/ardenone-cluster/argocd/CLUSTER_ADMIN_ACTION.yml
+
+# OR equivalently via kubectl create:
 kubectl create clusterrolebinding devpod-argocd-manager \
   --clusterrole=argocd-manager-role \
   --serviceaccount=devpod:default
@@ -184,7 +189,7 @@ kubectl apply -f /home/coder/Research/moltbook-org/k8s/argocd-application.yml
 
 ---
 
-**Last Updated**: 2026-02-05 05:20 UTC
+**Last Updated**: 2026-02-05 05:23 UTC
 **Status**: 🔴 BLOCKED - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
-**Related Beads**: mo-1fgm (task), mo-1l3s (P0 - cluster-admin action required)
+**Related Beads**: mo-1fgm (task), mo-21wr (P0 - cluster-admin action required)

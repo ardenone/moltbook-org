@@ -1,9 +1,10 @@
 # ArgoCD Installation Blocker - mo-y5o
 
-**Bead ID**: mo-y5o
+**Bead ID**: mo-1fgm (related to mo-y5o)
 **Status**: BLOCKED - Requires Cluster Admin Action
 **Priority**: P0 (Critical)
-**Date**: 2026-02-04
+**Date**: 2026-02-05
+**Updated**: Consolidating duplicate P0 beads for ArgoCD installation
 
 ## Executive Summary
 
@@ -47,7 +48,10 @@ This creates:
 From the devpod, run:
 
 ```bash
-# Install ArgoCD
+# Option 1: Install ArgoCD from local manifest (faster, no network dependency)
+kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
+
+# Option 2: Install ArgoCD from upstream (latest version)
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
 # Wait for ArgoCD to be ready

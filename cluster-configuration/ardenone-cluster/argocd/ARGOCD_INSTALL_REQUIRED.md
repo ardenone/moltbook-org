@@ -14,6 +14,17 @@ The Moltbook platform deployment is **blocked** because ArgoCD is not installed 
 
 ### Install ArgoCD
 
+**Prerequisite**: First, a cluster-admin must create the ClusterRoleBinding:
+
+```bash
+# From a cluster-admin workstation:
+kubectl create clusterrolebinding devpod-argocd-manager \
+  --clusterrole=argocd-manager-role \
+  --serviceaccount=devpod:default
+```
+
+**Then, from the devpod:**
+
 ```bash
 # Apply the official ArgoCD manifest
 kubectl apply -f cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
