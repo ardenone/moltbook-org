@@ -10,7 +10,7 @@
 # The argocd-install.yml contains the official ArgoCD installation manifest from:
 # https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 #
-# VERIFICATION STATUS (2026-02-05 12:34 UTC):
+# VERIFICATION STATUS (2026-02-05 12:45 UTC):
 # - ArgoCD namespace: NOT FOUND (confirmed via kubectl get namespace argocd)
 # - argocd-manager-role ClusterRole: EXISTS (wildcard permissions, reusable)
 # - argocd-manager-role-binding: EXISTS but bound to kube-system:argocd-manager
