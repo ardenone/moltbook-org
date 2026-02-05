@@ -3,7 +3,7 @@
 **Task**: mo-3ttq - Deploy: Complete Moltbook deployment to ardenone-cluster (waiting for RBAC)
 **Date**: 2026-02-06 (Updated 10:32 UTC)
 **Status**: 🔴 BLOCKED - Requires cluster-admin privileges
-**Latest Verification**: Namespace/ArgoCD not exist, RBAC block confirmed. 24+ duplicate P0 blockers exist. Cluster-admin action required. k8s/ manifests validated (1055 lines, 21+ resources).
+**Latest Verification**: Namespace/ArgoCD not exist, RBAC block confirmed. 24+ duplicate P0 blockers exist. Cluster-admin action required. k8s/ manifests validated (1055 lines, 21+ resources). Active P0 blockers: mo-1nen, mo-2mws, mo-3uep, mo-11z8. Argo Rollouts CRDs installed (NOT ArgoCD). SealedSecret CRD installed.
 
 ---
 
@@ -711,6 +711,16 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 | 2026-02-05 10:20 UTC | SealedSecrets verified | ✅ 3 sealed secrets ready (API, DB, superuser) | mo-3ttq (claude-glm-delta) |
 | 2026-02-05 10:20 UTC | Existing P0 blockers | ✅ 30+ duplicate P0 blockers confirmed (NOT creating new) | mo-3ttq (claude-glm-delta) |
 | 2026-02-05 10:20 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-delta) |
+| 2026-02-06 10:30 UTC | External ArgoCD health | ✅ OK (argocd-manager.ardenone.com/healthz returns 200) | mo-orzh (claude-glm-hotel) |
+| 2026-02-06 10:30 UTC | argocd-proxy deployment | ✅ Running (devpod namespace, 48d old) | mo-orzh (claude-glm-hotel) |
+| 2026-02-06 10:30 UTC | argocd-proxy service | ✅ ClusterIP: 10.43.174.252:8080 | mo-orzh (claude-glm-hotel) |
+| 2026-02-06 10:30 UTC | argocd-readonly secret | ❌ Expired/invalid token (auth error: "account devpod-readonly does not have token") | mo-orzh (claude-glm-hotel) |
+| 2026-02-06 10:30 UTC | ArgoCD Applications query | ❌ Blocked (token expired - error code 16) | mo-orzh (claude-glm-hotel) |
+| 2026-02-06 10:30 UTC | ArgoCD ApplicationSets query | ❌ Blocked (token expired - error code 16) | mo-orzh (claude-glm-hotel) |
+| 2026-02-06 10:30 UTC | Local ArgoCD CRDs | ❌ Not installed (only Argo Rollouts present) | mo-orzh (claude-glm-hotel) |
+| 2026-02-06 10:30 UTC | moltbook namespace | ❌ NotFound (external ArgoCD cannot sync without namespace) | mo-orzh (claude-glm-hotel) |
+| 2026-02-06 10:30 UTC | Related blockers | ✅ mo-sg2v (P0: Create ApplicationSet), mo-dbl7 (P0: Fix expired token), mo-3r0e (P0: Use external ArgoCD) | mo-orzh (claude-glm-hotel) |
+| 2026-02-06 10:30 UTC | Task status | 🔴 BLOCKED - Cannot verify ApplicationSet due to expired token | mo-orzh (claude-glm-hotel) |
 | 2026-02-06 10:32 UTC | Namespace `moltbook` | ❌ NotFound | mo-3ttq (claude-glm-bravo) |
 | 2026-02-06 10:32 UTC | ArgoCD namespace | ❌ NotFound | mo-3ttq (claude-glm-bravo) |
 | 2026-02-06 10:32 UTC | SealedSecret CRD | ✅ Installed (sealedsecrets.bitnami.com) | mo-3ttq (claude-glm-bravo) |
@@ -734,6 +744,17 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 | 2026-02-06 10:32 UTC | SealedSecrets verified | ✅ 3 sealed secrets ready (API, DB, superuser) | mo-3ttq (claude-glm-delta) |
 | 2026-02-06 10:32 UTC | Existing P0 blockers | ✅ 24+ duplicate P0 blockers confirmed (NOT creating new) | mo-3ttq (claude-glm-delta) |
 | 2026-02-06 10:32 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-delta) |
+| 2026-02-05 10:40 UTC | Namespace `moltbook` | ❌ NotFound | mo-3ttq (claude-glm-charlie) |
+| 2026-02-05 10:40 UTC | ArgoCD namespace | ❌ NotFound | mo-3ttq (claude-glm-charlie) |
+| 2026-02-05 10:40 UTC | Argo Rollouts CRDs | ✅ Found (argoproj.io - NOT ArgoCD) | mo-3ttq (claude-glm-charlie) |
+| 2026-02-05 10:40 UTC | SealedSecret CRD | ✅ Installed (sealedsecrets.bitnami.com) | mo-3ttq (claude-glm-charlie) |
+| 2026-02-05 10:40 UTC | Devpod SA create namespace | ❌ Forbidden (cannot impersonate serviceaccounts) | mo-3ttq (claude-glm-charlie) |
+| 2026-02-05 10:40 UTC | kubectl kustomize k8s/ | ✅ Validated (24+ resources) | mo-3ttq (claude-glm-charlie) |
+| 2026-02-05 10:40 UTC | k8s/ manifests verified | ✅ All manifests ready | mo-3ttq (claude-glm-charlie) |
+| 2026-02-05 10:40 UTC | Container images verified | ✅ ghcr.io/ardenone/moltbook-api:latest, ghcr.io/ardenone/moltbook-frontend:latest | mo-3ttq (claude-glm-charlie) |
+| 2026-02-05 10:40 UTC | SealedSecrets verified | ✅ 3 sealed secrets ready (API, DB, superuser) | mo-3ttq (claude-glm-charlie) |
+| 2026-02-05 10:40 UTC | Existing P0 blockers | ✅ mo-1nen, mo-2mws, mo-3uep, mo-11z8 confirmed (NOT creating new) | mo-3ttq (claude-glm-charlie) |
+| 2026-02-05 10:40 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-charlie) |
 | 2026-02-06 10:35 UTC | Namespace `moltbook` | ❌ NotFound | mo-3ttq (claude-glm-bravo) |
 | 2026-02-06 10:35 UTC | ArgoCD namespace | ❌ NotFound | mo-3ttq (claude-glm-bravo) |
 | 2026-02-06 10:35 UTC | ClusterRole `namespace-creator` | ❌ NotFound | mo-3ttq (claude-glm-bravo) |

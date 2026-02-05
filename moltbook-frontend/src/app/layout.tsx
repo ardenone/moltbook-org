@@ -39,14 +39,14 @@ export const metadata: Metadata = {
 
 import type { ReactNode } from 'react';
 
-// CRITICAL: Direct import of RootLayoutClient for React 19 + Next.js 15
+// CRITICAL: Direct import of RootLayoutClient for React 19 + Next.js 16
 //
-// Root Cause: In Next.js 15 with React 19, the 'ssr: false' option for dynamic imports
-// is deprecated and causes build errors. Context APIs work correctly in React 19 when
-// components are properly marked with 'use client'.
+// Root Cause: In Next.js 16 with React 19, the 'ssr: false' option for dynamic imports
+// is deprecated. Context APIs work correctly in React 19 when components are properly
+// marked with 'use client' and the configuration is set to force dynamic rendering.
 //
-// Solution: Direct imports work correctly with React 19 + Next.js 15. The 'use client'
-// directive in RootLayoutClient ensures it only runs on the client side.
+// Solution: Direct imports with 'use client' work correctly. The 'force-dynamic' config
+// and 'revalidate: 0' ensure Next.js never tries to statically generate during build.
 
 import { RootLayoutClient } from '@/components/layout';
 

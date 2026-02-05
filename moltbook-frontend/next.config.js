@@ -52,34 +52,11 @@ const nextConfig = {
     ],
   },
 
-  // CRITICAL: Webpack configuration to prevent createContext errors during Docker build
-  // The issue occurs because Next.js tries to analyze client-only packages during
-  // the SSG build phase, which use React Context internally.
+  // CRITICAL: Webpack configuration for React 19 + Next.js 16
+  // With 'force-dynamic' and proper 'use client' directives, we only need
+  // basic client-side fallback configuration. React 19 handles SSR correctly.
   webpack: (config, { isServer }) => {
-    if (isServer) {
-      // CRITICAL: On server build, exclude all client-only packages from being bundled
-      // This prevents Next.js from trying to execute createContext during build
-      config.externals = config.externals || [];
-      const clientOnlyPackages = [
-        'next-themes',
-        'sonner',
-        'framer-motion',
-        'react-hot-toast',
-        'swr',
-        'zustand',
-      ];
-      if (Array.isArray(config.externals)) {
-        config.externals.push(...clientOnlyPackages);
-      } else if (typeof config.externals === 'function') {
-        const originalExternals = config.externals;
-        config.externals = ({ context, request }, callback) => {
-          if (clientOnlyPackages.some(pkg => request === pkg || request.startsWith(pkg + '/'))) {
-            return callback(null, 'commonjs ' + request);
-          }
-          return originalExternals({ context, request }, callback);
-        };
-      }
-    } else {
+    if (!isServer) {
       // Client-side: disable Node.js polyfills that aren't needed in browser
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -98,9 +75,8 @@ const nextConfig = {
 
   typedRoutes: false,
 
-  // CRITICAL: Mark all client-only packages as external for server components
-  // This prevents createContext errors during Docker build when Next.js
-  // tries to analyze client-only packages during the SSG phase
+  // CRITICAL: serverExternalPackages - kept for compatibility but not strictly needed
+  // with React 19 + Next.js 16 when using 'force-dynamic' and proper 'use client' directives.
   serverExternalPackages: [
     'next-themes',
     'sonner',
