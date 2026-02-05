@@ -11,19 +11,23 @@ The repository has been configured with automated container image builds via Git
 
 ### Build Status
 
-**Workflow triggered:** `Build Container Images`
-**Run ID:** 21708901319
-**Commit:** 7fc9e53f4350bc185585caebec4b0422fd3b565b
-**Status:** Queued / In Progress
+**Latest Build Status:** COMPLETED SUCCESSFULLY
 
-Monitor the build at:
+**Run ID:** 21708931188 (workflow_dispatch)
+**Status:** Success - 3m10s
+**Jobs:**
+- build-api: 1m17s
+- build-frontend: 3m44s
+- Build Summary: 2s
+
+Monitor builds at:
 ```
-https://github.com/ardenone/moltbook-org/actions/runs/21708901319
+https://github.com/ardenone/moltbook-org/actions/workflows/build-images.yml
 ```
 
-### Images Being Built
+### Images Built
 
-Once the workflow completes, the following images will be available:
+The following images are now available in GHCR:
 
 - **API Image:** `ghcr.io/ardenone/moltbook-api:latest`
 - **Frontend Image:** `ghcr.io/ardenone/moltbook-frontend:latest`
