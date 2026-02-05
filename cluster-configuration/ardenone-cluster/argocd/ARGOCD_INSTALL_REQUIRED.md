@@ -158,7 +158,8 @@ For questions or issues:
 
 ---
 
-**Last Updated**: 2026-02-05
+**Last Updated**: 2026-02-05 05:20 UTC
 **Status**: 🔴 BLOCKER - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
 **Estimated Time**: 5 minutes (one-time setup)
+**Related Beads**: mo-1fgm (task), mo-17ws (P0 - cluster-admin action required)
