@@ -1,8 +1,10 @@
 # ArgoCD Installation Status - ardenone-cluster
 
 **Task**: mo-1fgm - CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments
-**Date**: 2026-02-05 05:24 UTC
+**Date**: 2026-02-05 05:26 UTC
 **Status**: 🔴 BLOCKED - Requires cluster-admin privileges
+
+**Blocker Bead**: mo-21wr (P0) - "BLOCKER: ArgoCD installation requires cluster-admin RBAC"
 
 ---
 
@@ -51,14 +53,17 @@ Error from server (Forbidden): User cannot impersonate serviceaccounts
 
 ### Action Bead Created
 
-**Bead ID**: `mo-2dpt`
+**Bead ID**: `mo-218h`
 **Priority**: 0 (Critical)
-**Title**: ADMIN: Cluster Admin Action - Install ArgoCD in ardenone-cluster
+**Title**: ADMIN: Cluster Admin Action - Apply ArgoCD RBAC for mo-1fgm
 
 ### Commands for Cluster Admin
 
 ```bash
-# Step 1: Install ArgoCD using the official manifest
+# Step 1: Apply RBAC grant (enables devpod to install ArgoCD)
+kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml
+
+# Step 2: (Alternative) Direct installation by cluster-admin
 kubectl apply -f /home/coder/Research/moltbook-org/cluster-configuration/ardenone-cluster/argocd/argocd-install.yml
 
 # Step 2: Wait for ArgoCD pods to be ready (may take 2-3 minutes)
@@ -133,7 +138,7 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.pas
 
 ### Blockers Created by This Task
 
-- **mo-2dpt** (P0): ADMIN: Cluster Admin Action - Install ArgoCD in ardenone-cluster
+- **mo-218h** (P0): ADMIN: Cluster Admin Action - Apply ArgoCD RBAC for mo-1fgm
 
 ### Related Beads (Blocked)
 
@@ -220,15 +225,31 @@ kubectl logs -n argocd -l app.kubernetes.io/name=argocd-application-controller
 
 ## Next Steps
 
-1. **Cluster Admin**: Execute bead **mo-2dpt** to install ArgoCD
-2. **Verify**: Run `kubectl get pods -n argocd` to confirm installation
-3. **Devpod**: Apply Moltbook Application: `kubectl apply -f k8s/argocd-application.yml`
-4. **Verify**: Run `kubectl get application moltbook -n argocd` to confirm sync
+### Option 1: RBAC Grant Approach (Recommended for devpod-based installation)
+1. **Cluster Admin**: Apply RBAC grant: `kubectl apply -f cluster-configuration/ardenone-cluster/argocd/ARGOCD_SETUP_REQUEST.yml`
+2. **Devpod**: Install ArgoCD: `bash k8s/install-argocd.sh`
+3. **Verify**: Run `kubectl get pods -n argocd` to confirm installation
+4. **Devpod**: Apply Moltbook Application: `kubectl apply -f k8s/argocd-application.yml`
+5. **Verify**: Run `kubectl get application moltbook -n argocd` to confirm sync
+
+### Option 2: Direct Cluster-Admin Installation
+1. **Cluster Admin**: Install ArgoCD directly: `kubectl apply -f cluster-configuration/ardenone-cluster/argocd/argocd-install.yml`
+2. **Cluster Admin**: Apply Moltbook Application: `kubectl apply -f k8s/argocd-application.yml`
+3. **Devpod**: Verify: Run `kubectl get application moltbook -n argocd`
 
 ---
 
-**Last Updated**: 2026-02-05 05:24 UTC
-**Verified by**: mo-1fgm (claude-glm-bravo worker)
-**Status**: 🔴 BLOCKED - Awaiting cluster-admin action (mo-2dpt)
+**Last Updated**: 2026-02-05 05:35 UTC
+**Verified by**: mo-1fgm (claude-glm-foxtrot worker)
+**Status**: 🔴 BLOCKED - Awaiting cluster-admin action
 **Priority**: P0 (Critical)
 **Estimated Time**: 5 minutes (one-time cluster setup)
+
+## Related Blocker Beads (2026-02-05)
+
+- **mo-218h** (P0): ADMIN: Cluster Admin Action - Apply ArgoCD RBAC for mo-1fgm - OPEN
+- **mo-1l3s** (P0): ADMIN: Cluster Admin Action - Apply ARGOCD_SETUP_REQUEST.yml for mo-1fgm - OPEN
+- **mo-hhbp** (P0): BLOCKER: Cluster-admin needed to apply ArgoCD RBAC permissions - OPEN
+- **mo-1fgm** (P1): CRITICAL: Install ArgoCD in ardenone-cluster for GitOps deployments - BLOCKED
+
+**Documentation**: See `BLOCKER_STATUS.md` for detailed blocker resolution steps.
