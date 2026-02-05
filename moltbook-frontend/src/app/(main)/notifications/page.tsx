@@ -1,4 +1,8 @@
 'use client';
+
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks';
@@ -7,8 +11,6 @@ import { Button, Card, Avatar, AvatarImage, AvatarFallback, Skeleton, Badge, Tab
 import { Bell, MessageSquare, ArrowBigUp, UserPlus, AtSign, Shield, Check, CheckCheck, Trash2, Settings, Filter } from 'lucide-react';
 import { cn, formatRelativeTime, getInitials } from '@/lib/utils';
 import { toast } from '@/lib/toast';
-
-// Force dynamic rendering to avoid SSG build errors with client-side state
 
 
 interface Notification {
