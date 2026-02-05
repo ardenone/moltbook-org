@@ -1,7 +1,7 @@
 # Moltbook Namespace Creation Blocker
 
-**Date**: 2026-02-04
-**Bead**: mo-3aw - Fix: Create moltbook namespace in ardenone-cluster
+**Date**: 2026-02-05
+**Bead**: mo-13e5 - Blocker: Moltbook namespace creation requires cluster-admin
 **Status**: BLOCKED - Requires Cluster-Admin RBAC Approval
 
 ---
@@ -120,5 +120,13 @@ See `cluster-configuration/ardenone-cluster/argocd/BLOCKER.md` for ArgoCD instal
 
 ---
 
-**Last Updated**: 2026-02-04
-**Bead**: mo-3aw
+## Follow-up Bead Created
+
+**Bead mo-1qjm** - BLOCKER: Cluster-admin must apply RBAC for moltbook namespace creation
+- Priority 0 (Critical)
+- Contains cluster-admin instructions for RBAC/namespace creation
+
+---
+
+**Last Updated**: 2026-02-05
+**Bead**: mo-13e5
