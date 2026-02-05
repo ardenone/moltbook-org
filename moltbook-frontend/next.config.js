@@ -52,11 +52,14 @@ const nextConfig = {
     ],
   },
 
-  // CRITICAL: Disable Turbopack to use webpack instead
-  // Turbopack has workspace inference issues in certain environments
-  // that cause "Next.js inferred your workspace root" errors.
-  // By setting turbopack to null, we force Next.js to use webpack.
-  turbopack: null,
+  // CRITICAL: Enable Turbopack to bypass webpack issuerLayer errors
+  // Turbopack is the recommended bundler for Next.js 16 and avoids the
+  // "Cannot read properties of undefined (reading 'issuerLayer')" webpack bug
+  // that occurs with React 19 + Next.js 16.
+  turbopack: {
+    // Set explicit root to avoid workspace inference warnings
+    root: __dirname,
+  },
 
   typedRoutes: false,
 
