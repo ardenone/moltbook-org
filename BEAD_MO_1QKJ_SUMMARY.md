@@ -104,10 +104,11 @@ docker push ghcr.io/ardenone/moltbook-frontend:latest
 ### API Dockerfile
 
 ```dockerfile
-FROM node:20-alpine AS builder
+FROM node:18-alpine AS builder
 # Build stage with production dependencies
-FROM node:20-alpine
+FROM node:18-alpine
 # Production stage with health checks
+# Node 18 is sufficient for Express.js API
 ```
 
 ### Frontend Dockerfile
@@ -142,6 +143,7 @@ RUN npm ci --legacy-peer-deps --no-audit --no-fund || \
 | mo-1nh | Fix: Docker build overlay filesystem error in devpod | ✅ Completed |
 | mo-3bol | Fix: Docker build environment - node_modules ENOTEMPTY error | ✅ Completed |
 | mo-3t8p | Fix: Docker overlay filesystem prevents image builds in devpod | ✅ Completed |
+| mo-2mz3 | Fix: Update Dockerfile to use Node.js 20+ for Next.js 16 | ✅ Closed (stale) |
 | mo-312j | Fix: Frontend build fails with createContext webpack error | ✅ Completed |
 
 ---
@@ -180,7 +182,10 @@ The Docker overlayfs issue in devpod is **fully resolved** with multiple working
 2. **Kaniko** - In-cluster daemonless builds (recommended for devpod)
 3. **Host Machine** - Manual local builds (for quick testing)
 
-The Node.js version blocker mentioned in the task description has also been resolved by updating both Dockerfiles to use `node:20-alpine`.
+The Node.js version blocker mentioned in the task description has also been resolved:
+- Frontend uses `node:20-alpine` (required for Next.js 16)
+- API uses `node:18-alpine` (sufficient for Express.js)
+- Related bead mo-2mz3 was closed (stale - already fixed in commit e10447b)
 
 ---
 
