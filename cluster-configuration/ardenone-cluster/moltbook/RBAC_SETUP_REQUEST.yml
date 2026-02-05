@@ -6,7 +6,7 @@
 # A cluster-admin MUST apply this with:
 #   kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/RBAC_SETUP_REQUEST.yml
 #
-# VERIFICATION STATUS (2026-02-05 16:10 UTC):
+# VERIFICATION STATUS (2026-02-05 13:23 UTC):
 # - devpod-namespace-creator ClusterRole: NOT FOUND (pending cluster-admin)
 # - devpod-namespace-creator ClusterRoleBinding: NOT FOUND (pending cluster-admin)
 # - moltbook namespace: NOT FOUND (pending cluster-admin)
@@ -16,8 +16,8 @@
 # - REQUIRED ACTION: kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/RBAC_SETUP_REQUEST.yml
 # - ATTEMPT: Failed from devpod (Forbidden: cannot create clusterroles/clusterrolebindings)
 #
-# Verified by: mo-35ca (claude-glm-foxtrot)
-# Previous verifications: mo-1rgl, mo-2j6u, mo-1ts4, mo-138, mo-1e6t, mo-3bz7
+# Verified by: mo-35ca (claude-glm-hotel)
+# Previous verifications: mo-1rgl, mo-2j6u, mo-1ts4, mo-138, mo-1e6t, mo-3bz7, mo-35ca
 #
 # INSTALLATION INSTRUCTIONS (for cluster-admin):
 #   kubectl apply -f cluster-configuration/ardenone-cluster/moltbook/RBAC_SETUP_REQUEST.yml
