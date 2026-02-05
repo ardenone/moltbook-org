@@ -52,18 +52,42 @@ const nextConfig = {
     ],
   },
 
-  // CRITICAL: Turbopack configuration for Next.js 16
-  // Using Turbopack instead of webpack to avoid compatibility issues with
-  // node: prefixed imports in Next.js experimental testmode.
-  // Turbopack properly handles Node.js protocol prefixed imports (node:async_hooks)
-  // that webpack fails to handle correctly during Docker builds.
-  // Note: The build script uses --turbopack flag explicitly
-  turbopack: {
-    // Explicitly set the root directory to avoid workspace inference errors
-    root: __dirname,
-  },
-
   typedRoutes: false,
+
+  // CRITICAL: Webpack configuration for Next.js 16
+  // Fixes "Cannot read properties of undefined (reading 'issuerLayer')" error
+  // that occurs during Docker builds with Next.js 16 + React 19.
+  webpack: (config, { isServer }) => {
+    // CRITICAL: Ensure React and React DOM are always bundled and never externalized
+    // This prevents useContext errors during server-side rendering/prerendering
+    config.externals = config.externals || [];
+    if (Array.isArray(config.externals)) {
+      // Filter out any externals that might externalize react or react-dom
+      config.externals = config.externals.map(external => {
+        if (typeof external === 'function') {
+          return ({ request }, callback) => {
+            if (request === 'react' || request === 'react-dom' || request.startsWith('react/')) {
+              return callback();
+            }
+            return external({ request }, callback);
+          };
+        }
+        return external;
+      });
+    }
+
+    if (!isServer) {
+      // Client-side: disable Node.js polyfills that aren't needed in browser
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        crypto: false,
+      };
+    }
+
+    return config;
+  },
 
   // CRITICAL: serverExternalPackages - kept for compatibility but not strictly needed
   // with React 19 + Next.js 16 when using 'force-dynamic' and proper 'use client' directives.
