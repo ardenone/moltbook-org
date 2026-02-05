@@ -55,7 +55,30 @@ const nextConfig = {
   // CRITICAL: Webpack configuration for React 19 + Next.js 16
   // With 'force-dynamic' and proper 'use client' directives, we only need
   // basic client-side fallback configuration. React 19 handles SSR correctly.
+  //
+  // CRITICAL: Explicitly prevent React and React DOM from being externalized.
+  // This fixes the "TypeError: Cannot read properties of null (reading 'useContext')"
+  // error that can occur during Docker container builds when Next.js attempts to
+  // externalize React modules during prerendering of error pages (404, 500).
   webpack: (config, { isServer }) => {
+    // CRITICAL: Ensure React and React DOM are always bundled and never externalized
+    // This prevents useContext errors during server-side rendering/prerendering
+    config.externals = config.externals || [];
+    if (Array.isArray(config.externals)) {
+      // Filter out any externals that might externalize react or react-dom
+      config.externals = config.externals.map(external => {
+        if (typeof external === 'function') {
+          return ({ request }, callback) => {
+            if (request === 'react' || request === 'react-dom' || request.startsWith('react/')) {
+              return callback();
+            }
+            return external({ request }, callback);
+          };
+        }
+        return external;
+      });
+    }
+
     if (!isServer) {
       // Client-side: disable Node.js polyfills that aren't needed in browser
       config.resolve.fallback = {
@@ -65,6 +88,7 @@ const nextConfig = {
         crypto: false,
       };
     }
+
     return config;
   },
 
@@ -77,6 +101,8 @@ const nextConfig = {
 
   // CRITICAL: serverExternalPackages - kept for compatibility but not strictly needed
   // with React 19 + Next.js 16 when using 'force-dynamic' and proper 'use client' directives.
+  // NOTE: React and React-DOM are NOT included here - they must always be bundled
+  // to prevent "Cannot read properties of null (reading 'useContext')" errors.
   serverExternalPackages: [
     'next-themes',
     'sonner',

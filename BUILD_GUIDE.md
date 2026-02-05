@@ -38,7 +38,31 @@ cd moltbook-org
 
 ## Authentication Methods
 
-### Method 1: Environment Variable (Recommended)
+### Method 1: Local Environment File (Recommended for Devpods)
+
+Create a `.env.local` file in the project root:
+
+```bash
+# Create from template
+cp .env.local.template .env.local
+
+# Edit with your token
+nano .env.local
+```
+
+Edit `.env.local`:
+```bash
+GITHUB_TOKEN=ghp_your_token_here
+GITHUB_USERNAME=ardenone
+```
+
+Then source the environment before building:
+```bash
+source scripts/load-env.sh
+./scripts/build-images.sh --push
+```
+
+### Method 2: Environment Variable
 
 Set the `GITHUB_TOKEN` environment variable before running the build script:
 
@@ -47,7 +71,7 @@ export GITHUB_TOKEN=ghp_your_token_here
 ./scripts/build-images.sh --push
 ```
 
-### Method 2: Podman/Docker Login
+### Method 3: Podman/Docker Login
 
 Login to the registry directly:
 
@@ -320,15 +344,16 @@ kubectl get pods -n moltbook -w
 ## Security Notes
 
 1. **Never commit** your GitHub token to the repository
-2. **Use environment variables** for sensitive credentials
+2. **Use environment variables** for sensitive credentials (`.env.local` is in `.gitignore`)
 3. **Rotate tokens regularly** - GitHub PATs can be revoked and regenerated
 4. **Use SealedSecrets** for production secrets (already implemented in this project)
 
 ## Related Documentation
 
+- [GITHUB_TOKEN Setup Guide](docs/GITHUB_TOKEN_SETUP.md) - Detailed token configuration
 - [Kubernetes Deployment Guide](k8s/README.md)
 - [Deployment Status](DEPLOYMENT_READY.md)
-- [Final Status](FINAL_STATUS.md)
+- [k8s/CICD_DEPLOYMENT.md](k8s/CICD_DEPLOYMENT.md) - CI/CD deployment guide
 
 ## Kubernetes Manifests Validation
 
