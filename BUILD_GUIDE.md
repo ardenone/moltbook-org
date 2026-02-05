@@ -8,6 +8,37 @@ The Moltbook platform requires two container images:
 - `ghcr.io/ardenone/moltbook-api:latest` - Express.js API backend
 - `ghcr.io/ardenone/moltbook-frontend:latest` - Next.js 14 frontend
 
+## ⚠️ Important: Devpod Environment Limitation
+
+**Docker builds will NOT work inside devpod environments** due to overlay filesystem limitations. The devpod runs inside Kubernetes with overlayfs storage, and Docker-in-Docker cannot create nested overlay filesystems.
+
+### REQUIRED WORKAROUND
+
+To build container images, you must run the build script on a **local machine** with Docker installed:
+
+```bash
+# On your local machine (MacOS/Linux workstation)
+git clone <repository-url> moltbook-org
+cd moltbook-org
+
+# Set your GitHub token
+export GITHUB_TOKEN=ghp_your_token_here
+
+# Build and push images
+./scripts/build-images.sh --push
+```
+
+### Alternative Solutions for Devpod Users
+
+If you're working in a devpod and cannot build locally:
+
+1. **GitHub Actions** (Recommended) - Push to main to trigger automatic builds
+2. **Kaniko** - Build in-cluster using `./scripts/kaniko-build.sh --all`
+
+See [DOCKER_BUILD_SOLUTIONS.md](./DOCKER_BUILD_SOLUTIONS.md) for complete details.
+
+---
+
 ## Prerequisites
 
 ### 1. GitHub Container Registry Access

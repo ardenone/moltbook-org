@@ -8,25 +8,29 @@
 # This script will NOT work in devpod/containerized environments due to
 # overlay filesystem limitations. Docker/Podman cannot build images inside containers.
 #
+# The devpod environment is detected automatically and the script will exit
+# with helpful instructions for alternative build methods.
+#
 # REQUIRED WORKAROUND:
 #   Run this script on a local machine with Docker installed:
 #
 #   ./scripts/build-images.sh --push
 #
 # PREREQUISITES for local build:
-#   1. Docker or Podman installed on your local machine
+#   1. Docker or Podman installed on your local machine (NOT in devpod)
 #   2. GITHUB_TOKEN environment variable set (with write:packages scope)
 #   3. Clone this repository on your local machine
 #
-# Example:
+# Example (run on your local machine):
 #   git clone <repo-url> moltbook-org
 #   cd moltbook-org
 #   export GITHUB_TOKEN=ghp_your_token_here
 #   ./scripts/build-images.sh --push
 #
-# ALTERNATIVES:
-#   - GitHub Actions: .github/workflows/build-images.yml (automatic on push)
-#   - Kaniko: ./scripts/kaniko-build.sh --all (in-cluster builds)
+# ALTERNATIVES (if you're in devpod):
+#   - GitHub Actions: gh workflow run build-push.yml (external CI/CD builds)
+#   - Kaniko: ./scripts/kaniko-build.sh --all (in-cluster daemonless builds)
+#   - Helper: ./scripts/build-images-devpod.sh --watch (triggers GitHub Actions)
 # ========================================================================
 #
 # Usage:
@@ -144,24 +148,40 @@ check_prerequisites() {
       log_warning ""
     else
       log_error "=========================================="
-      log_error "ERROR: Running inside a Docker container!"
+      log_error "ERROR: Running inside a containerized environment!"
       log_error "=========================================="
       log_error ""
       log_error "Docker/Podman cannot build images inside containers due to overlay"
-      log_error "filesystem limitations (nested overlayfs is not supported)."
+      log_error "filesystem limitations (nested overlayfs is not supported by the kernel)."
       log_error ""
+      log_error "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
       log_error "RECOMMENDED SOLUTIONS:"
-      log_error "  1. Use GitHub Actions: .github/workflows/build-images.yml (automatic on push)"
-      log_error "  2. Build locally from your machine (not from devpod/container)"
-      log_error "  3. Use kaniko: kubectl apply -f scripts/build-with-kaniko.yml"
+      log_error "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
       log_error ""
-      log_error "To force build anyway (experimental), use: --force"
-      log_error "To build images, run this script from a non-containerized environment:"
-      log_error "  - Your local machine with Docker/Podman installed"
-      log_error "  - A VM or physical server"
-      log_error "  - GitHub Actions runner (automatic workflow)"
+      log_error "1. EASIEST: Use the GitHub Actions helper script (from devpod)"
+      log_error "   ./scripts/build-images-devpod.sh --watch"
       log_error ""
-      log_error "See documentation for more details."
+      log_error "2. AUTOMATED: Trigger GitHub Actions workflow directly"
+      log_error "   gh workflow run build-push.yml"
+      log_error "   gh run watch"
+      log_error ""
+      log_error "3. IN-CLUSTER: Use Kaniko (daemonless builder, no Docker required)"
+      log_error "   ./scripts/kaniko-build.sh --all"
+      log_error ""
+      log_error "4. MANUAL: Build on your local machine (NOT in devpod)"
+      log_error "   git clone <repo-url> moltbook-org"
+      log_error "   cd moltbook-org"
+      log_error "   export GITHUB_TOKEN=ghp_your_token_here"
+      log_error "   ./scripts/build-images.sh --push"
+      log_error ""
+      log_error "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+      log_error ""
+      log_error "To force build anyway (experimental, likely to fail), use: --force"
+      log_error ""
+      log_error "See documentation:"
+      log_error "  - BUILD_GUIDE.md - Comprehensive build guide"
+      log_error "  - DOCKER_BUILD_SOLUTIONS.md - All available solutions"
+      log_error "  - DOCKER_BUILD_WORKAROUND.md - Technical details"
       exit 1
     fi
   fi
