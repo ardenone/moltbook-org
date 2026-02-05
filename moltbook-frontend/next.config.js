@@ -1,8 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // CRITICAL: Disable reactStrictMode for React 19 + Next.js 16
-  // Strict mode double-invocation during build can cause createContext errors
-  reactStrictMode: false,
+  reactStrictMode: true,
 
   productionBrowserSourceMaps: false,
 
@@ -32,6 +30,22 @@ const nextConfig = {
     ],
   },
 
+  experimental: {
+    // Next.js 16: optimizePackageImports moved to experimental
+    optimizePackageImports: [
+      'lucide-react',
+      '@radix-ui/react-avatar',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-scroll-area',
+      '@radix-ui/react-select',
+      '@radix-ui/react-switch',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-tooltip',
+    ],
+  },
+
   // CRITICAL: Use webpack instead of Turbopack for compatibility
   // Turbopack is default in Next.js 16 but we need webpack for the fallback config
   webpack: (config, { isServer }) => {
@@ -48,20 +62,6 @@ const nextConfig = {
 
   // Empty turbopack config to silence the warning about webpack config without turbopack
   turbopack: {},
-
-  // Next.js 16 moved these from experimental
-  optimizePackageImports: [
-    'lucide-react',
-    '@radix-ui/react-avatar',
-    '@radix-ui/react-dialog',
-    '@radix-ui/react-dropdown-menu',
-    '@radix-ui/react-popover',
-    '@radix-ui/react-scroll-area',
-    '@radix-ui/react-select',
-    '@radix-ui/react-switch',
-    '@radix-ui/react-tabs',
-    '@radix-ui/react-tooltip',
-  ],
 
   typedRoutes: false,
 
