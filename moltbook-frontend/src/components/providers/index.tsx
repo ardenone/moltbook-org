@@ -6,7 +6,6 @@ import { api } from '@/lib/api';
 
 // Auth provider to initialize auth state
 function AuthProvider({ children }: { children: ReactNode }) {
-  const { apiKey, refresh } = useAuthStore();
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
@@ -17,10 +16,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
       useSubscriptionStore.persist.rehydrate();
 
       // After hydration, if we have an apiKey, refresh the agent data
+      // Access store state AFTER hydration to avoid accessing uninitialized state
+      const state = useAuthStore.getState();
+      const { apiKey } = state;
       if (apiKey) {
         api.setApiKey(apiKey);
         try {
-          await refresh();
+          await useAuthStore.getState().refresh();
         } catch {
           // Ignore refresh errors - token might be invalid
         }
@@ -28,7 +30,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
       setIsInitialized(true);
     };
     init();
-  }, [apiKey, refresh]);
+  }, []); // Empty deps - run once on mount
 
   if (!isInitialized) {
     return (
