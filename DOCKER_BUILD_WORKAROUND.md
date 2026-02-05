@@ -37,7 +37,7 @@ This is **NOT a Docker Hub rate limit issue** despite the bead title. The actual
 
 ### Current Workflow Status
 
-⚠️ The GitHub Actions workflow (`.github/workflows/build-push.yml`) is **configured but failing**.
+⚠️ The GitHub Actions workflow (`.github/workflows/build-images.yml`) is **configured but failing**.
 
 **Issue**: All 34 workflow runs failed with "Server Error" from `docker/metadata-action@v5`
 
@@ -56,7 +56,7 @@ git push origin main
 Or trigger manually:
 
 ```bash
-gh workflow run build-push.yml
+gh workflow run build-images.yml
 gh run watch
 ```
 

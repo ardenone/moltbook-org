@@ -28,7 +28,7 @@ ERROR: mount source: "overlay", target: "...", fstype: overlay, flags: 0, data: 
 
 **Best for**: Production builds, automated deployments, team collaboration
 
-The `.github/workflows/build-push.yml` workflow builds images on GitHub runners (Ubuntu VMs) without nested overlay issues.
+The `.github/workflows/build-images.yml` workflow builds images on GitHub runners (Ubuntu VMs) without nested overlay issues.
 
 **Pros**:
 - Native Docker environment on Ubuntu runners
@@ -46,11 +46,11 @@ The `.github/workflows/build-push.yml` workflow builds images on GitHub runners 
 git push origin main
 
 # Manual: Using GitHub CLI
-gh workflow run build-push.yml
+gh workflow run build-images.yml
 gh run watch
 
 # Manual: Using web interface
-# Visit: https://github.com/ardenone/moltbook-org/actions/workflows/build-push.yml
+# Visit: https://github.com/ardenone/moltbook-org/actions/workflows/build-images.yml
 ```
 
 ---
@@ -149,7 +149,7 @@ docker push ghcr.io/ardenone/moltbook-frontend:latest
 ## Which Solution Should I Use?
 
 ### For Production/CI/CD
-→ **GitHub Actions** (`.github/workflows/build-push.yml`)
+→ **GitHub Actions** (`.github/workflows/build-images.yml`)
 - Automated builds on push
 - No manual intervention
 - Integrated with deployment pipeline
@@ -172,7 +172,7 @@ docker push ghcr.io/ardenone/moltbook-frontend:latest
 ```
 moltbook-org/
 ├── .github/workflows/
-│   └── build-push.yml              # GitHub Actions workflow
+│   └── build-images.yml            # GitHub Actions workflow
 ├── k8s/kaniko/
 │   ├── build-runner-deployment.yml  # Kaniko deployment
 │   ├── build-scripts-configmap.yml  # Build scripts
