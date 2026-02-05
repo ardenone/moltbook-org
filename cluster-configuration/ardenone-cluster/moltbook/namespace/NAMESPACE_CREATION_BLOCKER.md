@@ -128,5 +128,6 @@ See `cluster-configuration/ardenone-cluster/argocd/BLOCKER.md` for ArgoCD instal
 
 ---
 
-**Last Updated**: 2026-02-05
+**Last Updated**: 2026-02-05T11:42:10+00:00
 **Bead**: mo-13e5
+**Verified**: Namespace does not exist, devpod lacks creation permissions, ArgoCD not installed
