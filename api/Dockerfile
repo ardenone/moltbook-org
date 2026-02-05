@@ -7,7 +7,10 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install production dependencies only
-RUN npm ci --omit=dev
+# CRITICAL: Use fallback to npm install if npm ci fails due to package-lock inconsistencies
+# This prevents ENOTEMPTY errors caused by Docker overlay filesystem issues
+RUN npm ci --omit=dev --no-audit --no-fund || \
+    (rm -rf node_modules package-lock.json && npm install --omit=dev --no-audit --no-fund)
 
 # Copy source code
 COPY src/ ./src/

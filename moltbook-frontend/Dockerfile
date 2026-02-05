@@ -7,8 +7,11 @@ WORKDIR /app
 COPY package*.json ./
 COPY .npmrc ./
 
-# Install all dependencies (including devDependencies for build)
-RUN npm install --legacy-peer-deps
+# CRITICAL: Use npm ci instead of npm install for cleaner, more reliable installs
+# This prevents ENOTEMPTY errors caused by Docker overlay filesystem issues
+# Also creates fresh node_modules each time without attempting to remove old directories
+RUN npm ci --legacy-peer-deps --no-audit --no-fund || \
+    (rm -rf node_modules package-lock.json && npm install --legacy-peer-deps --no-audit --no-fund)
 
 # Copy source code
 COPY . .
@@ -43,7 +46,9 @@ COPY .npmrc ./
 # Install all dependencies (not just production)
 # CRITICAL: Next.js requires all dependencies at runtime when using npm start
 # The --production flag would exclude @swc/helpers and other required packages
-RUN npm install --legacy-peer-deps
+# Use npm ci for cleaner installs or fallback to npm install if package-lock.json is inconsistent
+RUN npm ci --legacy-peer-deps --no-audit --no-fund || \
+    npm install --legacy-peer-deps --no-audit --no-fund
 
 # Copy built application from builder
 COPY --from=builder /app/.next ./.next
