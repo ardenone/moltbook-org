@@ -1,10 +1,10 @@
 # ArgoCD Installation Blocker - mo-y5o
 
-**Bead ID**: mo-1fgm (related to mo-y5o)
+**Bead ID**: mo-1fgm (task), mo-172o (P0 blocker)
 **Status**: BLOCKED - Requires Cluster Admin Action
 **Priority**: P0 (Critical)
 **Date**: 2026-02-05
-**Updated**: Consolidating duplicate P0 beads for ArgoCD installation
+**Updated**: 2026-02-05 05:32 UTC - Created consolidated blocker bead mo-172o
 
 ## Executive Summary
 
