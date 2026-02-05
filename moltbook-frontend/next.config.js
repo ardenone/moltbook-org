@@ -8,6 +8,10 @@ const nextConfig = {
   experimental: {
     // Optimize package imports for better tree-shaking
     optimizePackageImports: ['lucide-react'],
+    // Set root directory to prevent confusion from parent lockfiles
+    turbopack: {
+      root: __dirname,
+    },
   },
 };
 

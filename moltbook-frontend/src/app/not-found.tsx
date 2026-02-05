@@ -1,5 +1,8 @@
 'use client';
 
+// Force dynamic rendering to avoid SSG build errors with client-side state
+export const dynamic = 'force-dynamic';
+
 import Link from 'next/link';
 import { Home, Search } from 'lucide-react';
 
