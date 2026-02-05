@@ -1,9 +1,9 @@
 # Moltbook Deployment Status - ardenone-cluster
 
 **Task**: mo-3ttq - Deploy: Complete Moltbook deployment to ardenone-cluster (waiting for RBAC)
-**Date**: 2026-02-05 (Updated 10:02 UTC)
+**Date**: 2026-02-06 (Updated 10:11 UTC)
 **Status**: 🔴 BLOCKED - Requires cluster-admin privileges
-**Latest Verification**: Namespace creation attempted - RBAC block confirmed (`User "system:serviceaccount:devpod:default" cannot create resource "namespaces"`). 40+ P0 blocker beads exist. Cluster-admin action required.
+**Latest Verification**: Namespace/ArgoCD not exist, RBAC block confirmed. Argo Rollouts CRDs present but NOT ArgoCD. 4 active P0 blockers (mo-1nen, mo-2mws, mo-3uep, mo-11z8). Cluster-admin action required.
 
 ---
 
@@ -652,3 +652,15 @@ kubectl auth can-i create namespaces --as=system:serviceaccount:devpod:default
 | 2026-02-06 10:11 UTC | Resource inventory | ✅ 1 Cluster, 4 ConfigMaps, 4 Deployments, 2 IngressRoutes, 3 Middleware, 1 Namespace, 1 Role, 1 RoleBinding, 3 SealedSecret, 4 Services | mo-3ttq (claude-glm-india) |
 | 2026-02-06 10:11 UTC | Existing P0 blockers | ✅ Confirmed (mo-1nen, mo-2mws, mo-3uep, mo-11z8) | mo-3ttq (claude-glm-india) |
 | 2026-02-06 10:11 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-india) |
+| 2026-02-06 10:11 UTC | Namespace `moltbook` | ❌ NotFound | mo-3ttq (claude-glm-hotel) |
+| 2026-02-06 10:11 UTC | ArgoCD namespace | ❌ NotFound (CRDs not installed) | mo-3ttq (claude-glm-hotel) |
+| 2026-02-06 10:11 UTC | ClusterRole `namespace-creator` | ❌ NotFound | mo-3ttq (claude-glm-hotel) |
+| 2026-02-06 10:11 UTC | ClusterRoleBinding `devpod-namespace-creator` | ❌ NotFound | mo-3ttq (claude-glm-hotel) |
+| 2026-02-06 10:11 UTC | Devpod SA create namespace | ❌ Forbidden (namespaces is forbidden) | mo-3ttq (claude-glm-hotel) |
+| 2026-02-06 10:11 UTC | SealedSecret CRD | ✅ Installed (sealedsecrets.bitnami.com) | mo-3ttq (claude-glm-hotel) |
+| 2026-02-06 10:11 UTC | kubectl kustomize k8s/ | ✅ Validated (24+ resources) | mo-3ttq (claude-glm-hotel) |
+| 2026-02-06 10:11 UTC | k8s/ manifests verified | ✅ All manifests ready (NAMESPACE_SETUP_REQUEST.yml available) | mo-3ttq (claude-glm-hotel) |
+| 2026-02-06 10:11 UTC | Container images verified | ✅ ghcr.io/ardenone/moltbook-api:latest, ghcr.io/ardenone/moltbook-frontend:latest | mo-3ttq (claude-glm-hotel) |
+| 2026-02-06 10:11 UTC | SealedSecrets verified | ✅ 3 sealed secrets ready (API, DB, superuser) | mo-3ttq (claude-glm-hotel) |
+| 2026-02-06 10:11 UTC | Existing P0 blockers | ✅ mo-1nen, mo-2mws, mo-3uep, mo-11z8 confirmed (NOT creating new duplicate) | mo-3ttq (claude-glm-hotel) |
+| 2026-02-06 10:11 UTC | Task status | 🔴 BLOCKED - Awaiting cluster-admin action | mo-3ttq (claude-glm-hotel) |
