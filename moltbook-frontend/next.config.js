@@ -6,11 +6,7 @@ const nextConfig = {
 
   productionBrowserSourceMaps: false,
 
-  // CRITICAL: Use export mode to disable server-side rendering
-  // This prevents Next.js from executing client components during build
-  // which causes "createContext is not a function" errors in Docker builds
-  output: 'export',
-
+  // Disable static image optimization for container deployment
   images: {
     unoptimized: true,
   },
