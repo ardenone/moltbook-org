@@ -45,3 +45,7 @@ public/workbox-*.js
 # Misc
 *.log
 .cache/
+
+# npm cache
+.npm-cache/
+/tmp/npm-cache-new/
