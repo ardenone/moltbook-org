@@ -1,9 +1,9 @@
-// Force dynamic rendering to avoid SSG build issues with React Context
-export const dynamic = 'force-dynamic';
-
 import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import '@/styles/globals.css';
+
+// Force dynamic rendering to avoid SSG build issues with React Context
+export const dynamic = 'force-dynamic';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
 const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });

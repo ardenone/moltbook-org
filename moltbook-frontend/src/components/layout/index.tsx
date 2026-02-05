@@ -10,8 +10,9 @@ import { Button, Avatar, AvatarImage, AvatarFallback, Input, Skeleton } from '@/
 import { Home, Search, Bell, Plus, Menu, X, Settings, LogOut, User, Flame, Clock, TrendingUp, Zap, ChevronDown, Moon, Sun, Hash, Users } from 'lucide-react';
 import { getInitials } from '@/lib/utils';
 
-// Re-export client wrapper that prevents createContext errors during build
+// Re-export client wrappers that prevent createContext errors during build
 export { RootLayoutClient } from './root-layout-client';
+export { MainLayoutClient } from './main-layout-client';
 
 // Header
 export function Header() {
