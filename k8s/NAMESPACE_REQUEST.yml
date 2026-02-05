@@ -1,7 +1,7 @@
 ---
 # Namespace Creation Request for Moltbook Platform
 #
-# BLOCKER: mo-2gd3 - Namespace 'moltbook' does not exist
+# BLOCKER: mo-35ca - Namespace 'moltbook' does not exist
 # ArgoCD is NOT installed in ardenone-cluster.
 # The devpod ServiceAccount lacks permission to create namespaces.
 #
