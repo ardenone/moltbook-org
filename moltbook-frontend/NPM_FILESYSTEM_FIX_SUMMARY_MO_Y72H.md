@@ -36,23 +36,61 @@ tar cf - -C /tmp/npm-install-clean node_modules | tar xf - -
 npx pnpm install --store-dir /tmp/pnpm-store
 ```
 
+## Full Solution (2026-02-05)
+
+The filesystem corruption affects BOTH `npm install` AND `npm run build`. Both operations must be performed in `/tmp` and transferred via tar.
+
+### Complete Fix Commands:
+
+```bash
+# 1. Create clean working directory in /tmp (different filesystem)
+mkdir -p /tmp/moltbook-frontend-build
+
+# 2. Copy entire project using tar (handles corruption better than cp)
+tar cf - -C /home/coder/Research/moltbook-org/moltbook-frontend . | tar xf - -C /tmp/moltbook-frontend-build/
+
+# 3. Install dependencies in /tmp using pnpm
+cd /tmp/moltbook-frontend-build
+npx pnpm install --store-dir /tmp/pnpm-store --force
+
+# 4. Transfer node_modules back using tar
+cd /home/coder/Research/moltbook-org/moltbook-frontend
+tar cf - -C /tmp/moltbook-frontend-build node_modules | tar xf - -
+
+# 5. Build in /tmp (avoids filesystem corruption during build)
+cd /tmp/moltbook-frontend-build
+npm run build
+
+# 6. Transfer .next build artifacts back using tar
+cd /home/coder/Research/moltbook-org/moltbook-frontend
+rm -rf .next
+tar cf - -C /tmp/moltbook-frontend-build .next | tar xf - -
+```
+
 ## Verification (2026-02-05)
 ```bash
 # pnpm install
 npx pnpm install --store-dir /tmp/pnpm-store
 # Output: Already up to date
-#         Done in 780ms using pnpm v10.28.2
+#         Done in 743ms using pnpm v10.28.2
 
 # Build verification
 npm run build
-# Output: Build completed successfully
+# Output: ✓ Compiled successfully in 3.2s
 #         All routes compiled successfully
+#         22 routes generated
+
+# Test verification
+npm test
+# Output: Test Suites: 2 passed, 2 total
+#         Tests: 36 passed, 36 total
 ```
 
 ## Status
-- **RESOLVED**: pnpm install and npm build both work successfully
+- **RESOLVED**: pnpm install, npm build, and npm test all work successfully
 - The Turbopack configuration in `next.config.js` bypasses the webpack issuerLayer bug
 - Frontend can now be built and tested normally
+- **CRITICAL**: Both install AND build must be done in /tmp due to filesystem corruption
 
 ## Related Files
 - `FILESYSTEM_WORKAROUND.md` - Original workaround documentation (uses npm, but pnpm works better)

@@ -548,3 +548,24 @@ kubectl get application moltbook -n argocd
 **Research Completed**: 2026-02-05
 **Researcher**: mo-196j (claude-glm-echo worker)
 **Status**: Complete - Both options are viable, choice depends on argocd-manager access
+
+---
+
+## Re-Verification (2026-02-05 12:25 UTC)
+
+**Task**: mo-196j follow-up verification
+
+**Findings**:
+1. ✅ **argocd-manager.ardenone.com HTTPS health check passes** - Returns "ok"
+2. ❌ **HTTP connection fails** - Server accepts HTTPS only (HTTP returns connection error)
+3. ✅ **argocd-proxy is healthy** - Returns "OK" on local health endpoint
+4. ⚠️ **API requires authentication** - Returns "no session information" without token
+5. ✅ **argocd-manager-role ClusterRole exists** - Bound to argocd-manager SA in kube-system
+
+**Note**: Earlier research incorrectly concluded argocd-manager was down because it only tested HTTP. The server is accessible via HTTPS only.
+
+**Corrected findings**:
+- External ArgoCD IS online and functional (HTTPS)
+- argocd-proxy is configured correctly and healthy
+- Need valid credentials to access external ArgoCD API
+- Both external and local ArgoCD options are viable

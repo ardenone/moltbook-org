@@ -1,112 +1,126 @@
-# Longhorn PVC Filesystem Corruption Workaround
+# Devpod Filesystem Corruption - Workaround Documentation
 
-## Problem
+## Issue Summary (2026-02-05)
 
-The devpod's Longhorn PVC (`pvc-8260aa67-c0ae-49aa-a08e-54fbf98c32c1`) has filesystem corruption that causes `npm install` to fail with `ENOTEMPTY: directory not empty, rmdir` errors.
-
-## Symptoms
-
-- `npm install` fails with `ENOTEMPTY` errors during cleanup phase
-- `rm -rf node_modules` fails with `Directory not empty` errors
-- Directories show as both "not empty" and "no such file or directory"
-- Filesystem reports as clean with `e2fsck` but has operational inconsistencies
+The devpod's Longhorn PVC (`pvc-8260aa67-c0ae-49aa-a08e-54fbf98c32c1`) has severe filesystem corruption:
+- Files written immediately disappear
+- `npm install` fails with `TAR_ENTRY_ERROR ENOENT` errors
+- `pnpm install` fails with `ERR_PNPM_ENOENT` during file copy
+- Even tmpfs mounts are affected due to corrupted source files in pnpm store
 
 ## Root Cause
 
-The Longhorn PVC has filesystem-level corruption where:
-1. Directory entries exist in metadata but don't exist on disk
-2. Directories cannot be removed because the filesystem reports them as non-empty
-3. This affects both `/home/coder` and `/tmp` directories
+The ext4 filesystem on the Longhorn block device is experiencing data loss:
+1. Longhorn replica synchronization issues
+2. Network/storage layer problems between devpod and Longhorn volume
+3. Filesystem layer not properly flushing writes to stable storage
 
-## Workaround (pnpm - RECOMMENDED)
+## PVC Details
 
-This project uses pnpm. The `/tmp` directory workaround is more reliable than npm:
+- **PVC Name**: `coder-jeda-codespace-home`
+- **Volume**: `pvc-8260aa67-c0ae-49aa-a08e-54fbf98c32c1`
+- **Capacity**: 60Gi
+- **StorageClass**: `longhorn`
+- **Node**: `k3s-dell-micro`
+- **Status**: CRITICAL - Filesystem corrupted
+
+## Current Solution (2026-02-05)
+
+### Prerequisites
+- pnpm is already installed: `/home/coder/.local/share/pnpm/pnpm`
+- node_modules should be on tmpfs mount
+
+### Setup Instructions (Run each time devpod restarts)
 
 ```bash
-# 1. Create a clean working directory in /tmp
-mkdir -p /tmp/npm-install-clean
-
-# 2. Copy package files to clean directory
-cp /home/coder/Research/moltbook-org/moltbook-frontend/package.json /tmp/npm-install-clean/
-cp /home/coder/Research/moltbook-org/moltbook-frontend/pnpm-lock.yaml /tmp/npm-install-clean/
-cp /home/coder/Research/moltbook-org/moltbook-frontend/.npmrc /tmp/npm-install-clean/
-
-# 3. Install in clean directory using pnpm with separate store
-cd /tmp/npm-install-clean
-npx pnpm install --store-dir /tmp/pnpm-store
-
-# 4. Force remove corrupted node_modules and replace
 cd /home/coder/Research/moltbook-org/moltbook-frontend
-find node_modules -delete 2>/dev/null || true
-cp -r /tmp/npm-install-clean/node_modules /home/coder/Research/moltbook-org/moltbook-frontend/
 
-# 5. Verify install works
-npx pnpm install --store-dir /tmp/pnpm-store
+# 1. Mount tmpfs on node_modules (if not already mounted)
+if ! mount | grep -q "node_modules type tmpfs"; then
+    sudo mount -t tmpfs -o size=16G,nr_inodes=2M,nodev,nosuid tmpfs node_modules
+    sudo chown coder:coder node_modules
+fi
+
+# 2. Install dependencies using pnpm with clean store
+export PATH="/home/coder/.local/share/pnpm:$PATH"
+pnpm install --force --shamefully-hoist --store-dir=/tmp/pnpm-store-clean
+
+# 3. Build and test
+pnpm run build
+pnpm run test
 ```
 
-## Workaround (npm - ALTERNATIVE)
+### Important Notes
 
-If npm must be used:
+1. **node_modules on tmpfs is NOT persistent** - will be lost on pod restart
+2. **Always use pnpm** - npm does not work with this project
+3. **Build script updated to use pnpm** - see package.json
+4. **Turbopack enabled** - bypasses webpack issuerLayer errors
 
+## Build Configuration Changes
+
+### package.json
+```json
+"scripts": {
+  "build": "NODE_OPTIONS='--max-old-space-size=4096' pnpm run build:next",
+  "build:next": "pnpm exec next build --turbopack"
+}
+```
+
+### next.config.js
+```javascript
+// Using Turbopack to avoid webpack issuerLayer errors
+turbopack: {
+  root: __dirname,
+}
+```
+
+## Long-term Solutions
+
+### Option 1: Recreate Devpod with New PVC (Recommended)
+
+Request cluster admin to:
+1. Delete the current devpod
+2. Delete the PVC `coder-jeda-codespace-home`
+3. Create a new devpod with a fresh PVC
+
+**Impact:**
+- Requires backing up important data from `/home/coder`
+- All data in home directory will be lost
+- Takes time to recreate and configure
+
+### Option 2: Schedule PVC Maintenance
+
+The Longhorn volume may need:
+- Replica resynchronization
+- Snapshot rollback to a known good state
+- Volume expansion/contraction to force data migration
+
+### Option 3: Use Persistent tmpfs (Current Workaround)
+
+- Mount node_modules on tmpfs at startup
+- Reinstall dependencies on each pod restart
+- Add to startup script or devpod configuration
+
+## Verification
+
+To verify the issue persists:
 ```bash
-# 1. Create a clean working directory
-mkdir -p /home/coder/npm-install-workaround
-
-# 2. Copy package files to clean directory
-cp /home/coder/Research/moltbook-org/moltbook-frontend/package.json /home/coder/npm-install-workaround/
-
-# 3. Install in clean directory
-cd /home/coder/npm-install-workaround
-npm install --legacy-peer-deps
-
-# 4. Replace the corrupted node_modules
-mv /home/coder/Research/moltbook-org/moltbook-frontend/node_modules /home/coder/Research/moltbook-org/moltbook-frontend/node_modules.failed
-mv /home/coder/npm-install-workaround/node_modules /home/coder/Research/moltbook-org/moltbook-frontend/node_modules
-
-# 5. Verify install works
 cd /home/coder/Research/moltbook-org/moltbook-frontend
-npm install --legacy-peer-deps
+rm -rf node_modules package-lock.json
+npm install 2>&1 | grep -E "(TAR_ENTRY_ERROR|ENOENT)"
 ```
 
-## Resolution (2026-02-05)
+Expected output if issue exists: Many `TAR_ENTRY_ERROR ENOENT` warnings.
 
-The issue was resolved through a multi-step approach:
+## Status
 
-1. **Filesystem Workaround**: Used a clean working directory (`/home/coder/npm-install-workaround`) to install packages outside the corrupted filesystem areas
-2. **Package Manager Switch**: Switched from npm to pnpm which handles the corrupted filesystem more gracefully
-3. **Build System Fix**: Switched from webpack to Turbopack to bypass the "Cannot read properties of undefined (reading 'issuerLayer')" webpack bug that occurred with Next.js 16 + React 19
+- [x] Issue confirmed and documented
+- [x] Temporary workaround implemented (tmpfs + pnpm)
+- [x] Build configuration fixed (Turbopack + pnpm)
+- [ ] Permanent fix scheduled (new PVC)
 
-### Changes Made:
-- `next.config.js`: Enabled `turbopack: { root: __dirname }` to use Turbopack instead of webpack
-- `package.json`: Changed `build:next` script from `next build --webpack` to `next build`
+## Related Tasks
 
-This combination of fixes allows the project to build successfully despite the underlying filesystem corruption.
-
-### If Build Fails Again:
-```bash
-# Clean install using pnpm in a clean directory
-rm -rf node_modules
-mkdir -p /tmp/pnpm-clean-install
-cp package.json pnpm-lock.yaml /tmp/pnpm-clean-install/
-cd /tmp/pnpm-clean-install
-npx pnpm install --store-dir /tmp/pnpm-store
-# Use tar to transfer (NOT cp or mv)
-tar cf - -C /tmp/pnpm-clean-install node_modules | tar xf - -
-```
-
-## Resolution Status (2026-02-05)
-
-**RESOLVED**: The workaround using `/tmp` with `pnpm` and `tar` transfer is fully functional:
-- `pnpm install` works in 780ms
-- `npm run build` completes successfully
-- All 764 packages installed correctly
-- node_modules is 2.2GB and stable
-
-## Long-term Solution
-
-The Longhorn PVC should be:
-1. Backed up if needed
-2. Deleted
-3. Recreated with a fresh volume
-
-This requires devpod recreation coordination.
+- Bead: mo-y72h - Infra: Devpod filesystem corruption blocking npm install
+- Bead: mo-1nf - Code fixes that need verification after filesystem fix
